@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Native Interface Security</title>
+</head>
+<body>
+<h2>The Native Interface Security Project</h2>
+<hr>
+
+<h3>Overview</h3>
+<p>
+    The native function interfaces (NFIs) are ubiquitous in many real
+    languages and software systems, and are becoming indispensable components.
+    For instance, Java introduces the Java Native Interfaces (JNIs)
+    standards, Python introduces the Python/C API, and Julia introducing
+    the <tt>ccall</tt> syntax. NFIs bring many key advantages
+    to the whole software development process: first, it makes it
+    easy to develop software components using multiple languages, to
+    take the full expressiveness of different languages, for instance,
+    in an AI system, many computation density components can be
+    implemented more efficiently in C/C++ instead of Python; second, it
+    make it possible to reuse many existing software systems without
+    reinventing the wheels; finally, NFIs make software development
+    more modular.
+</p>
+
+<p>
+    Although NFIs are very important in real systems, it brings grand
+    challenges to guarantee the safety and security of such systems.
+    Due to the intrinsic differences between different languages: the
+    memory model, the data layout, the calling convention, the memory
+    management, the locking strategies, among many others, it's
+    very challenging to write reliable multilingual software systems.
+    Taking Python as an example, Python has built-in support for
+    garbage collection, whereas C does not have, so an object allocated
+    in C has to be reclaimed manually. Failure to do so may
+    result in a memory leaking. As one can imagine, this is rather
+    a tedious and error-prone process.
+</p>
+
+<p>
+    The goal of this project is to investigate the security of
+    the native function interfaces. To be specific, this project aims to:
+</p>
+<ul>
+    <li>
+        perform thorough study on vulnerabilities of current NFIs, and
+        investigate the common bug patterns;
+    </li>
+    <li>
+        study effective techniques to fix these vulnerabilities automatically (APR);
+    </li>
+    <li>
+        develop practical system prototypes.
+    </li>
+</ul>
+
+
+<h3>Publications</h3>
+<ul>
+    <li></li>
+</ul>
+
+
+<h3>Members</h3>
+<ul>
+    <li>Qiliang Fan</li>
+    <li>Baojian Hua</li>
+    <li>Chengman Jiang</li>
+    <li>Zhizhong Pan</li>
+</ul>
+
+
+
+</body>
+</html>
