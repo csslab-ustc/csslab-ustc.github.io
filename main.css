@@ -1,0 +1,103 @@
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol";
+	padding: 0;
+	margin: 0;
+}
+
+div.main-container {
+	min-height: 100vh;
+	background: white;
+	margin: auto;
+}
+
+div.header-container {
+	width: 100%;
+	height: 90px;
+}
+
+div.header {
+	width: 100vw;
+	height: 90px;
+	background: #3b4249;
+	z-index: 1;
+	position: fixed;
+	display: inline-block;
+}
+
+div.header-text {
+	margin-top: 6px;
+	margin-left: 20px;
+	color: white;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+div.header-img {
+	margin-top: 6px;
+	margin-left: 20px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+div.layout {
+	width: 100vw;
+	/*margin-top: 90px;*/
+	padding-bottom: 0;
+	margin: auto;
+	/*display: inline-block;*/
+}
+
+div.layout-menu-container {
+	position: fixed;
+}
+
+div.layout-menu {
+	padding: 100px 0px 25px;
+	min-height: 100vh;
+	width: 10%;
+	background: #f6f8fa;
+	/*border-right: 1px solid #e1e4e8;*/
+}
+
+div.menu-item {
+	font-size: 22px;
+	padding-left: 50px;
+	padding-right: 25px;
+	/*margin-top: 10px;*/
+}
+
+.layout-menu a:link {
+	padding: 0px;
+	line-height: 2;
+	color: #0366d6;
+	text-decoration: none;
+}
+
+.layout-menu a:visited {
+	padding: 0px;
+	line-height: 2;
+	color: #0366d6;
+	text-decoration: none;
+}
+
+.layout-menu a:hover {
+	padding: 0px;
+	line-height: 2;
+	color: #999999;
+	text-decoration: underline;
+}
+
+div.layout-content-container {
+	background: none;
+	text-align: left;
+	/*display: inline-block;*/
+}
+
+div.layout-content {
+	padding-top: 95px;
+	min-width: 200px;
+	max-width: 1200px;
+	/*margin: auto;*/
+	margin-left: 15%;
+}
