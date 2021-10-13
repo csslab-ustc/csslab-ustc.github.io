@@ -1,0 +1,431 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>lec1notes</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab1"></a><h1 class="section">Some notes for lecture 1</h1>
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+In an email, one student in our class, Yunpeng, asked me
+   how to slove the last three problems. Here, I posted
+   my version of the solution for your reference. Nevertheless
+   to say: 
+   1. my solution is by no means the simplest one; and
+   2. the solution should not be unique, so you're
+   encouraged to invent your own ones. 
+   
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <span class="id" type="var">Coq.Init.Peano</span>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <span class="id" type="var">Coq.Arith.Plus</span>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Export</span> <span class="id" type="var">Coq.omega.Omega</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab2"></a><h4 class="section">Exercise: 4 stars, recommended (binary)</h4>
+
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+Consider a different, more efficient representation of natural
+    numbers using a binary rather than unary system.  That is, instead
+    of saying that each natural number is either zero or the successor
+    of a natural number, we can say that each binary number is either
+<ul>
+<li> zero,
+
+</li>
+<li> twice a binary number, or
+
+</li>
+<li> one more than twice a binary number.
+
+</li>
+</ul>
+    (a) First, write an inductive definition of the type <span class="inlinecode"><span class="id" type="var">bin</span></span>
+        corresponding to this description of binary numbers. 
+
+<br/> <br/>
+    (Hint: recall that the definition of <span class="inlinecode"><span class="id" type="var">nat</span></span> from class,
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">Inductive</span> <span class="id" type="var">nat</span> : <span class="id" type="keyword">Type</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">O</span> : <span class="id" type="var">nat</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">S</span> : <span class="id" type="var">nat</span> -&gt; <span class="id" type="var">nat</span>.
+<br/> <br/>
+</span>    says nothing about what <span class="inlinecode"><span class="id" type="var">O</span></span> and <span class="inlinecode"><span class="id" type="var">S</span></span> "mean".  It just says "<span class="inlinecode"><span class="id" type="var">O</span></span> is
+    a nat (whatever that is), and if <span class="inlinecode"><span class="id" type="var">n</span></span> is a nat then so is <span class="inlinecode"><span class="id" type="var">S</span> <span class="id" type="var">n</span></span>".
+    The interpretation of <span class="inlinecode"><span class="id" type="var">O</span></span> as zero and <span class="inlinecode"><span class="id" type="var">S</span></span> as successor/plus one
+    comes from the way that we use nat values, by writing functions to
+    do things with them, proving things about them, and so on.  Your
+    definition of <span class="inlinecode"><span class="id" type="var">bin</span></span> should be correspondingly simple; it is the
+    functions you will write next that will give it mathematical
+    meaning.)
+    
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Inductive</span> <span class="id" type="var">bin</span>: <span class="id" type="keyword">Type</span> :=<br/>
+| <span class="id" type="var">Zero</span>: <span class="id" type="var">bin</span><br/>
+| <span class="id" type="var">Twice</span>: <span class="id" type="var">bin</span> -&gt; <span class="id" type="var">bin</span><br/>
+| <span class="id" type="var">More</span>: <span class="id" type="var">bin</span> <a name="inc"><span class="id" type="definition">-&gt;</span></a> <span class="id" type="var">bin</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+    (b) Next, write an increment function for binary numbers, and a
+        function to convert binary numbers to unary numbers.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">inc</span>(<span class="id" type="var">b</span>: <span class="id" type="var">bin</span>): <span class="id" type="var">bin</span> := <br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a name="convert"><span class="id" type="definition">b</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="lec1notes.html#bin"><span class="id" type="inductive">|</span></a> <span class="id" type="var">Zero</span> <a class="idref" href="http://coq.inria.fr/distrib/8.3pl3/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">=</span></a>&gt; <span class="id" type="var">More</span> <span class="id" type="var">Zero</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Twice</span> <span class="id" type="var">x</span> <a class="idref" href="lec1notes.html#Zero"><span class="id" type="constructor">=&gt;</span></a> <span class="id" type="var">More</span> <span class="id" type="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="lec1notes.html#Twice"><span class="id" type="constructor">More</span></a> <span class="id" type="var">x</span> =&gt; <span class="id" type="var">Twice</span> <a class="idref" href="lec1notes.html#convert"><span class="id" type="definition">(</span></a><a class="idref" href="lec1notes.html#convert"><span class="id" type="definition">inc</span></a> <a class="idref" href="lec1notes.html#convert"><span class="id" type="definition">x</span></a>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Here, I define the result type to be <span class="inlinecode"><span class="id" type="var">nat</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">convert</span> (<span class="id" type="var">b</span>: <span class="id" type="var">bin</span>): <span class="id" type="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">b</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Zero</span> =&gt; <span class="id" type="var">O</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Twice</span> <span class="id" type="var">x</span> =&gt; 2 * (<span class="id" type="var">convert</span> <span class="id" type="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">More</span> <span class="id" type="var">x</span> =&gt; 2 * (<span class="id" type="var">convert</span> <span class="id" type="var">x</span>) + 1<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<br/> <br/>
+    (c) Finally, prove that your increment and binary-to-unary
+        functions commute: that is, incrementing a binary number and
+        then converting it to unary yields the same result as first
+        converting it to unary and then incrementing.  
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">commu</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> (<span class="id" type="var">b</span>: <span class="id" type="var">bin</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">convert</span> (<span class="id" type="var">inc</span> <span class="id" type="var">b</span>) = (<span class="id" type="var">convert</span> <span class="id" type="var">b</span>) + 1.<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">b</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHb</span>.<br/>
+<span class="id" type="tactic">omega</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab3"></a><h4 class="section">Exercise: 5 stars (binary_inverse)</h4>
+
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+This exercise is a continuation of the previous exercise about
+    binary numbers.  You will need your definitions and theorems from
+    the previous exercise to complete this one.
+
+<br/> <br/>
+    (a) First, write a function to convert natural numbers to binary
+        numbers.  Then prove that starting with any natural number,
+        converting to binary, then converting back yields the same
+        natural number you started with.
+
+<br/> <br/>
+        
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">nat2bin</span> (<span class="id" type="var">n</span>: <span class="id" type="var">nat</span>): <span class="id" type="var">bin</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">n</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">O</span> =&gt; <span class="id" type="var">Zero</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">S</span> <span class="id" type="var">n'</span> =&gt; <span class="id" type="var">inc</span> (<span class="id" type="var">nat2bin</span> <span class="id" type="var">n'</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">binarymap</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>: <span class="id" type="var">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">convert</span> (<span class="id" type="var">nat2bin</span> <span class="id" type="var">n</span>) = <span class="id" type="var">n</span>.<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">n</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">commu</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHn</span>.<br/>
+<span class="id" type="tactic">omega</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<br/> <br/>
+    (b) You might naturally think that we should also prove the
+        opposite direction: that starting with a binary number,
+        converting to a natural, and then back to binary yields the
+        same number we started with.  However, it is not true!
+        Explain what the problem is.
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">Solution</span>.</span> It's not hard to show that the representation of <span class="inlinecode"><span class="id" type="var">same</span>
+   <span class="id" type="var">binary</span></span> is not unique. Consider, for instance, the nat 0
+   has at least these representations: Zero, Twice Zero, 
+   Twice (Twice Zero), ...   
+   
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+
+<br/> <br/>
+    (c) Define a function <span class="inlinecode"><span class="id" type="var">normalize</span></span> from binary numbers to binary
+        numbers such that for any binary number b, converting to a
+        natural and then back to binary yields <span class="inlinecode">(<span class="id" type="var">normalize</span> <span class="id" type="var">b</span>)</span>.  Prove
+        it.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Definition</span> <span class="id" type="var">bindouble</span> (<span class="id" type="var">b</span>: <span class="id" type="var">bin</span>): <span class="id" type="var">bin</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">b</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Zero</span> =&gt; <span class="id" type="var">Zero</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Twice</span> <span class="id" type="var">x</span> =&gt; <span class="id" type="var">Twice</span> (<span class="id" type="var">Twice</span> <span class="id" type="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">More</span> <span class="id" type="var">x</span> =&gt; <span class="id" type="var">Twice</span> (<span class="id" type="var">More</span> <span class="id" type="var">x</span>)<br/>
+<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <span class="id" type="var">l0</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">inc</span> (<span class="id" type="var">inc</span> (<span class="id" type="var">bindouble</span> <span class="id" type="var">b</span>)) = <span class="id" type="var">bindouble</span> (<span class="id" type="var">inc</span> <span class="id" type="var">b</span>).<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">b</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <span class="id" type="var">l1</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">nat2bin</span> (<span class="id" type="var">n</span> + <span class="id" type="var">n</span>) = <span class="id" type="var">bindouble</span> (<span class="id" type="var">nat2bin</span> <span class="id" type="var">n</span>).<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">n</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> &lt;- <span class="id" type="var">plus_n_Sm</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHn</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">l0</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <span class="id" type="var">l2</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">n</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">nat2bin</span> (<span class="id" type="var">n</span> + <span class="id" type="var">n</span> + 1) = <span class="id" type="var">More</span> (<span class="id" type="var">nat2bin</span> <span class="id" type="var">n</span>).<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">n</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> &lt;- <span class="id" type="var">plus_n_Sm</span> <span class="id" type="keyword">with</span> (<span class="id" type="var">m</span>:=<span class="id" type="var">n</span>).<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">plus_Sn_m</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHn</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">normalize</span> (<span class="id" type="var">b</span>: <span class="id" type="var">bin</span>): <span class="id" type="var">bin</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">b</span> <span class="id" type="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Zero</span> =&gt; <span class="id" type="var">Zero</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Twice</span> <span class="id" type="var">x</span> =&gt; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">normalize</span> <span class="id" type="var">x</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Zero</span> =&gt; <span class="id" type="var">Zero</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">Twice</span> <span class="id" type="var">y</span> =&gt; <span class="id" type="var">Twice</span> (<span class="id" type="var">Twice</span> <span class="id" type="var">y</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">More</span> <span class="id" type="var">y</span> =&gt; <span class="id" type="var">Twice</span> (<span class="id" type="var">More</span> <span class="id" type="var">y</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">More</span> <span class="id" type="var">x</span> =&gt; <span class="id" type="var">More</span> (<span class="id" type="var">normalize</span> <span class="id" type="var">x</span>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Theorem</span> <span class="id" type="var">natmap</span>:<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">forall</span> <span class="id" type="var">b</span>: <span class="id" type="var">bin</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="var">nat2bin</span> (<span class="id" type="var">convert</span> <span class="id" type="var">b</span>) = <span class="id" type="var">normalize</span> <span class="id" type="var">b</span>.<br/>
+<span class="id" type="keyword">Proof</span>.<br/>
+<span class="id" type="tactic">induction</span> <span class="id" type="var">b</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> &lt;- <span class="id" type="var">plus_n_O</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">l1</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHb</span>.<br/>
+<span class="id" type="tactic">unfold</span> <span class="id" type="var">bindouble</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="tactic">simpl</span>.<br/>
+<span class="id" type="tactic">rewrite</span> &lt;- <span class="id" type="var">plus_n_O</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">l2</span>.<br/>
+<span class="id" type="tactic">rewrite</span> <span class="id" type="var">IHb</span>.<br/>
+<span class="id" type="tactic">reflexivity</span>.<br/>
+<span class="id" type="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab4"></a><h4 class="section">Exercise: 2 stars, optional (decreasing)</h4>
+
+</div>
+<div class="code">
+</div>
+
+<div class="doc">
+The requirement that some argument to each function be
+    "decreasing" is a fundamental feature of Coq's design: In
+    particular, it guarantees that every function that can be defined
+    in Coq will terminate on all inputs.  However, because Coq's
+    "decreasing analysis" is not very sophisticated, it is sometimes
+    necessary to write functions in slightly unnatural ways.
+
+<br/> <br/>
+    To get a concrete sense of this, find a way to write a sensible
+    <span class="inlinecode"><span class="id" type="keyword">Fixpoint</span></span> definition (of a simple function on numbers, say) that
+    <i>does</i> terminate on all inputs, but that Coq will <i>not</i> accept
+    because of this restriction. 
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">Solution</span>.</span> In Coq's world, as we've seen, the recursive
+   functions can be defined using <span class="inlinecode"><span class="id" type="keyword">Fixpoint</span></span>. However, for some
+   reason that we'll discuss later, Coq only allow terminating
+   functions, that is functions should not perform recursion
+   infinitely. For instance: this function <span class="inlinecode"><span class="id" type="var">f</span></span>
+   
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">f</span> (<span class="id" type="var">n</span>: <span class="id" type="var">nat</span>): <span class="id" type="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">n</span> <span class="id" type="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">O</span> =&gt; <span class="id" type="var">f</span> (<span class="id" type="var">S</span> <span class="id" type="var">O</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">S</span> <span class="id" type="var">n'</span> =&gt; <span class="id" type="var">f</span> (<span class="id" type="var">S</span> (<span class="id" type="var">S</span> <span class="id" type="var">n'</span>))<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+will not accepted by Coq as it will not terminate for any
+   coming arugments. You may notice that the function even does
+   NOT compile at all.
+   
+</div>
+<div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+Then the one natural problem is: how does Coq judge statically
+   whether or not
+   one function will terminate when run. Of course, this
+   problem is not computable. So Coq adopted a conservative
+   solution: there is at least one argument decreacing for 
+   recursive call. However, this strategy is too coarse in
+   some circumstance, for example, this function does
+   terminate for any input nats, but Coq complains...
+   
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Fixpoint</span> <span class="id" type="var">f</span> (<span class="id" type="var">n</span>: <span class="id" type="var">nat</span>): <span class="id" type="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <span class="id" type="var">n</span> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">O</span> =&gt; <span class="id" type="var">f</span> (<span class="id" type="var">S</span> <span class="id" type="var">O</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">S</span> <span class="id" type="var">n'</span> =&gt; <span class="id" type="var">O</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
