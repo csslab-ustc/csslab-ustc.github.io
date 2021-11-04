@@ -1,0 +1,320 @@
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Assignment 1: SoftWare Setup</title>
+  <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+  <h1>Assignment 1: Software Setup</h1>
+  <hr />
+
+  <h2>Overview</h2>
+  <p>
+    In this course, there will be (roughly) one assignment per week. The
+    purpose of these assignments is to familiarize you with the main
+    course topic. One novel point is that all these assignments will
+    be finished in a mechanized way, that is, you will finish them
+    using some tools. The tools used in this course are Coq, Z3, etc..
+  </p>
+
+  <p>
+    This is the first assignment, in Part A and B, you are required to
+    install all the necessary tools and software, and have some ideas
+    of how they work and how to use them. In Part C，you're going to
+    solve several problems as a Python warming up. Some problems are tagged
+    with <tt>Exercise</tt>, which you should solve. And one problem
+    is tagged with <tt>Challenge</tt>, which is optional.
+    For any problems, feel free to ask the TAs for help.
+  </p>
+
+  <h3>Hand-in Procedure</h3>
+
+  <p>
+    When you finished the assignment, zip you code files (exclude .venv folder) with file
+    name <tt>studentid-assignment1.zip</tt> (e.g <tt>SA19225111-assignment1.zip</tt>),
+    and submit it to
+    <a href="http://yjs.ustc.edu.cn/">Graduate Information Platform</a>.
+    The deadline is 11:59PM of 22th October 2021 (Beijing time).
+    <!--
+    is 11:59PM of 11th October 2020 (Beijing time).
+    -->
+    Any late submission
+    will <b>NOT</b> be accepted.
+  </p>
+
+  <hr />
+
+  <h2>Part A: Coq</h2>
+  <p>
+    Coq is a famous and also widely used formal proof management system.
+    It provides a formal language to write mathematical definitions,
+    executable algorithms and theorems together with an environment for
+    semi-interactive development of machine-checked proofs.
+    See <a href="https://coq.inria.fr/about-coq">more information </a> about Coq,
+    and <a href="https://coq.inria.fr/documentation">documentation </a> of Coq.
+  </p>
+
+  <p>In this class, we will do theorem proving for
+    propositional logic, predicate logic and constructive logic in Coq.</p>
+  <h3>Coq Installation</h3>
+  We'll use the latest Coq version 8.12.0, and the installation instructions
+  for different platforms can be found <a href="https://coq.inria.fr/download">here</a>.
+
+  <h3>Coq Warming Up</h3>
+  To validate your Coq installation, you can try the following warm-up.
+  Download the warm-up <a href="./code/coq_warming_up.v">sample code</a>,
+  Open your Coq IDE and open the above code file.<br>
+  After click <b>Go to end</b> Button, you will get the following output:
+
+  <pre>
+  = monday
+  : day
+  = tuesday
+  : day
+  </pre>
+
+  <hr />
+
+  <h2>Part B: Z3</h2>
+  <p>
+    Z3 is a theorem prover/solver from Microsoft Research.
+    In this course, you'll solve SAT & SMT problems using Z3,
+    and also you will have the opportunity to solve
+    many realistic problems using Z3: say, program verification, symbolic execution,
+    reversing engineering from information security, etc..
+    For more information about Z3, you can check it's
+    <a href="https://github.com/Z3Prover/z3">project homepage</a>.
+  </p>
+
+  <h3>Python Installation</h3>
+  <p>
+    In this course, we recommend you to use the Python Binding of Z3 (we'll
+    be using the Python binding to send out the assignments. Of course, there
+    are other bindings for Z3, say OCaml or .Net bindings, if you want to
+    use these bindings, talk to the TAs
+    in advance). You can download Python installation
+    package from <a href="https://www.python.org/downloads/">official site</a>.
+    We recommend Python 3.7 or higher version, but if you want to manage multiple
+    versions of Python, try <a href="https://github.com/pyenv/pyenv">pyenv</a>
+    or <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/">
+    anaconda</a>.
+  </p>
+  <p>
+    <b>tips:</b> if you are using Windows, please remember add your Python binary to the
+    PATH environment. The figure below demonstrates what you should do at installation time：
+  </p>
+  <img src="images/python.png" style="width: 520px; height: auto; padding: 40px"  alt=""/>
+  <h3>Z3Py Installation</h3>
+  <p>
+    The Z3Py package is the Z3 API in Python (Z3 also has the C, .Net and OCaml APIs).
+    The next steps show you two ways to install Z3Py package. Actually, both of
+    them are depend on <tt>pip</tt>.
+  </p>
+
+  <b>PyCharm (recommended): </b>
+  <p>
+    PyCharm is one popular Python IDE, it can effectively manage your Python
+    development environment. You can download PyCharm from the
+    <a href="https://www.jetbrains.com/pycharm/download">official website</a>.
+    you can use the community edition for free or register an account with your
+    USTC email to get education-free license for professional edition.
+  </p>
+  After the the PyCharm  is installed, you can follow the following steps to install Z3Py:
+  <ol>
+    <li>Create project with virtualenv:</li>
+    <img src="images/pycharm1.png" style="width: 520px; height: auto; padding: 5px" />
+    <li>Select project interpreter in preferences page:</li>
+    <img src="images/pycharm2.png" style="width: 520px; height: auto; padding: 5px" />
+    <li>Search and install the z3-solver package:</li>
+    <img src="images/pycharm3.png" style="width: 520px; height: auto; padding: 5px" />
+  </ol>
+
+
+  <b>Command line: </b>
+  <p>
+    If you prefer to use command line, it's also recommended to use <tt>virtualenv</tt>
+    to manage Python environment.
+  </p>
+  <ol>
+    <li>
+      Install virtualenv via pip
+<pre>
+$ <kbd>python -m pip install --user virtualenv</kbd>
+</pre>
+    </li>
+
+    <li>
+      Use virtualenv to create a environment
+<pre>
+$ <kbd>python -m venv formal_method</kbd>
+</pre>
+    </li>
+
+    <li>
+      Activate the new environment
+ <pre>
+$ <kbd>source formal_method/bin/activate</kbd>
+</pre>
+    </li>
+
+    <li>
+      Install the z3-solver package in the environment
+<pre>
+$ <kbd>pip install z3-solver</kbd>
+</pre>
+    </li>
+  </ol>
+
+  <h3>Z3 Warming Up</h3>
+  To make sure you have install Z3 correctly, we provide a simple
+  test case for you to test your installation.
+  <p>View this simple logical proposition. And we want to get
+    the solution that make it satisfiable (i.e., let it be <b>True</b>):
+  </p>
+  <pre>
+    P /\ Q
+  </pre>
+  Download this <a href="./code/z3_test.py">code</a> and run it.
+  <p>
+    If Z3 is installed correctly, z3_test.py will run without any
+    error and the output should look like:
+  </p>
+  <img src="images/pycharm4.png" style="width: 580px; height: auto; padding-left: 40px" />
+
+
+  <br />
+  <hr />
+
+  <h2>Part C: Python Warming Up</h2>
+  <p>
+    Python is a widely used programming language and is easy to learn and use.
+    Most of our assignments are written in Python, so if you have not
+    used Python before, be sure to spend some time learning
+    <a href="https://wiki.python.org/moin/BeginnersGuide">the basic
+      syntax</a> or
+    <a href="https://www.runoob.com/python/python-tutorial.html">the Python tutorial</a>.
+  </p>
+
+    <p>This and the future assignments will use
+    <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree"> AST (abstract syntax tree) </a>
+    to encode formal languages. To let
+      you get familiarized yourself with the creation and operations
+      on AST.In this part, you'll implement a very
+    simple arithmetic calculator in Python.
+  </p>
+
+  <p>
+    The syntax for the calculator language is described by the
+    following context-free grammar (CFG):
+  </p>
+  <pre>
+    exp ::= num
+          | exp + exp
+          | exp - exp
+          | exp * exp
+          | exp / exp
+          | (exp)
+  </pre>
+  <p>
+    The expressions generated from the CFG above can be represented
+    by trees. For instance,
+    the expression <tt>3 * 4 + 10 / 2</tt> to AST like:
+  </p>
+  <pre>
+                +
+              /   \
+             /     \
+            *       /
+           / \     /  \
+          /   \   /    \
+         3    4  10     2
+
+  </pre>
+  <div class="question">
+    <b>Exercise 1:</b> Download <a href="code/calculator.py">this code template</a>
+    and fill in the missing data structures in it. You also need to
+    implement the <tt>__str__()</tt> method in these
+    classes to print the necessary information. Make sure your code
+    pass the unit tests 1&2.
+  </div>
+
+  <p>
+    Based on the AST data structures, we can implement various computations on the AST.
+    One special and important operation you'll be building is an interpreter. Simply
+    speaking, an interpreter reads in some program as input, and output its
+    result. Consider again the example <tt>3 * 4 + 10 / 2</tt>, the interpreter
+    will output <tt>17></tt>.
+  </p>
+  <div class="question">
+    <b>Exercise 2:</b> Finish the interpreter by filling in the missing
+    code in the <tt>eval_value()</tt>
+    function. Don't forget to test your code using unit tests 3&4.
+  </div>
+
+  <div class="challenge">
+    <i>Challenge:</i> For simplicity，our test cases are written by AST manually. In most cases,
+    AST is generated by processing source code file, the programme do these work called lexer
+    and parser. Try to implement a lexer/parser that reads the algebraic expressions from a file and
+    generates the AST automatically. Consider to use
+    <a href="https://wiki.python.org/moin/LanguageParsing">some tools</a>, if you don't
+    want to write everything from scratch.
+  </div>
+
+  <hr >
+    <h3>Which Coq IDE to use?</h3>
+    The official IDE to edit Coq source code is "CoqIde", which
+    comes with Coq. It's great and you may try it.
+
+    <p>
+      There is
+      another popular IDE (my favorite): <a href="http://proofgeneral.inf.ed.ac.uk/">Proof General</a>, and
+      it's more popular in the Coq community. You may try it.
+
+      <!-- <p>
+        The installation of proof general is simple:
+        <ul>
+          <li>Ubuntu/Debian:
+            <pre>
+  $ <kbd>sudo apt-get install proofgeneral</kbd>
+  $ <kbd>sudo apt-get install proofgeneral-coq</kbd>
+</pre>
+          <li>Windows:there is a <a href="../tools/emacs-23.1.rar">pre-built version</a> hacked by
+            us based on GNU emacs. You should uncompress this archive
+            and put it at (important!):
+            <pre>
+  d:\emacs-23.1
+</pre>
+            And it also assumes the Coq executable is at "<tt>C:\program files\Coq\bin</tt>", if
+            that's not the case, change the file "<tt>d:\emacs-23.1\bin\coq-emacs.bat</tt>"
+            accordingly.
+
+        </ul> -->
+
+        <p>
+          There are only a few commands you need to know to use ProofGeneral effectively. They are:
+          <ul>
+            <li><tt>C-c C-n</tt>: send the next command to Coq.
+            <li><tt>C-c C-u</tt>: undo (retract) the most recently executed command.
+            <li><tt>C-c C-RET</tt>: submit everything up to the current cursor location to Coq for processing.
+            <li><tt>C-c C-.</tt>: move the cursor to the end of the last command which has been processed by Coq.
+            <li><tt>C-c . </tt>: toggle "electric terminator mode". When this mode is turned
+              on, simply typing a period will send the current command to Coq (normally you have
+              to type a period and then type C-c C-n).
+          </ul>
+
+          <hr>
+
+<p>
+  This finishes the assignment, zip you code files (exclude .venv folder) with file
+  name <tt>studentid-assignment1.zip</tt> (e.g <tt>SA19225111-assignment1.zip</tt>),
+  and submit it to
+  <a href="http://yjs.ustc.edu.cn/">Graduate Information Platform</a>..
+</p>
+<br>
+  Have fun!
+<br>
+</body>
+
+</html>

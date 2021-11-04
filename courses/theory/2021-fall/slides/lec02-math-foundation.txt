@@ -1,0 +1,20 @@
+Some extra notes:
+-----------------
+* May discuss two more problems (depending on time):
+QAP: quadratic assignment problem
+GC: graph-coloring problem
+
+
+* The 7 Millennium Prize Problems
+P versus NP
+The Hodge conjecture (geometry)
+The Poincaré conjecture—solved, by Grigori Perelman (topology)
+  * maybe only this one
+The Riemann hypothesis ()
+Yang–Mills existence and mass gap
+Navier–Stokes existence and smoothness
+The Birch and Swinnerton-Dyer conjecture
+
+
+
+
