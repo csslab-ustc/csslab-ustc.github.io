@@ -1,0 +1,255 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Assignment 0: Software Setup</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body style="width:1000px;">
+<div>
+    <h1>Course Overview</h1>
+    <p>
+        Welcome to the course "System Programming in C".
+This course mainly discusses how to use C language for system-level software development.
+C language is a process - oriented, abstract general programming language, widely used in low-level development.
+C language can compile and process low-level memory in a simple way.
+Through this course, you will learn to use CLion for project development and debugging, and cmake for compiling your C language projects.
+More importantly, you will use C for low-level system software development, such as realize a classic Linux shell and debugger GDB, in the following courses.
+    </p>
+    <p>
+        We hope that by studying the above, you will have mastered the basic syntax of C and gained a deeper understanding of system-level programming.
+    </p>
+    <p>
+        There are 5 experiments in this course, which are:
+    </p>
+        <ul>
+            <li>Lab0:Software Setup</li>
+            <li>Lab1:Shell</li>
+            <li>Lab2:mini Network Analyzer</li>
+            <li>Lab3:GDB</li>
+            <li>Lab4:Concurrent Stack</li>
+        </ul>
+    <p> 
+         each of which has a period of 2 weeks, that is, you need to submit your code within 2 weeks after the experiment is set up.
+    </p>
+    <hr/>
+    <h1>Assignment 0: Software Setup</h1>
+    <h2>Overview</h2>
+    <p>
+        This document is a description of the installation of the experimental environment for this course. In order to reduce errors other than the experiment, please refer to the instructions in the document to configure the required experiment environment on your computer.
+    </p>
+    
+    <h3>Hand-in Procedure</h3>
+    <p>
+        When you finished the assignment, zip your code files with the file
+        name <tt>student ID-assignment1.zip</tt> (e.g <tt>SA19225111-assignment0.zip</tt>)
+        and submit it to the
+        <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+        The deadline is TBA (Beijing time).
+        Any late submission will <b>NOT</b> be accepted.
+    </p>
+    
+    
+    <hr />
+    
+    <h2>Part A: Install Ubuntu</h2>
+    <p>
+        All experiments in this course are required to be completed on a Linux system. If you are a Windows or Mac OS user, please refer to the following steps to install a Linux virtual machine:
+    </p>
+    <p>
+        1. Download the Ubuntu system image: It is recommended to use a stable release version. We recommend that you install Ubuntu18 or above. You can visit the <a href="https://ubuntu.com/download/desktop">official Ubuntu website</a> to download the system mirror, or visit the <a href="http://mirrors.163.com/ubuntu-releases/">domestic mirror website </a> to download the system mirror. Generally speaking, the download speed of the latter is more fast;
+    </p>
+    <p>
+        2. Install VMware or VirtualBox on your computer: Both software can be used to install and manage your virtual machine system. For VMware software, please refer to <a href="https://zhuanlan.zhihu.com/p/141033713">the blog</a> to install Ubuntu image; for VirtualBox software, please refer to <a href="https://blog.csdn.net/weixin_44813579/article/details/105867198">the blog </a>to install Ubuntu image.   
+    </p>
+    
+    <hr />
+    <h2>Part B: Install Tools</h2>
+    <h3>
+        1.1 GCC
+    </h3>
+    <p>
+        GCC is a free software released under the GPL license and is also a key part of the GNU project. The original intention of GCC was to write a compiler for the GNU operating system, and it has been adopted as a standard compiler by most Unix-like operating systems (such as Linux, BSD, MacOS X, etc.). For more detailed information about GCC, you can read its <a href="https://gcc.gnu.org/onlinedocs/">official documentation</a>.
+    </p>
+    <h3>
+        1.2 Install GCC
+    </h3>
+    <p>
+        (1) Enter the command following in the terminal, you can install the GCC compiler: <pre style="text-indent: 4em;">apt-get install gcc</pre>
+    </p>
+    <p>
+        (2) Enter the command following in the terminal, when the GCC version information is printed out, the installation is successful: <pre style="text-indent: 4em;">gcc --version</pre>
+    </p>
+    <h3>
+        1.3 Quick start
+    </h3>
+    <p>
+        The following demonstrates the simple usage of the GCC compiler, you can read the official documentation for more usage:
+    </p>
+    <p>
+        (1) Use vim (or other editors) to write the <tt>hello.c</tt> program as shown below:
+    </p>
+    <pre >
+        #include &ltstdio.h>
+        void Print(void){
+            printf("Hello,world!\n");
+        }
+
+        int main(){
+            Print();
+
+            return 0;
+        }
+    </pre>
+    <p>
+        (2) Enter the command in the terminal: <pre style="text-indent: 4em;">gcc hello.c -o hello</pre>
+         the source file can be compiled into an executable file with the specified file name hello in green color, As follows:
+    </p>
+    <img src="imgs/image-20210921190800774.png">
+    <p>
+        (3) hello is a compiled executable file. Enter the command:  <tt> ./hello </tt>  in the terminal to run the program.
+    </p>
+    <div class="question">
+        <b>Exercise 1</b>: The compilation process includes preprocessing, compilation and linking. You can check the files generated by each process by modifying the parameters of gcc. Please use the above demo program hello.c as the source code, check the information, explain the function of the parameters "-E", "-c" and "-o" in gcc, and write down the suffix of the the file name which will be generated at each step.
+    </div>
+    <br/>
+    <h3>
+        2.1 GDB
+    </h3>
+    <p>
+        GDB is an excellent command line debugging tool on UNIX and UNIX-like systems. By using GDB, you can debug the program and check various system data such as variables, registers, and memory status during the running of the program. For more detailed information of GDB, you can read its <a href="https://www.gnu.org/software/gdb/documentation/">official documentation</a>.
+    </p>
+    <h3>
+        2.2 Install GDB
+    </h3>
+    <p>
+        (1) Open the terminal and enter the command to install the GDB debugging tool: <pre style="text-indent: 4em;">sudo apt-get install gdb</pre>
+    </p>
+    <p>
+        (2) Enter the command in the terminal: <tt> gdb --version </tt> When the GDB version is printed out, the installation is successful.
+    </p>
+    <h3>
+        2.3 Quick start
+    </h3>
+    <p>
+        The following demonstrates the simple usage of GDB, you can read the official documentation for more usage:
+    </p>
+    <p>
+        (1) Take the hello.c of the above GCC part as the source code, and compile the executable file hello through gcc;
+    </p>
+    <p>
+        (2) The debugging object of GDB is the executable file hello instead of the source code. Enter the command: <pre style="text-indent: 4em;">gdb hello</pre> in the terminal to start the gdb debugging process;
+    </p>
+    <p>
+        (3) Enter <tt>break</tt> or the abbreviation <tt>b</tt> in GDB, followed by a sentence, to tag a break point. Here we give a break to the Print function: <tt>break Print</tt>. As shown below:
+    </p>
+    <pre style="text-indent: 4em;">break Print</pre>
+    <p>
+        (4) Enter the command <tt>run</tt> to run the program in GDB. It can be found that the program execution is suspended at the breakpoint. As shown below:
+    </p>
+    <img src="imgs/image-20210921193009287.png" width="400">
+    <p>
+        (5) Input the command <tt>continue</tt> or the abbreviation <tt>c</tt> to let the program continue to run. Enter the command <tt>quit</tt> to exit the GDB debugging interface.
+    </p>
+    <div class="question">
+        <b>Exercise 2</b>: GDB has very rich functions. With the hello file as the debugging object, you can try other more commands, such as list, start, set, next, or step and so on. please describe your observations.
+    </div>
+
+    <br/>
+    <h3>
+        3.1 cmake
+    </h3>
+    <p>
+        CMake is a cross-platform installation (compilation) tool, you can use simple sentences to describe the installation (compilation) process of all platforms. In this course, you need to manually write CMake files in CLion. For more detailed content of CMake, you can read its <a href="https://cmake.org/documentation/">official documentation</a>.
+    </p>
+    <h3>
+        3.2 Install cmake
+    </h3>
+    <p>
+        There are many ways to install cmake on Linux. You can enter the command in the terminal: <pre style="text-indent: 4em;">sudo apt-get install cmake</pre>, and follow the prompts to install cmake. Enter the command <pre style="text-indent: 4em;">cmake--version</pre> to check if you have installed sucessfully.
+    </p>
+    <h3>
+        3.3 Quick start
+    </h3>
+    <p>
+        Let us take the source program hello.c in the above GCC part as the object to demonstrate the simple use of cmake.
+    </p>
+    <p>
+        (1) In the same directory, write the <tt>CMakeLists.txt</tt> file, which describes the compilation process. As follows:
+    </p>
+    <pre>
+        #cmake version
+        cmake_minimum_required(VERSION 2.8)
+
+        #project name
+        project(HELLO)
+
+        #compiler target and source item
+        add_executable(hello hello.c)
+    </pre>
+    <p>
+        (2) Enter the command: <pre style="text-indent: 4em;">cmake .</pre> in the terminal to generate a Makefile. As follows:
+    </p>
+    <img src="imgs/image-20210921203335415.png" width="450">
+    <p>
+        (3) Enter the command <tt>make</tt> in the terminal, and you can observe the compilation process, result in generating the executable program hello.
+    </p>
+    <div class="question">
+        <b>Exercise 3</b>: You should write the Print function as an independent source file print.c and call it in hello.c. How to modify the CMakeList.txt file to achieve compilation successfully at this time? Write down your changes and describe your observation.
+    </div>
+
+    <br/>
+    <h3>
+        4.1 CLion IDE
+    </h3>
+    <p>
+        CLion is a cross-platform IDE (Intergrated development environment) designed for C/C++. It contains many intelligent functions, such as error prompts, code completion, automatic generation of makelist files, etc., which greatly improves Developer productivity.
+    </p>
+    <h3>
+        4.2 Install CLion
+    </h3>
+    <p>
+        Since CLion is a paid software, before the installation,we recommend  you go to the <a href="https://account.jetbrains.com/login">official website of CLion</a> and use your USTC email to register an accountant. This will give you a one-year of CLion Professional Edition Eligibility for free use.
+    </p>
+    <p>
+        On the ubuntu system, you have multiple ways to install CLion. We give 3 ways, just choose the one that suits you for reference. We recommend using method one, which is the easiest.
+    </p>
+    <p>
+        Method 1: Use ubuntu's built-in application store (ubuntu software store) to download and install, search for CLion, and download it;
+    </p>
+    <p>
+        Method 2: Install CLion through the terminal. Enter the command <pre style="text-indent: 4em;">sudo snap install clion --classic</pre> in the terminal and follow the prompts to install.
+    </p>
+    <p>
+        Method 3:
+    </p>
+    <p>
+        (1) Download the installation package file from the <a href="https://www.jetbrains.com/clion/download/#section=linux">CLion official website</a>;
+    </p>
+    <p>
+        (2) Enter the command in the terminal to create a new directory for installing CLion in this directory, such as: <pre style="text-indent: 4em;">sudo mkdir /opt/clion</pre>
+    </p>
+    <p>
+        (3) Decompress the downloaded compressed file to the /opt/clion directory. Enter the command in the terminal: <pre style="text-indent: 4em;">sudo tar -zxvf CLion-2020.1.1.tar.gz -C /opt/clion</pre>
+    </p>
+    <p>
+        (4) Start CLion. Enter the command following in the terminal to start: <pre style="text-indent: 4em;">sh /opt/clion/clion-2020.1.1/bin/clion.sh</pre> 
+    </p>
+    <h3>
+        4.3 Quick start
+    </h3>
+    <p>
+        You can visit the tutorial given on its <a href="https://www.jetbrains.com/zh-cn/clion/learn/">official website</a> to quickly get started with CLion.
+    </p>
+
+    <br>
+<hr>
+This completes this assignment. Remember to zip your homework with the file
+name <tt>student ID-assignment1.zip</tt> (e.g <tt>SA19225111-assignment1 .zip</tt>), and
+submit it to the <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+
+<p>
+    Happy hacking!
+</p>
+</div>
+</body>
+</html>
