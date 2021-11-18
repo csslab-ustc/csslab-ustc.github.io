@@ -1,0 +1,850 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Assignment 1: Shell</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body style="width:1100px;">
+<h1>Assignment 1: Shell</h1>
+<hr />
+
+<h2>Overview</h2>
+<p>
+    A shell is software that provides an interface for an operating system's users to
+    provide access to the kernel's services. On Unix-based or Linux-based operating systems,
+    a shell can be invoked through the shell command in the command line interface (CLI),
+    allowing users to direct operations through computer commands, text or script.
+</p>
+<p>
+    This assignment will implement a mini shell similar to the shell of the Unix.
+    The mini shell supports multiple basic commands, such as ls, cat, grep, wc, sleep, etc.
+    It also supports four compound commands, pipe, sequential execution, background and redirection.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished the assignment, zip your code files with the file
+    name <tt>student ID-assignment1.zip</tt>
+    (e.g <tt>SA19225111-assignment1.zip</tt>)
+    and submit it to the
+    <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+    The deadline is TBA (Beijing time).
+    Any late submission will <b>NOT</b> be accepted.
+</p>
+
+
+<hr />
+
+<h2>Part A: Introduction to Shell</h2>
+<p>
+    In this section, let's start by learning what is a shell.
+    The shell is an ordinary program that reads commands from the user and
+    executes them. In Ubuntu, the graphical interface is as shown in the figure below.
+   
+</p>
+<img src="figures/shell1.PNG" height="120" width="240"/>
+<h3>Basic Commands:</h3>
+<h4>
+    1. ls
+</h4>
+<p>
+ The <tt>ls</tt> (list) command lists all files and folders in your current
+    working directory. You can also specify paths to other directories if you want to view their contents.
+</p>
+
+
+   <img src="figures/ls.PNG" height="90" width="600" />
+
+<h5>ls syntax:</h5>
+<pre>
+    ls [options] [file|dir]
+</pre>
+<p>
+    For example:
+</p>
+<pre>
+    ls -l
+</pre>
+<p>
+    In the above example, it will list all files and folders in your current working directory with
+    the long format - show permissions.
+         
+</p>
+<img src="figures/lsl.PNG" height="250" width="600"/>
+<h4>
+    2. cat
+</h4>
+<p> 
+    The <tt>cat</tt> (short for “concatenate“) command is one of the most
+    frequently used commands in Linux/Unix-like operating systems. This command allows us to create
+    single or multiple files, view contents of a file, concatenate files ,
+    redirect output in terminal or files.
+</p>
+
+<h5>cat syntax:</h5>
+<pre>
+    cat [options] [file]
+</pre>
+<p>
+    For example: 
+</p>
+<pre>
+    cat a.txt
+</pre>
+<p>
+    	In the above example, it will display the contents of the a.txt file in the shell.
+         
+</p>
+<img src="figures/cat.PNG" height="70" width="350"/>
+<h3>Compound Commands:</h3>
+<h4>
+    1. Pipe
+</h4>
+<p>
+    The <tt>pipe</tt> command helps combine two or more commands and is used
+    as input/output concepts in a command. In the Linux operating system, we use more than one pipe
+    in command so that the output of one command before a pipe acts as input for the other command after the pipe.
+</p>
+<h5>pipe syntax:</h5>
+<pre>
+    command 1 | command 2 | command 3 |...
+</pre>
+<p>
+   The pipe has much functionality used to filter, sort, and display the text in the list.
+    One of the common examples is described here. Suppose we have a file named name.txt having
+    the names of the students. We have used the cat command to fetch the record of that file.
+</p>
+<pre>
+    cat name.txt 
+</pre>
+<img src="figures/catp.PNG" height="200" width="250" />
+<p>
+    	
+In the above example, the data present in this file is unordered. So, to sort the data,
+    we need to follow a piece of code here.
+         
+</p>
+<pre>
+    cat name.txt | sort
+</pre>
+<img src="figures/pipe.PNG" height="200" width="300"/>
+<p>
+    	
+Through the respective output, you can see that students’ names are arranged
+    alphabetically in a sequence from a to z.
+         
+</p>
+<h4>
+    2. Sequential Execution
+</h4>
+<p>
+    How to run two or more terminal commands at once? The semicolon (<tt>;</tt>)
+    operator allows you to execute multiple
+    commands in succession, regardless of whether each previous command succeeds.
+</p>
+
+<h5>syntax:</h5>
+<pre>
+    command 1 ; command 2 ; command 3 ; ...
+</pre>
+<p>
+    For example:
+</p>
+<pre>
+    ls ; pwd ; whoami
+</pre>
+<p>
+    In the above example, type three commands on one line, separated by semicolons, and press Enter.
+    This will give you a listing of the current directory ( <tt>ls</tt> ), find out
+    which directory you’re currently
+    in ( <tt>pwd</tt> ), and display your login name
+    ( <tt>whoami</tt> ) all at once.
+
+</p>
+<img src="figures/seq.PNG" height="140" width="700"/>
+<p>
+    You don’t have to put spaces between the semicolons and the commands, either. You can enter the three commands
+    as <tt>ls;pwd;whoami</tt>. However, spaces make the combined command more readable.
+</p>
+<h4>
+    3. Background
+</h4>
+<p>
+    Typically when you run a command in the terminal, you have to wait until the command finishes before you can
+    enter another one. This is called running the command in the foreground or foreground process.
+    When a process runs in the foreground, it occupies your shell, and you can interact with it using the input
+    devices.
+</p>
+<p>
+    What if the command takes a long time to finish, and you want to run other commands in the meantime?
+    You have several options at your disposal. The most obvious and straightforward option is to start
+    a new shell session and run the command in it. Another option is to run the command in the background.
+</p>
+<p>
+    A background process is a process/command that is started from a terminal and runs in the background,
+    without interaction from the user.
+</p>
+
+<p>
+    To run a command in the background, add the ampersand symbol (<tt>&</tt>)
+    at the end of the command.
+
+</p>
+<h5>syntax:</h5>
+<pre>
+    command &
+</pre>
+<p>
+    For example:
+</p>
+<pre>
+    gedit &
+</pre>
+<p>
+    If you start the gedit text editor from your terminal, you can not use the shell until you close the editor.
+    However, when you add an extra <tt>&</tt> to your command, you'll be able to use
+    the shell immediately.
+
+</p>
+<img src="figures/back.PNG" height="100" width="220"/>
+
+<h4>
+    4. Redirection
+</h4>
+<p>
+    Redirection is a feature in Linux such that when executing a command, you can change the standard input/output
+    devices. The basic workflow of any Linux command is that it takes an input and gives an output.
+</p>
+<p>
+    The standard input (stdin) device is the keyboard.
+</p>
+<p>
+    The standard output (stdout) device is the screen.
+</p>
+<p>
+    With redirection, the above standard input/output can be changed.
+</p>
+
+<h5>output redirection syntax:</h5>
+<pre>
+    command 1 > command 2
+</pre>
+<p>
+    For example:
+</p>
+<pre>
+    ls > listings
+</pre>
+<p>
+    Here the output of command <tt>ls</tt>  is re-directed to file “listings”
+    instead of your screen.
+
+</p>
+<img src="figures/redir.PNG" height="320" width="235"/>
+
+<div class="question">
+    <b>Question 1</b>: If you add a background command after the pipeline command, can the pipeline work?
+</div>
+
+
+<hr>
+<h2>Part B: Principle</h2>
+
+<p>
+    As Figure 1.1 shows, Unix takes the traditional form of a <i>kernel</i>, a special program that provides
+    services to running programs. Each running program, called a <i>process</i>, has memory containing
+    instructions, data, and a stack. The instructions implement the program’s computation. The data
+    are the variables on which the computation acts. The stack organizes the program’s procedure calls.
+    A given computer typically has many processes but only a single kernel.
+</p>
+
+<p>
+    When a process needs to invoke a kernel service, it invokes a <i>system call</i>, one of the calls in
+    the operating system’s interface. The system call enters the kernel; the kernel performs the service
+    and returns. Thus a process alternates between executing in <i>user space</i> and <i>kernel space</i>.
+</p>
+<img src="figures/os.PNG" height="240" width="530"/>
+
+<p>
+    The collection of system calls that a kernel provides is the interface that user programs see.
+    Figure 1.2 lists some system calls.
+
+</p>
+<img src="figures/syscall.PNG" height="480" width="700"/>
+<p>
+    The rest of this document outlines processes, memory, file descriptors, pipes,
+    and a file system—and illustrates them with code snippets and discussions of how the <i>shell</i>, Unix’s
+    command-line user interface, uses them. The shell’s use of system calls illustrates how carefully
+    they have been designed.
+</p>
+
+<p>
+    The shell is an ordinary program that reads commands from the user and executes them. The
+    fact that the shell is a user program, and not part of the kernel, illustrates the power of the system
+    call interface: there is nothing special about the shell. It also means that the shell is easy to replace;
+    as a result, modern Unix systems have a variety of shells to choose from, each with its own user
+    interface and scripting features.
+</p>
+
+
+
+<h3> Processes and Memory</h3>
+<p>
+    When a process is not executing, the operating system saves its CPU
+    registers, restoring them when it next runs the process. The kernel associates a process identifier,
+    or PID, with each process.
+</p>
+<p>
+    A process may create a new process using the <tt>fork</tt> system call.
+    <tt>Fork</tt> gives the new process
+    exactly the same memory contents (both instructions and data) as the calling process.
+    <tt>Fork</tt> returns
+    in both the original and new processes. In the original process, <tt>fork</tt>
+    returns the new process’s
+    PID. In the new process, <tt>fork</tt> returns zero.
+    The original and new processes are often called the
+    <i>parent</i> and <i>child</i>.
+</p>
+<p>
+    For example, consider the following program fragment written in the C programming language:
+</p>
+<pre >
+    int pid = fork();
+    if(pid > 0){
+        printf("parent: child=%d\n", pid);
+        pid = wait((int *) 0);
+        printf("child %d is done\n", pid);
+    } else if(pid == 0){
+        printf("child: exiting\n");
+        exit(0);
+    } else {
+        printf("fork error\n");
+    }
+
+</pre>
+<p>
+    The <tt>exit</tt> system call causes the calling process to stop executing
+    and to release resources such as
+    memory and open files. <tt>Exit</tt> takes an integer status argument,
+    conventionally 0 to indicate success
+    and 1 to indicate failure. The <tt>wait</tt> system call returns the PID of
+    an exited (or killed) child of
+    the current process and copies the exit status of the child to the address passed to wait; if none of
+    the caller’s children has exited, <tt>wait</tt> waits for one to do so.
+    If the caller has no children, <tt>wait</tt>
+    immediately returns -1. If the parent doesn’t care about the exit status of a child, it can pass a 0
+    address to <tt>wait</tt>.
+
+</p>
+<p>
+    In the example, the output lines
+</p>
+<pre>
+    parent: child=1234
+    child: exiting
+</pre>
+<p>
+    might come out in either order (or even intermixed), depending on whether the parent or child gets
+    to its <tt>printf</tt> call first. After the child exits, the parent’s
+    <tt>wait</tt> returns, causing the parent to print
+</p>
+<pre>
+    parent: child 1234 is done
+</pre>
+<p>
+    Although the child has the same memory contents as the parent initially, the parent and child are
+    executing with different memory and different registers: changing a variable in one does not affect
+    the other. For example, when the return value of <tt>wait</tt> is stored
+    into <tt>pid</tt> in the parent process, it
+    doesn’t change the variable <tt>pid</tt> in the child.
+    The value of <tt>pid</tt> in the child will still be zero.
+</p>
+<p>
+    The <tt>exec</tt> system call replaces the calling process’s memory with
+    a new memory image loaded
+    from a file stored in the file system. The file must have a particular format, which specifies which
+    part of the file holds instructions, which part is data, at which instruction to start, etc.
+    When <tt>exec</tt> succeeds, it does not return
+    to the calling program; instead, the instructions loaded from the file start executing at the entry
+    point declared in the ELF header. <tt>Exec</tt> takes two arguments:
+    the name of the file containing the
+    executable and an array of string arguments. For example:
+
+</p>
+<pre>
+    char *argv[3];
+    argv[0] = "echo";
+    argv[1] = "hello";
+    argv[2] = 0;
+    exec("/bin/echo", argv);
+    printf("exec error\n");
+</pre>
+<p>
+    This fragment replaces the calling program with an instance of the program
+    <tt>/bin/echo</tt> running
+    with the argument list <tt>/bin/echo</tt>.
+    Most programs ignore the first element of the argument array,
+    which is conventionally the name of the program.
+</p>
+<p>
+    The shell uses the above calls to run programs on behalf of users.
+    The main structure of the shell is simple; see <tt>main</tt> (src/main.c).
+    The main loop reads a line of input from the user .
+    Then it analyzes the input from the user with yyparse.
+    Then it calls <tt>fork</tt>, which creates a copy of the shell process.
+    The parent calls <tt>wait</tt>,
+    while the child runs the command. For example, if the user had typed
+    “<tt>echo hello</tt>” to the shell,
+    <tt>yyparse</tt> would have been called with
+    “<tt>echo hello</tt>” as the argument.
+    <tt>Cmd_run</tt> (src/ast.c) runs
+    the actual command. For “<tt>echo hello</tt>”,
+    it would call <tt>execv</tt> (src/ast.c).
+    If <tt>execv</tt> succeeds then
+    the child will execute instructions from <tt>echo</tt> instead of
+    <tt>Cmd_run</tt>. At some point <tt>echo</tt> will call
+    <tt>exit</tt>, which will cause the parent to return from
+    <tt>wait</tt> in <tt>main</tt> (user/sh.c:145).
+</p>
+<div class="question">
+    <b>Question 2</b>:Why <tt>fork</tt> and <tt>exec</tt> are
+    not combined in a single call?
+</div>
+<p></p>
+<p></p>
+<hr>
+<h3>I/O and File Descriptors</h3>
+<p>
+    A <i>file descriptor</i> is a small integer representing a kernel-managed object that a process may read
+    from or write to. A process may obtain a file descriptor by opening a file, directory, or device,
+    or by creating a pipe, or by duplicating an existing descriptor. For simplicity we’ll often refer
+    to the object a file descriptor refers to as a “file”; the file descriptor interface abstracts away the
+    differences between files, pipes, and devices, making them all look like streams of bytes. We’ll
+    refer to input and output as <i>I/O</i>.
+</p>
+
+<p>
+    Every process has a private space of file descriptors starting at zero. By convention, a process reads
+    from file descriptor 0 (standard input), writes output to file descriptor 1 (standard output), and
+    writes error messages to file descriptor 2 (standard error). As we will see, the shell exploits the
+    convention to implement I/O redirection and pipelines.
+</p>
+
+<p>
+    The <tt>read</tt> and <tt>write</tt>
+    system calls read bytes from and write bytes to open files named by file
+    descriptors. The call
+    reads at most <tt>n</tt> bytes from the file descriptor <tt>fd</tt>,
+    copies them into <tt>buf</tt>, and returns the number of bytes read.
+    Each file descriptor that refers to a file has an offset associated with it.
+    <tt>Read</tt> reads data from the current file offset and then advances that offset
+    by the number of bytes read: a subsequent <tt>read</tt> will return
+    the bytes following the ones returned by the first <tt>read</tt>.
+    When there are no more bytes to read, <tt>read</tt> returns zero to indicate the end of
+    the file.
+</p>
+<p>
+    The call <tt>write(fd, buf, n)</tt> writes <tt>n</tt>
+    bytes from <tt>buf</tt> to the file descriptor <tt>fd</tt>
+    and returns the number of bytes written. Fewer than <tt>n</tt>
+    bytes are written only when an error occurs. Like <tt>read</tt>,
+    <tt>write</tt> writes data at the current file offset and then advances
+    that offset by the number of bytes
+    written: each <tt>write</tt> picks up where the previous one left off.
+</p>
+
+<p>
+    The following program fragment (which forms the essence of the program <tt>cat</tt>)
+    copies data
+    from its standard input to its standard output. If an error occurs, it writes a message to the standard
+    error.
+</p>
+<pre>
+    char buf[512];
+    int n;
+    for(;;){
+        n = read(0, buf, sizeof buf);
+        if(n == 0)
+            break;
+        if(n < 0){
+            fprintf(2, "read error\n");
+            exit(1);
+        }
+        if(write(1, buf, n) != n){
+            fprintf(2, "write error\n");
+            exit(1);
+        }
+    }
+</pre>
+<p>
+    The important thing to note in the code fragment is that <tt>cat</tt>
+    doesn’t know whether it is reading from a file, console, or a pipe. Similarly <tt>cat</tt>
+    doesn’t know whether it is printing to a console, a file, or whatever. The use of file descriptors
+    and the convention that file descriptor 0 is input and
+    file descriptor 1 is output allows a simple implementation of <tt>cat</tt>.
+
+</p>
+<p>
+    The <tt>close</tt> system call releases a file descriptor,
+    making it free for reuse by a future <tt>open</tt>,
+    <tt>pipe</tt>, or <tt>dup</tt>
+    system call (see below). A newly allocated file descriptor is always the lowest-numbered
+    unused descriptor of the current process.
+</p>
+<p>
+    File descriptors and <tt>fork</tt> interact to make I/O redirection easy to implement.
+    <tt>Fork</tt> copies the parent’s file descriptor table along with its memory,
+    so that the child starts with exactly the same open files as the parent.
+    The system call <tt>exec</tt> replaces the calling process’s memory but
+    preserves its file table. This behavior allows the shell to implement <i>I/O redirection</i> by forking,
+    re-opening chosen file descriptors in the child, and then calling <tt>exec</tt>
+    to run the new program. Here
+    is a simplified version of the code a shell runs for the command <tt>cat < input.txt </tt>:
+</p>
+<pre>
+    char *argv[2];
+    argv[0] = "cat";
+    argv[1] = 0;
+    if(fork() == 0) {
+        close(0);
+        open("input.txt", O_RDONLY);
+        exec("cat", argv);
+    }
+</pre>
+<p>
+    After the child closes file descriptor 0, <tt>open</tt> is guaranteed
+    to use that file descriptor for the newly opened <tt>input.txt</tt>:
+    0 will be the smallest available file descriptor. <tt>Cat</tt> then executes with file
+    descriptor 0 (standard input) referring to <tt>input.txt</tt>.
+    The parent process’s file descriptors are not
+    changed by this sequence, since it modifies only the child’s descriptors.
+</p>
+<p>
+    Now it should be clear why it is helpful that <tt>fork</tt> and
+    <tt>exec</tt> are separate calls: between the
+    two, the shell has a chance to redirect the child’s I/O without disturbing the I/O setup of the main
+    shell. One could instead imagine a hypothetical combined <tt>forkexec</tt>
+    system call, but the options
+    for doing I/O redirection with such a call seem awkward. The shell could modify its own I/O
+    setup before calling <tt>forkexec</tt>
+    (and then un-do those modifications); or <tt>forkexec</tt> could take
+    instructions for I/O redirection as arguments; or (least attractively) every program like
+    <tt>cat</tt> could
+    be taught to do its own I/O redirection.
+
+</p>
+<p>
+    Although <tt>fork</tt> copies the file descriptor table,
+    each underlying file offset is shared between
+    parent and child. Consider this example:
+
+</p>
+<pre>
+    if(fork() == 0) {
+        write(1, "hello ", 6);
+        exit(0);
+    } else {
+        wait(0);
+        write(1, "world\n", 6);
+    }
+</pre>
+<p>
+    At the end of this fragment, the file attached to file descriptor 1 will contain the data
+    <tt>hello world</tt>.
+    The <tt>write</tt> in the parent (which, thanks to
+    <tt>wait</tt>, runs only after the child is done) picks up where
+    the child’s <tt>write</tt> left off. This behavior helps produce
+    sequential output from sequences of shell
+    commands, like <tt>(echo hello; echo world) >output.txt</tt>.
+
+</p>
+<p>
+    The <tt>dup</tt> system call duplicates an existing file descriptor,
+    returning a new one that refers to
+    the same underlying I/O object. Both file descriptors share an offset, just as the file descriptors
+    duplicated by <tt>fork</tt> do.
+    This is another way to write <tt>hello world</tt> into a file:
+</p>
+<pre>
+    fd = dup(1);
+    write(1, "hello ", 6);
+    write(fd, "world\n", 6);
+
+</pre>
+<p>
+    Two file descriptors share an offset if they were derived from the same original file descriptor
+    by a sequence of <tt>fork</tt> and <tt>dup</tt> calls.
+    Otherwise file descriptors do not share offsets, even if they
+    resulted from <tt>open</tt> calls for the same file.
+</p>
+<p>
+    File descriptors are a powerful abstraction, because they hide the details of what they are con-nected to:
+    a process writing to file descriptor 1 may be writing to a file, to a device like the console, or to a pipe.
+
+</p>
+<h3> Pipes</h3>
+<p>
+    A <i>pipe</i> is a small kernel buffer exposed to processes as a pair of file descriptors, one for reading
+    and one for writing. Writing data to one end of the pipe makes that data available for reading from
+    the other end of the pipe. Pipes provide a way for processes to communicate.
+</p>
+<p>
+    The following example code runs the program <tt>wc</tt>
+    with standard input connected to the read end of a pipe.
+</p>
+<pre>
+    int p[2];
+    char *argv[2];
+    argv[0] = "wc";
+    argv[1] = 0;
+    pipe(p);
+    if(fork() == 0) {
+        close(0);
+        dup(p[0]);
+        close(p[0]);
+        close(p[1]);
+        exec("/bin/wc", argv);
+    } else {
+        close(p[0]);
+        write(p[1], "hello world\n", 12);
+        close(p[1]);
+    }
+</pre>
+<p>
+    The program calls <tt>pipe</tt>, which creates a new pipe and records the
+    read and write file descriptors
+    in the array <tt>p</tt>. After <tt>fork</tt>,
+    both parent and child have file descriptors referring to the pipe. The
+    child calls <tt>close</tt> and <tt>dup</tt>
+    to make file descriptor zero refer to the read end of the pipe, closes the
+    file descriptors in <tt>p</tt>, and calls <tt>exec</tt>
+    to run <tt>wc</tt>. When <tt>wc</tt> reads from its standard input,
+    it reads from the pipe. The parent closes the read side of the pipe, writes to the pipe,
+    and then closes the write side.
+</p>
+<p>
+    If no data is available, a <tt>read</tt> on a pipe waits for either data
+    to be written or for all file descriptors referring to the write end to be closed; in the latter case,
+    <tt>read</tt> will return 0, just as if the end of
+    a data file had been reached. The fact that <tt>read</tt> blocks
+    until it is impossible for new data to arrive
+    is one reason that it’s important for the child to close the write end of the pipe before executing
+    <tt>wc</tt> above: if one of <tt>wc</tt> ’s file descriptors
+    referred to the write end of the pipe, <tt>wc</tt> would never see
+    end-of-file.
+</p>
+<p>
+    In our lab, we can implements pipelines such as <tt>grep fork ast.c | wc -l</tt>
+    similar to the above code . The child process creates a pipe to connect the left end of the
+    pipeline with the right end. Then it calls <tt>fork</tt>
+    and <tt>Cmd_run</tt> for the left end of the pipeline and
+    <tt>fork</tt> and <tt>Cmd_run</tt> for the right end,
+    and waits for both to finish. The right end of the pipeline
+    may be a command that itself includes a pipe (e.g., <tt>a | b | c</tt>),
+    which itself forks two new child
+    processes (one for <tt>b</tt> and one for <tt>c</tt>).
+    Thus, the shell may create a tree of processes. The leaves
+    of this tree are commands and the interior nodes are processes that wait until the left and right
+    children complete.
+</p>
+<p>
+    We can use temporary files to achieve functions similar to pipes. For example, the pipeline
+</p>
+<pre>
+    echo hello world | wc
+</pre>
+<p>
+    could be implemented without pipes as
+</p>
+<pre>
+    echo hello world >/tmp/xyz; wc &lt/tmp/xyz
+</pre>
+<div class="question">
+    <p><b>Question 3</b>: What are the advantages of pipes over temporary files in this situation?
+    </p>
+</div>
+<hr>
+<h2>Part C: Implementation</h2>
+<h3>Overview</h3>
+<p>
+    To implement this shell, firstly, we need to read a line of input from the user
+    and save the command in a suitable data structure. Then we need to execute it.
+</p>
+<h3>Step 1: Preparation</h3>
+<p>
+Use commands:
+</p>
+<pre>
+    sudo apt-get install flex
+    sudo apt-get install bison
+</pre>
+<p>to install tools. With these tools, the project can be compiled and run.
+    After the installation is complete, use commands:</p>
+<pre>
+    flex --version
+    bison --version
+</pre>
+<p>
+    to check whether the installation was successful.
+    If the installation is successful, the following information will be displayed:
+</p>
+<img src="figures/ver.PNG" height="150" width="600"/>
+<p>
+    Download the <a href="./template_src.zip">source code</a> and unzip.
+    This source code is incomplete, you need to fill in the correct
+    code blocks so that the shell can execute the command correctly.
+</p>
+<h3>Step 2: Define the Data Structure</h3>
+<p>
+    Let us see <tt>ast.h</tt>.
+    First define an enumerated type, listing the types of five commands supported by our shell.
+    Then define five structs, corresponding to the basic command and four compound commands,
+    sequential execution, background, redirection, pipe.
+    In addition, this file also declares five functions:
+</p>
+<pre>
+    Cmd_t Cmd_Atom_new(struct node *);
+    Cmd_t Cmd_Seq_new(Cmd_t left, Cmd_t right);
+    Cmd_t Cmd_Back_new(Cmd_t back);
+    Cmd_t Cmd_Pipe_new(Cmd_t left, Cmd_t right);
+    Cmd_t Cmd_Redir_new(Cmd_t left, Cmd_t right, int fd);
+</pre>
+<p>
+    The role of these functions is to use arguments to construct the five structs
+    defined above. These functions are called in the process of parsing commands(<tt>parser.y</tt>).
+    After the parsing process is over, the information in the command is stored in
+    an abstract syntax tree composed of structs.
+</p>
+<p>For example, for this command:</p>
+<pre>
+    cat hello.txt | grep -n hello > c.txt
+</pre>
+<p>
+    In the <tt>main.c</tt>, after calling the <tt>yyparse()</tt>,
+    We can get an abstract syntax tree(AST), the simplified structure is as follows:
+</p>
+<img src="figures/ast1.PNG" height="400" width="500"/>
+<p>
+    The leaves of this AST are basic commands.
+    The variable <tt>root</tt> is a pointer to the root node of the abstract syntax tree.
+</p>
+<p>
+    Funtion:
+</p>
+<pre>
+    void Cmd_print(Cmd_t cmd);
+</pre>
+<p>
+    can print out the commands read by the shell.
+</p>
+<p>
+    Funtion:
+</p>
+<pre>
+    void Cmd_run(Cmd_t cmd);
+</pre>
+<p>
+    can execute the commands read by the shell. 
+</p>
+<h3>Step 3: The Constructor of Each AST Node</h3>
+<P>
+    In the <tt>ast.c</tt>, we have given the construction method of leaf nodes(<tt>Cmd_t Cmd_Atom_new(struct node *)</tt>)
+    and a construction method of internal nodes(<tt>Cmd_t Cmd_Seq_new(struct Cmd_t *left, struct Cmd_t *right)</tt>).
+</P>
+<div class="question">
+    <b>Exercise 1</b>: Please complete the
+    corresponding part in:
+    <pre>
+    Cmd_t Cmd_Back_new(Cmd_t back);
+    Cmd_t Cmd_Pipe_new(Cmd_t left, Cmd_t right);
+    Cmd_t Cmd_Redir_new(Cmd_t left, Cmd_t right, int fd);
+    </pre>
+    <p>
+        Hint: you can refer to the data structure defined in the <tt>ast.h</tt>.
+    </p>
+</div>
+<h3>Step 4: Print AST</h3>
+<p>
+    The function of the <tt>void Cmd_print(Cmd_t cmd)</tt>
+    is to print out the commands entered by the user to check whether the abstract syntax tree(AST) of
+    the Step 2 is constructed correctly.
+</p>
+<div class="question">
+    <b>Exercise 2</b>: Please complete the <tt>void Cmd_print(Cmd_t cmd)</tt>.
+    Then call <tt>void Cmd_print(Cmd_t cmd)</tt> in <tt>main.c</tt> and comment out
+    <tt>Cmd_run(root)</tt>.
+    <p>Finally, compile and run the project in Clion and
+    use the following test cases to check whether your answer is correct.</p>
+    <pre>
+       $  cat hello.txt | grep -n hello > c.txt ; ls -l
+    </pre>
+    <p>
+        The result will be as shown in the figure below.
+    </p>
+    <img src="figures/print1.PNG" height="40" width="420"/>
+
+    
+    <pre>
+        $  sleep 10 &
+    </pre>
+    <p>
+        The result will be as shown in the figure below.
+    </p>
+    <img src="figures/print2.PNG" height="35" width="150"/>
+
+</div>
+<h3>Step 5: Run Command</h3>
+<div class="question">
+    <b>Exercise 3</b>: Please complete the <tt>void Cmd_run(Cmd_t cmd)</tt>.
+    Regarding redirection commands, you only need to implement output redirection.
+    Commands like this:
+    <pre>
+        cat hello.txt > c.txt 
+    </pre>
+    <p>
+        Then call <tt>void Cmd_run(Cmd_t cmd)</tt> in <tt>main.c</tt> and comment out
+        <tt>Cmd_print(root)</tt>.
+    </p>
+    <p>Finally, compile and run the project in Clion and
+        use the following test cases to check whether your answer is correct.</p>
+    <pre>
+        $  cat hello.txt | grep -n hello > c.txt ; cat c.txt ; ls
+    </pre>
+    <p>
+        Before entering the command, create a file called <tt>hello.txt</tt>
+        in the current working directory. The content of the file is as follows:
+    </p>
+    <img src="figures/contents.PNG" height="50" width="100"/>
+    <p>
+        The result will be as shown in the figure below.
+    </p>
+    <img src="figures/test1.PNG" height="150" width="420"/>
+    <pre>
+        $  sleep 10 &
+    </pre>
+    <p>
+        If you enter the command <tt>sleep 10</tt>, you cannot use the shell for ten seconds.
+        However, when you add an extra <tt>&</tt> to your command, you'll be able to use
+        the shell immediately.
+        The result will be as shown in the figure below.
+    </p>
+    <img src="figures/test2.PNG" height="35" width="130"/>
+
+</div>
+<div class="challenge">
+    <i>Challenge:</i>   Implement the input redirection.
+</div>
+
+
+<br>
+<hr>
+This completes this assignment. Remember to zip your homework with the  file
+name <tt>student ID-assignment1.zip</tt> (e.g <tt>SA19225111-assignment1 .zip</tt>), and
+submit it to the <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
