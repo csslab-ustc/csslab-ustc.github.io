@@ -265,18 +265,6 @@ Through the respective output, you can see that students’ names are arranged
 </p>
 <img src="figures/os.PNG" height="240" width="530"/>
 
-<p>
-    The collection of system calls that a kernel provides is the interface that user programs see.
-    Figure 1.2 lists some system calls.
-
-</p>
-<img src="figures/syscall.PNG" height="480" width="700"/>
-<p>
-    The rest of this document outlines processes, memory, file descriptors, pipes,
-    and a file system—and illustrates them with code snippets and discussions of how the <i>shell</i>, Unix’s
-    command-line user interface, uses them. The shell’s use of system calls illustrates how carefully
-    they have been designed.
-</p>
 
 <p>
     The shell is an ordinary program that reads commands from the user and executes them. The
@@ -285,8 +273,6 @@ Through the respective output, you can see that students’ names are arranged
     as a result, modern Unix systems have a variety of shells to choose from, each with its own user
     interface and scripting features.
 </p>
-
-
 
 <h3> Processes and Memory</h3>
 <p>
@@ -690,7 +676,7 @@ Use commands:
 </p>
 <img src="figures/ver.PNG" height="150" width="600"/>
 <p>
-    Download the <a href="./template_src.zip">source code</a> and unzip.
+    Download the <a href="./src.zip">source code</a> and unzip.
     This source code is incomplete, you need to fill in the correct
     code blocks so that the shell can execute the command correctly.
 </p>
@@ -776,7 +762,7 @@ Use commands:
     <p>Finally, compile and run the project in Clion and
     use the following test cases to check whether your answer is correct.</p>
     <pre>
-       $  cat hello.txt | grep -n hello > c.txt ; ls -l
+       1:  cat hello.txt | grep -n hello > c.txt ; ls -l
     </pre>
     <p>
         The result will be as shown in the figure below.
@@ -785,7 +771,7 @@ Use commands:
 
     
     <pre>
-        $  sleep 10 &
+        2:  sleep 10 &
     </pre>
     <p>
         The result will be as shown in the figure below.
@@ -808,7 +794,7 @@ Use commands:
     <p>Finally, compile and run the project in Clion and
         use the following test cases to check whether your answer is correct.</p>
     <pre>
-        $  cat hello.txt | grep -n hello > c.txt ; cat c.txt ; ls
+        1:  cat hello.txt | grep -n hello > c.txt ; cat c.txt ; ls
     </pre>
     <p>
         Before entering the command, create a file called <tt>hello.txt</tt>
@@ -820,7 +806,7 @@ Use commands:
     </p>
     <img src="figures/test1.PNG" height="150" width="420"/>
     <pre>
-        $  sleep 10 &
+        2:  sleep 10 &
     </pre>
     <p>
         If you enter the command <tt>sleep 10</tt>, you cannot use the shell for ten seconds.
