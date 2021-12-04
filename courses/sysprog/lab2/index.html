@@ -1,0 +1,216 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Assignment 1: Shell</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body style="width:1100px;">
+<h1>Assignment 2: mini Network-Analyzer</h1>
+<hr />
+
+<h2>Overview</h2>
+<p>
+    In this assignment, you will be required to complete a Wireshark - like software. You need to implement four specific functions: packet sniffing, packet analysis, packet spoofing, and design your own MAC layer protocol and using it to communicate with another machine.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished the assignment, zip you code files with file
+    name <tt>studentid-assignment3.zip</tt>
+    (e.g <tt>SA19225111-assignment3.zip</tt>),
+    and submit it to
+    <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+    The deadline is TBA (Beijing time).
+    Any late submission will <b>NOT</b> be accepted.
+</p>
+
+
+<hr />
+
+<h2>Part A: Background</h2>
+<h3>1 Wireshark</h3>
+<p>
+    <a href="https://en.wikipedia.org/wiki/Wireshark">Wireshark</a> is a free and open-source packet analyzer,using the Qt widget toolkit in current releases to implement its user interface, and using pcap to capture packets; it runs on Linux, macOS, BSD, Solaris, some other Unix-like operating systems, and Microsoft Windows. Wireshark is used for network troubleshooting, analysis, software and communications protocol development, and education. 
+</p>
+<p>
+    We recommend that you install Wireshark on your own computer and try using some features provided by Wireshark. Enter the following command in the terminal to start the installation:
+</p>
+<pre>
+    sudo add-apt-repository ppa:wireshark-dev/stable
+    sudo apt update
+    sudo apt install wireshark
+</pre>
+<p>For convenience, when the terminal prompts whether to allow non-super users to capture data packets, select "yes".</p>
+<p>After the installation, run the following command in the terminal:</p>
+<pre>
+    wireshark
+</pre>
+<p>The Wireshark GUI is displayed. As follows:</p>
+<img src="Lab2%20mini-Wireshark.assets/image-20211006165548178.png"  width="680"/>
+
+<p>
+    We encourage you to search for more information to learn the basics usage of wireshark.
+</p>
+
+<br>
+<h3>2 Raw socket</h3>
+<p>
+    In this experiment, you need to have some knowledge of socket programming first.</p>
+<p>
+    The network programming we usually use is to send and receive data at the application layer. Each program can only receive data sent to itself, that is, each program can only receive data from the bound port of the program. The received data usually includes only application-layer data. In some cases we need to perform more low-level operations, such as listening to all data sent and received by the native machine, modifying headers, and so on.</p>
+<p>
+    With raw sockets, we can capture all IP packets sent to the local machine (including IP headers and TCP/UDP/ICMP headers) and all frames received by the local machine (including data link layer protocol headers). A common socket cannot process network packets such as ICMP and IGMP, but SOCK_RAW can. With raw sockets, we can construct our own IP headers.
+</p>
+<p>
+    Other sockets like stream sockets and data gram sockets receive data from the transport layer that contains no headers but only the payload. This means that there is no information about the source IP address and MAC address. If applications running on the same machine or on different machines are communicating, then they are only exchanging data.
+</p>
+<p>
+    The purpose of a raw socket is absolutely different. A raw socket allows an application to directly access lower level protocols, which means a raw socket receives un-extracted packets(the process is as following graph). There is no need to provide the port and IP address to a raw socket, unlike in the case of stream and datagram sockets.
+</p>
+
+<img src="Lab2%20mini-Wireshark.assets/Figure-24.jpg" width="700"/>
+<p>
+    In this experiment, we need to obtain all types of packets from the MAC layer, so when constructing the socket, the first parameter is selected as <tt>AF_PACKET</tt>, indicating that the data to be obtained starts from the data link layer. The construction format is as follows:
+</p>
+<pre>
+    int sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))；
+</pre>
+<p>
+    You should search more information by yourself to learn the usage of different parameters of socket function above. for example : https://zhuanlan.zhihu.com/p/59327439.
+</p>
+<br>
+<h3>3 promiscuous mode</h3>
+<p>
+    The device is connected to the network through a network interface card (NIC). A NIC is a physical or logical connection between a computer and the network. Each NIC has a hardware address, which is called a MAC address. When the NIC receives a packet from the network, it copies the packet to the memory of NIC, and checks the destination address in the header of the data frame. If the destination address matches the MAC address of the NIC, the data frame is copied to the kernel cache, and the NIC then interrupts to tell the CPU to finish processing the data.
+</p>
+<p>
+    Because the NIC discards packets that do not match its MAC address, the sniffer cannot obtain these frames. Fortunately, most network cards have a special mode called <a href="https://en.wikipedia.org/wiki/Promiscuous_mode">promiscuous mode</a>. In this mode, the NIC passes each data frame it receives from the network to the kernel, regardless of whether the address matches.
+</p>
+<p>
+    In this experiment, we need to open the promiscuous mode of the local network card in the following way to obtain all data packets.
+</p>
+<pre>
+    struct packet_mreq mr;
+
+    // Turn on the promiscuous mode
+    mr.mr_type = PACKET_MR_PROMISC;
+    setsockopt(sock, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mr, sizeof(mr));
+</pre>
+<br>
+<h2>Part B : packet sniffer</h2>
+<p>
+    Download the [source code](src.zip) and unzip. This source code is incomplete, you need to fill in the correct code blocks so that the function can work correctly.
+</p>
+<p>
+    In this experiment, <tt>main.c</tt> is supplemented to realize the sniffing function of network packets, we've already shown some of the code. Use the raw socket to complete the packet sniffing function.
+</p>
+<p>
+    The result is as follows:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/image-20211008185057440.png" width="500"/>
+<div class="question">
+    exercise 1 : Complete the code above to make sure your function works correctly as required. You need to submit your source code.
+</div>
+<br>
+<h2>
+    Part C : packet analysis
+</h2>
+<h3>Step 1 Packet Printer</h3>
+<p>
+    In this experiment, you need to analyze the structure of ARP, ICMP, TCP, and UDP packets and print detailed information of them. Refer to the ICMP analysis function given in <tt>PacketProcess.h</tt> and <tt>packetProcess.c</tt> to complete the analysis function of the remaining three packets.
+</p>
+<p>
+    Run ICMP analysis function, the result is as follows:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/image-20211008190726961.png" width="700"/>
+<div class="question">
+    exercise 2 : Complete the code of Step 1 correctly, and submit your source code.
+</div>
+<h3>Step 2 : packet filter</h3>
+<p>
+    When doing network sniffing, sniffers are often only interested in certain types of packets, such as TCP packets or DNS query packets. Therefore, after the packet is captured by the MAC layer, you need to implement filtering functions to filter out some uninteresting packets.
+</p>
+<p>
+    Check the <tt>filter.h</tt> file for details of the function declarations. Refer to the given function <tt>filterByIpAddress()</tt> and complete filter by MAC address, protocol type, and port number. Run your program to check if it works correctly.
+</p>
+<div class="question">
+    exercise 3 : Complete the code of Step 2 to make sure your function works correctly as required. Submit your source code.
+</div>
+<br>
+<h2>Part D : packet spoofing</h2>
+<p>
+    In this experiment, you need to use two virtual machines, Host A and Host B. Host A is used to send the forged packet and host B is used to receive the packet.
+</p>
+<p>
+    Download the source code and unzip.  We have given a function for forging UDP datagrams. Run this program on host A and use Wireshark to capture packets on host B. The specific information of captured data packets is shown as follows:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/udp1.png" width="750"/>
+<p>
+    Refer to this function to complete the forgery of TCP, ARP, and ICMP packets.
+</p>
+<h3>
+    1 TCP packet forgery
+</h3>
+<p>
+    Forge a SYN packet on host A and send it to host B for establishing a TCP connection. If you use the Wireshark to capture packets on host B, you can capture the SYN packet and the reply packet sent by host B. As shown below:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/image-20211008195111778.png" width="800"/>
+<p>
+    You can view and analyze the details about this two data packets in the Wireshark.
+</p>
+<div class="question">
+    exercise 4 : Just read the code given carefully, try to understand the structure of the code.
+</div>
+
+<h3>
+    2 ARP packet forgery
+</h3>
+<p>
+    Forge an ARP packet on host A to request the MAC address of host B. After using the Wireshark to capture packets on host B, you can capture the ARP packet and host B's reply packet. As shown below:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/arp1.PNG" width="880"/>
+<p>
+    You can view and analyze the details about this two data packets in the Wireshark.
+</p>
+<div class="question">
+    exercise 5 : Forge an APR packet as required. You need to submit your source code.
+</div>
+
+<h3>
+    3 ICMP packet forgery
+</h3>
+<p>
+    On host A, forge an ICMP Echo(Ping) Request packet which destination IP address is host B. After the preceding code is run, the request packet and the ICMP Echo(Ping) Reply packet from host B are captured on host B. As shown below:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/image-20211008202305979.png" width="700"/>
+<p>
+    You can view and analyze the details about this two data packets in the Wireshark.
+</p>
+<div class="question">
+    exercise 6 : Forge an ICMP Echo(Ping) Request packet as required. Submit your source code.
+</div>
+<br>
+<h2>Part E : Design your own MAC layer protocol</h2>
+<p>
+    In this experiment, you need to design a new communication protocol to achieve two-way communication between two hosts.
+</p>
+<p>
+    You need to implement the program to run as shown below:
+</p>
+<img src="Lab2%20mini-Wireshark.assets/lALPDgtYygqIykPNAoDNBTs_1339_640.png" width="880"/>
+<div class="question">
+    exercise 7 : Design your own MAC layer protocol and use it to communicate between two hosts. To simplify this question, let's assume that the two sides of the communication take turns sending messages. Submit your source code.
+</div>
+
+<br>
+<hr>
+This completes this assignment. Remember to zip you homework with file
+name <tt>studentid-assignment3.zip</tt> (e.g <tt>SA19225111-assignment3.zip</tt>), and
+submit it to <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
