@@ -40,7 +40,7 @@ complex_t complex_new(double real, double virt){
     
     // init method
     temp->add = add;
-    temp->print = printdistValue = sqrt(c->real*c->real, );
+    temp->print = print;
     temp->distance = distance;
 }
 
