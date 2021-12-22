@@ -524,73 +524,7 @@ main()
 <p>
     The code above shows the program being traced.
 </p>
-<h3>
-    System call tracing
-</h3>
-<p>
-    The Linux implementation of `ptrace' has the ability to trace system calls.
-    The PTRACE_SYSCALL request restarts the child process (just like PTRACE_CONT)
-    but arranges for it to stop at the next entry to or exit from a system call.
-    This opens up some interesting possibilities.
-</p>
 
-<pre>
-#include &ltsys/ptrace.h>
-#include &ltsignal.h>
-#include &ltlinux/user.h>
-#include &ltsys/types.h>
-#include &ltsys/wait.h>
-main()
-{
-
-    int  status = 0, pid, r;
-    struct user_regs_struct uregs;
-    if ((pid=fork())==0) {
-        printf("pid = %d, ppid = %d\n", getpid(), getppid());
-        ptrace(PTRACE_TRACEME, 0, 0, 0);
-        kill(getpid(), SIGINT);
-        r = getpid();
-        printf("%d\n", r);
-    } else {
-        wait(&status);
-        ptrace(PTRACE_SYSCALL, pid, 0, 0);
-        wait(&status);
-        ptrace(PTRACE_GETREGS, pid, 0, &uregs);
-        //this should print 20, syscall number of getpid
-        printf("syscall nr: %d\n", uregs.orig_eax);
-        // 64 is syscall number of getppid
-        uregs.orig_eax = 64;
-        ptrace(PTRACE_SETREGS, pid, 0, &uregs);
-        ptrace(PTRACE_CONT, pid, 0, 0);
-        wait(&status);
-        if(WIFEXITED(status))printf("child over\n");
-        sleep(1000);
-    }
-}
-</pre>
-<p>
-    The code above  shows a child process which first prints its own process id
-    as well as its parent process id and then delivers a signal to itself.
-    Because it is ready to be traced, this will result in the process getting stopped.
-    The parent waits for this to happen and restarts the child by invoking PTRACE_SYSCALL.
-    The next instruction in the child is an invocation of the `getpid' system call;
-    the child gets stopped once again. Each system call has a unique `call number'
-    - the operating system kernel uses this to identify the actual function to be executed.
-    The parent process extracts this call number by invoking PTRACE_GETREGS
-    (the `orig_eax' field of `ureg' holds the call number) and changes it to the
-    call number of `getppid' by invoking PTRACE_SETREGS. The child is then restarted and allowed
-    to run to completion by invoking PTRACE_CONT. Because the call number has been changed,
-    the child will execute `getppid' instead of `getpid'!
-</p>
-<p>
-    This system call `redirection' has significance in the context of User Mode Linux (UML),
-    which is a port of the Linux kernel to itself. UML allows you to run a modified version
-    of the Linux kernel on top of the actual Linux kernel! You can run processes under the
-    control of the modified kernel. When these processes execute system calls, they should
-    execute code present in the modified kernel and not the original host kernel. This is
-    achieved by using the PTRACE_SYSCALL facility offered by UML; interested readers should
-    check out some of the papers available on the net which describe UML architecture.
-</p>
 <h3>
     System call tracing
 </h3>
@@ -622,7 +556,7 @@ main()
         wait(&status);
         ptrace(PTRACE_GETREGS, pid, 0, &uregs);
         //this should print 20, syscall number of getpid
-        printf("syscall nr: %d\n", uregs.orig_eax);
+        printf("syscall nr: %d\n", uregs.orig_rax);
         // 64 is syscall number of getppid
         uregs.orig_eax = 64;
         ptrace(PTRACE_SETREGS, pid, 0, &uregs);
@@ -808,7 +742,7 @@ main()
 
     Compile the testing program files:
 <pre>
-          $ gcc -o hello hello.c
+          $ gcc -static -o hello hello.c
         </pre>
 And then run the debugger on <code>hello</code>:
 </p>
