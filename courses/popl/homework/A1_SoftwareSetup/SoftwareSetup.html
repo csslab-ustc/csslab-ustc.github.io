@@ -1,0 +1,91 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Assignment 0: Software Setup</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body style="width:1000px;">
+<div>
+    <h1>Assignment 1: Software Install</h1>
+    <h2>Overview</h2>
+    <p>
+        This document is a description of the installation of the experimental environment for this course. In order to reduce errors other than the experiment, please refer to the instructions in the document to configure the required experiment environment on your computer.
+    </p>
+    
+    <hr>
+    
+    <h2>Part A: Install Ubuntu</h2>
+    <p>
+        All experiments in this course are required to be completed on a Linux system. If you are a Windows or Mac OS user, please refer to the following steps to install a Linux virtual machine:
+    </p>
+    <p>
+        1. Download the Ubuntu system image: It is recommended to use a stable release version. We recommend that you install Ubuntu18 or above. You can visit the <a href="https://ubuntu.com/download/desktop">official Ubuntu website</a> to download the system mirror, or visit the <a href="http://mirrors.163.com/ubuntu-releases/">domestic mirror website </a> to download the system mirror. Generally speaking, the download speed of the latter is more fast;
+    </p>
+    <p>
+        2. Install VMware or VirtualBox on your computer: Both software can be used to install and manage your virtual machine system. For VMware software, please refer to <a href="https://zhuanlan.zhihu.com/p/141033713">the blog</a> to install Ubuntu image; for VirtualBox software, please refer to <a href="https://blog.csdn.net/weixin_44813579/article/details/105867198">the blog </a>to install Ubuntu image.   
+    </p>
+    
+    <hr />
+    <h2>Part B: Install Tools</h2>
+    <h3>
+        1 OCaml
+    </h3>
+    <p>
+        OCaml is a functional, imperative, modular, object-oriented general-purpose programming language. All experiments in this course need to be written in OCaml, you may read <a href="the official documentation">the official documentation</a> to get started with the programming language.
+    </p>
+    <p>
+        Please follow <a href="https://ocaml.org/learn/tutorials/up_and_running.html">this official tutorial</a> to install the following three components on your system:
+        <ul>
+            <li>OCaml</li>
+            <li>Opam</li>
+            <li>Dune</li>
+        </ul>
+    </p>
+
+    <h3>
+        2 Intellij IDEA
+    </h3>
+    <h3>
+        2.1 Installing IDE
+    </h3>
+    <p>
+        Since Intellij IDEA is a paid software, before the installation,we recommend  you go to the <a href="https://account.jetbrains.com/login">official website of Intellij IDEA</a> and use your USTC email to register an accountant. This will give you a one-year of Intellij IDEA Professional Edition Eligibility for free use.
+    </p>
+    <p>
+        You can download and install IntelliJ IDEA from the <a href="http://www.jetbrains.com/idea/download/#section=linux">JetBrains</a> official website, or from the built-in app store in Ubuntu.
+    </p>
+
+    <h3>
+        2.2 Setting up the environment
+    </h3>
+    <p>
+        (1) Launch IntelliJ IDEA and download the ReasonML plugin, as shown in the following figure:
+    </p>
+    <img src="./img/plugins.png" width="500">
+
+    <p>
+        (2) Download the test project we provide: <a href="./helloWorld.tar.xz">helloWord</a>. Open it with IntelliJ IDE.
+    </p>
+    <P>
+        (3) Click <tt>"settings" -> "Languages & Frameworks" -> "OCaml/Reason"</tt>, click <tt>"Opam"</tt> on the right, enter the path of the Opam command in the root location (you can also enter <tt>"which opam"</tt> in the shell figure it out), and the installed function library will be automatically refreshed below after entering the path, save Settings. As shown below:
+    </P>
+    <img src="./img/setting.png", width="700">
+    <p>
+        After you have successfully configured ReasonML, you can find the dune logo in the lower left corner of the IDE window. As shown below:
+    </p>
+    <img src="./img/dune.png" width="400">
+    <p>
+        (4) Edit configuration: Select the configuration interface, click the "<tt>+</tt>" on the left and select "<tt>shell script</tt>", select "<tt>Script text</tt>", and enter the shell command "<tt>dune exec test_hello_world</tt>" in the "Script text" input box to save the configuration. As shown below.
+    </p>
+    <img src="./img/run.png", width="700">
+    <p>
+        (5) Click the "<tt>dune</tt>" in the lower left corner and select "<tt>Build Dune</tt>" to compile the OCmal program. Then run the program and output "Hello, World", indicating that your environment is configured correctly. If you are alerted to install dune, you can configure environment variables or enter the command "<tt>eval $(opam env)</tt>" in the shell.
+    </p>
+<hr>
+
+<p>
+    Happy hacking!
+</p>
+</div>
+</body>
+</html>
