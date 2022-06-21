@@ -123,15 +123,14 @@ type t = (Type.t * Type.t) list
     (*  
         [Task 1] 
             According to Fig 22.2 in Textbook, finish 3 Todo in solve (C)
-
-        [Tips]
         
-            According to constraint set, solve (C) return sigma. 
-            C is a list of (S: Type.t, T: Type.t), 
-            corresponding to C = {S1=T1, S2=T2, ...} in textbook. 
+        [Tips]
+            1. According to constraint set, solve (C) return sigma. 
+                C is a list of (S: Type.t, T: Type.t), 
+                corresponding to C = {S1=T1, S2=T2, ...} in textbook. 
 
-            unify(C) return a list of (X: Type.t, T: Type.t) ,
-            corresponding to sigma = [X |-> Bool, Y |-> Z, ...] in textbook 
+            2. unify(C) return a list of (x: string, T: Type.t) ,
+                corresponding to sigma = [Type.Var(x) |-> Bool, Type.Var(y) |-> Z, ...] in textbook 
     *)
     let solve (c) = 
         let rec unify c = 

@@ -76,8 +76,8 @@ struct
                 C is a list of (S: Type.t, T: Type.t), 
                 corresponding to C = {S1=T1, S2=T2, ...} in textbook. 
 
-            2. unify(C) return a list of (X: Type.t, T: Type.t) ,
-                corresponding to sigma = [X |-> Bool, Y |-> Z, ...] in textbook 
+            2. unify(C) return a list of (x: string, T: Type.t) ,
+                corresponding to sigma = [Type.Var(x) |-> Bool, Type.Var(y) |-> Z, ...] in textbook 
     *)
     let solve (c) = 
         let rec unify c = 
