@@ -1,0 +1,360 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Assignment 9: Hoare logic</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+<h1>Assignment 9: Hoare logic</h1>
+<hr />
+
+<h2>Overview</h2>
+<p>
+    In the class, we've discussed the
+    <a href="https://en.wikipedia.org/wiki/Hoare_logic">Hoare logic</a>,
+    an axiomatic semantics for formal reasoning about program correctness.
+    One important application of Hoare logic is in the field
+    of
+    <a href="https://en.wikipedia.org/wiki/Formal_verification">program
+        verification</a>, where the desired properties of
+    the programs can be reasoned formally and rigorously. To be
+    specific, there are two different styles to reason about the
+    program: the backward style, which scans the program in a reverse
+    order and is suitable for the structured programs; and the
+    forward style, which scans the program from the beginning
+    to the end, and is suitable for either the structured or
+    unstructured programs.
+</p>
+<p>
+    In this assignment, you'll implement a Hoare logic system by
+    completing both a backward and a forward verification systems.
+    To be specific,
+    this assignment is divided into two parts, each of which contains
+    both some tutorials and problems. The first part covers a backward
+    verification system, which operates on the aforementioned language C--;
+    and the second part covers a forward verification system which operates
+    on a low-level assembly-like intermediate language TAC, which is
+    a modified version of the
+    <a href="https://en.wikipedia.org/wiki/Three-address_code">
+    Three Address Code</a>. Strictly speaking, these two systems are
+    equivalent in their expressiveness, but having both of them will
+    get you more familiarized with the different verification technologies
+    on different flavors of languages.
+    Some problems are tagged with <tt>Exercise</tt>, which you should solve.
+    And several problems are tagged with <tt>Challenge</tt>, which are optional.
+    Download <a href="./code.zip">code templates</a> to start with.
+</p>
+
+<p>
+    Before starting with this assignment, make sure you've finished
+    <a href="../assign1/index.html">Software Setup</a> in the
+    assignment 1, and have Z3 and Python(3.7+ recommended) properly
+    installed on your computer. For any problems, please feel free
+    to contact us for help.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    After finishing the assignment, zip you code with file name
+    <tt>studentid-assignment9.zip</tt> (e.g <tt>SA19225111-assignment9.zip</tt>),
+    and send to this email: <tt>sg513127@mail.ustc.edu.cn</tt>.
+    Please use your <b>USTC e-mail</b> to submit.
+    Make sure your email's subject is same as your zip file's name
+    (e.g <tt>SA19225111-assignment9</tt>).
+    The deadline is 2:00AM in the morning of July 13th, 2020 (Beijing time).
+    Any late submission will <b>NOT</b> be accepted.
+</p>
+<hr />
+
+<h2>Part A: Backward verification</h2>
+<p>
+    The first verifier you'll be building is of backward style, and
+    operates on the C-- language. Below is the syntax of C--, with
+    some modifications from last assignment: we add the implication
+    <tt>-></tt>, and <tt>&&</tt> , or <tt>||</tt>, and negation <tt>~</tt>:
+
+</p>
+<pre>
+    bop ::= + | - | * | / | == | != | > | < | >= | <= | -> | && | ||
+    E   ::= n | x | E bop E | ~E
+    S   ::= skip
+          | x=E
+          | S;S
+          | f(E1, ..., En)
+          | if(E, S, S)
+          | while I(E, S)
+    F   ::= f(x1, ..., xn){S; return E;}
+</pre>
+
+<p>
+As with last assignment, we need to build a group of abstract syntax
+tree data structures to represent the C-- syntax. We have supplied
+you these data structures, which you should first get yourself
+familiarized of.
+</p>
+
+<div class="question">
+    <b>Exercise 1:</b> Read the code in <tt>imp_ast.py</tt>, make sure
+    you understand these data structures. Pay special attention
+    to the loop invariant and modified variables in the
+    <tt>StmWhile</tt> class, and the pre- and post-conditions in the
+    <tt>Function</tt> class. Your job in this exercise is to write down
+    the data structure for the function <tt>sum()</tt> as given in the
+    comment. Make sure to test your implementation before continuing.
+</div>
+
+<div class="question">
+    <b>Exercise 2:</b> Later in this assigment (and generally in any
+    verification condition generation systems), we often need to
+    estimate how large the generated verification condition (an
+    expression) is, so we can write a function <tt>exp_num_nodes()</tt>,
+    to count the number of nodes in a given expression. Complete
+    that function in <tt>imp_ast.py</tt>, by filling in the missing code.
+</div>
+
+<p>
+    We've discussed the backward verification condition generation
+    rules in the class, which are repeated below for your
+    reference:
+</p>
+
+<pre>
+    VC(skip, P)         = P
+    VC(S1;S2, P)        = VC(S1, VC(S2, P))
+    VC(x=e, P)          = P[x↦e]
+    VC(if(e;s1;s2), P)  = (e → VC(s1, P))∧(~e → VC(s2, P))
+    VC(while I(e;s), P) = I ∧ (∀x1 x2 ... xn.I →(e → VC(s, I) ∧ (~e → P)))
+</pre>
+
+<p>
+    Pay special attention to the universal quantifier
+    in the rule for the while statement: the variables x1, x2, ..., and xn
+    are assigned in the while body. Basically, this rule requires
+    the while statement is annotated with the modified variables
+    in the loop body. This <tt>StmWhile</tt> class record this
+    information in the <tt>modified_vars</tt> field.
+</p>
+
+<div class="question">
+    <b>Exercise 3</b>: Calculate the modified variables in any
+    while statement by filling in the function
+    <tt>fill_in_modified_vars()</tt> module. You won't need to
+    use a functional programming style, instead, you may record
+    this information directly on the appropriate tree nodes.
+</div>
+
+<div class="question">
+    <b>Exercise 4</b>: Read the code in <tt>backward.py</tt> file, in
+    which the function <tt>vc()</tt> scans a function <tt>f</tt>
+    backward, generates
+    a verification condition for <tt>f</tt> and returns the verification
+    condition. Your task is to fill in this function, based on the
+    rules above. Think carefully how to do the variable substitution, and
+    how to handle pre- and post-conditions. Make sure to test your
+    implementation thoroughly, you can use the test cases in
+    the <tt>ast</tt> module. How large the generated VCs are?
+</div>
+
+<p>
+    As usual, after generating the verification conditions, we continue
+    to convert them
+    to Z3 format, and send it to the Z3 solver to prove it. If Z3 proves
+    the VC, the target program is verified, or else if Z3 reports
+    some contradiction, the verification fails. The reason is either
+    the program is wrong, or the supplied specification does not
+    specify the programs correctly.
+</p>
+
+<div class="question">
+    <b>Exercise 5</b>: Finish the function <tt>vc_2_z3()</tt> in the
+    <tt>prover.py</tt> file, to prove or disprove the generated
+    verification conditions. Don't forget to test your code.
+    Hint: although there can be no decision procedures for
+    first-order logic in general, z3 can solve a large set of
+    formulas that use quantifiers, say: <tt>ForAll([x, y], f(x, y) == 0)</tt>.
+    You'll need this capability when processing the <tt>while</tt> statement.
+</div>
+
+<p>
+    As we discussed in the class, for target programs with many
+    <tt>if</tt> statement, the generated verification conditions
+    can grow exponentially, this is called verification condition
+    explosion. This brings several challenges to the verification
+    system implementation: first, the time spent in the generation
+    tends to be longer; second, the generated verification
+    condition tends to be larger; finally, the generated VC may
+    be beyond the capability of modern solvers.
+</p>
+
+<div class="question">
+    <b>Exercise 6</b>: To understand these challenges and to study
+    how to mitigate them, we experiment some large target program
+    in this exercise. In the file <tt>gen_prog.py</tt>, we provide you
+    a generator, which can generate some test programs. You can
+    run this command like this:
+    <pre>
+    <kbd>
+        $ python3 gen_prog.py 10
+    </kbd>
+    </pre>
+    to generate a test file, where 10 is number of statements
+    you want to generate, you can change it to try other values. This
+    command will generate a file <tt>large_prog.py</tt> which contains
+    a test program. Run the generated program, and be sure to answer
+    the following problems:
+    <ul>
+        <li>How long does your code take to generate the VC? How to
+        speed up this process?</li>
+        <li>How large is the generated VC? How to shrink it?</li>
+        <li>Is Z3 able to prove this VC? How long does Z3 take to
+        finish the task? How to speed up?</li>
+    </ul>
+
+</div>
+
+<div class="challenge">
+    <i>Challenge</i>: In the implementation we supplied, there is no
+    support for function calls and returns. Try to modify the code to
+    support them. Think carefully the verification generation rules
+    for function call/returns. Feel
+    free to change any code you think necessary.
+</div>
+
+
+
+
+<hr>
+<h2>Part B: Forward verification</h2>
+
+<p>
+    In this part of the assignment, we'll build a forward verification
+    generator, which scans the program from the beginning to
+    the end. The generator you'll build work on an unstructured
+    language: TAC, which is an abbreviation of Three Address
+    Code, though the version we'll be using is a variant of
+    the standard one. The key difference is that the expression
+    we'll be using are compound, instead of atomic. Though the
+    TAC language here is not suitable for program analysis and
+    optimization, it's enough for our verification purpose in
+    this assignment.
+</p>
+<p>
+    The intermediate language we'll be using is given by the
+    following syntax:
+</p>
+<pre>
+    bop ::= + | - | * | / | == | != | > | < | >= | <= | -> | && | ||
+    E ::= n | x | E bop E | ~E
+    S ::= skip             // empty
+        | x=E              // assignment
+        | L:               // label
+        | inv E            // an invariant E
+        | f(E1, …, En)     // function call
+        | if(E, L1, L2)    // branching
+        | goto L           // jump
+        | return E         // function return
+    F ::= f(x1, …, xn){S*}
+</pre>
+
+<p>
+    Control flows are not structured any more, but only explicit
+    labels and jumps.
+</p>
+
+<div class="question">
+    <b>Exercise 7:</b> Read the code in <tt>tac.py</tt>, make sure
+    you understand these data structures for TAC. Notice that we both
+    have the symbolic (label) address and physical address for
+    the code sequence. Take the <tt>StmIf</tt> statement as an
+    example, the fields <tt>true_label, false_label</tt> are symbolic
+    address, whereas the fields <tt>true_address, false_address</tt>
+    are physical address. When implementing the symbolic executor, the
+    physical address is more convenient, as it allows direct jump.
+</div>
+
+<p>
+    In principal, we can also write down the TAC programs manually, making
+    use of the data structures, as we've done for the C-- programs.
+    However, doing so will be painfully and tedious, due to the low-level
+    nature of the TAC language. Luckily, there is a more convenient and easier
+    way: to compile the C-- programs directly down to equivalent
+    TAC program. We have supplied the code for the compiler to you.
+</p>
+
+<div class="question">
+    <b>Exercise 8</b>: Skim the compiler code in <tt>compiler.py</tt>
+    file. You are NOT required to understand this code. But you
+    are encouraged to do so, if you're curious.
+</div>
+
+<div class="question">
+    <b>Exercise 9</b>: Read the code in <tt>forward.py</tt> file, which
+    contains code performing forward verification condition generation.
+    Your task in this exercise is to finish this generator by
+    filling missing code in the function <tt>vc()</tt>. You'll be
+    using the symbolic execution idea from previous assignment.
+</div>
+
+<p>
+    As in the backward generator, we can send the generated VC to a
+    prover/solver to prove it, as described by the following process:
+</p>
+<pre>
+    programs ---> verification         ---> verification ---> solver ---> prove/disprove
+                  condition generator       condition
+</pre>
+
+<div class="challenge">
+    <i>Challenge</i>: As for the C-- language, add verification
+    condition
+    generation support for function call/return; so that your generator
+    can deal with large programs.
+</div>
+
+<div class="challenge">
+    <i>Challenge</i>: One key advantage of generating verification
+    conditions at a relatively low-level is that one can generate
+    <a href="https://en.wikipedia.org/wiki/Proof-carrying_code">Proof-carrying
+    code</a>, in which a explicit formal proof about the VC is
+    generated and attached to
+    the low-level code. Thus, the receiver of the low-level code
+    can re-generate the VC and checks the VC against the proof, to
+    guarantee the safety of the code. One such example in common
+    use is the Java bytecode: the Java compiler will generate necessary
+    type information (among other information) and attach these
+    information to the binary class files. Before a client runs
+    the class file, it will scan these type information and check
+    the type safety of the class file.
+    Z3 has builtin support for proof generation, for
+    this purpose, you can configure Z3 like this:
+    <pre>
+        from z3 import *
+
+        ctx = Context(proof=True)
+        solver = Solver(ctx=ctx)
+        x = Bool('x', ctx=ctx)
+        solver.add(Not(Implies(x, x)))
+        res = solver.check()
+        print(res)
+        proof = solver.proof()
+        print(proof)
+    </pre>
+</div>
+
+<hr>
+
+<p>
+    This completes this assignment. Remember to zip you homework with file
+    name <tt>studentid-assignment9.zip</tt>
+    (e.g <tt>SA19225111-assignment9.zip</tt>),
+    and send email to: <tt>sg513127@mail.ustc.edu.cn</tt>.
+</p>
+
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
