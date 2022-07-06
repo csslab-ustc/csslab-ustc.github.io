@@ -1,103 +1,163 @@
 body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-		"Segoe UI Symbol";
-	padding: 0;
-	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont,
+	"Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans",
+	"Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+	"Segoe UI Symbol";
+	background: #ececec;
 }
 
-div.main-container {
-	min-height: 100vh;
-	background: white;
-	margin: auto;
-}
 
 div.header-container {
 	width: 100%;
 	height: 90px;
+	position: fixed;
+	background: rgba(2, 32, 135);
 }
 
 div.header {
-	width: 100vw;
-	height: 90px;
-	background: #3b4249;
+	width: 100%;
 	z-index: 1;
-	position: fixed;
-	display: inline-block;
+	font-family: math;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+
+div.header-img {
+	padding-top: 1em;
+	padding-left: 1em;
+	vertical-align: middle;
+	float: left;
 }
 
 div.header-text {
-	margin-top: 6px;
-	margin-left: 20px;
+	padding-top: 1.4em;
+	padding-left: 6em;
 	color: white;
-	display: inline-block;
 	vertical-align: middle;
-}
 
-div.header-img {
-	margin-top: 6px;
-	margin-left: 20px;
-	display: inline-block;
-	vertical-align: middle;
-}
-
-div.layout {
-	width: 100vw;
-	/*margin-top: 90px;*/
-	padding-bottom: 0;
-	margin: auto;
-	/*display: inline-block;*/
 }
 
 div.layout-menu-container {
 	position: fixed;
+
 }
 
 div.layout-menu {
-	padding: 100px 0px 25px;
-	min-height: 100vh;
-	width: 10%;
-	background: #f6f8fa;
-	/*border-right: 1px solid #e1e4e8;*/
+	padding-top: 5em;
+	text-align: left;
+	font-size: 130%;
+	font-family: math;
 }
 
 div.menu-item {
-	font-size: 22px;
-	padding-left: 50px;
-	padding-right: 25px;
-	/*margin-top: 10px;*/
+	margin: 0.5em 0.5em;
+	padding-left: 1em;
+	padding-right: 1em;
+	border-left: 5px solid  #023679;
 }
 
 .layout-menu a:link {
-	padding: 0px;
 	line-height: 2;
-	color: #0366d6;
+	color: #0652ab;
 	text-decoration: none;
 }
 
 .layout-menu a:visited {
-	padding: 0px;
 	line-height: 2;
-	color: #0366d6;
+	color: #023679;
 	text-decoration: none;
 }
 
 .layout-menu a:hover {
-	padding: 0px;
 	line-height: 2;
-	color: #999999;
-	text-decoration: underline;
+	color: white;
+	background: #0652ab;
 }
 
 div.layout-content-container {
-	background: none;
 	text-align: left;
 	/*display: inline-block;*/
 }
 
 div.layout-content {
-	padding-top: 95px;
-	min-width: 200px;
-	max-width: 1200px;
 	/*margin: auto;*/
-	margin-left: 15%;
+	padding-top: 7em;
+	padding-left: 12em;
+	max-width: 1400px;
 }
+
+div.split-line {
+	border: 1px solid #0652ab;
+	margin-bottom: 0.6em;
+}
+
+/*-----------projects page style begin---------------*/
+
+div.project-layout {
+	padding-bottom: 1em;
+}
+.project-image img {
+	width: 10em;
+	height: 10em;
+	border-radius: 5%;
+	background-repeat: no-repeat;
+	background-position-y: 9%;
+	float: left;
+}
+
+div.project-text {
+	padding-left: 11em;
+	padding-top: 0.5em;
+	height: 8em;
+	vertical-align: middle;
+}
+
+/*-----------projects page style end---------------*/
+
+/*-----------courses page style begin---------------*/
+
+div.course-layout {
+	padding-bottom: 1em;
+}
+.course-image img {
+	width: 8em;
+	height: 8em;
+	border-radius: 5%;
+	background-repeat: no-repeat;
+	background-position-y: 9%;
+	float: left;
+}
+
+div.course-text {
+	padding-left: 10em;
+	padding-top: 0.5em;
+	height: 8em;
+	vertical-align: middle;
+}
+
+/*-----------courses page style end---------------*/
+
+/*-----------members page style begin---------------*/
+div.members-layout, div.member {
+	display: -webkit-flex;
+	display: flex;
+	justify-content: space-around;
+}
+
+
+div.members-layout img {
+	width: 100px;
+	height: 100px;
+	border-radius: 25%;
+	background-repeat: no-repeat;
+	background-position-y: 9%;
+}
+
+div.member-text {
+	padding-left: 1em;
+	padding-top: 2em;
+	vertical-align: middle;
+}
+/*-----------members page style end---------------*/
