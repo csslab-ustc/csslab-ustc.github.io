@@ -1,0 +1,181 @@
+Stack smashing
+==============
+
+* For those unfamiliar with the background knowledge,
+  read LLL, chap 6 and chap 10
+
+* Why are we reading this paper?
+  in 1988, the famous Morris worms was created, the first
+  wide-spread worm in computer security history
+    read this for the story
+      http://en.wikipedia.org/wiki/Morris_worm
+
+  the key attack technique in Morris worm is buffer overflow
+    a special form of stack smashing
+  later on, several articles explain Morris' technique in detail
+    among those is this paper we are reading (also the most interesting one)
+
+* process address space
+  partly determined by program image: text, data, &c
+  partly determined by OS: stack, heap, &c
+  let's examine one example:
+    $ cat a.c
+      int main (){
+        int x = 0;
+        
+        printf ("hello, world\n");
+        while (1)
+          x++;
+        return 0;
+      }
+    $ gcc -g -fno-builtin a.c
+    $ ls
+      a.c a.out
+      
+  then what's in the binary "a.out"? Let's play with the disassembler "objdump"
+    $ objdump -h a.out
+      ...
+  see? many so-called "sections", what's in them? for e.g., the ".text"
+    $ objdump -j .text -s a.out
+  what did you see?
+  then try:
+    $ objdump -j .text -d a.out
+  what did you see? where is "main"?
+  then try:
+    $ objdump -j .text -d -S a.out
+  what did you see? where is "main"?
+  below the "printf" statement, there is the constant "$0x80484b0", what's it?
+  then try:
+    $ objdump -j .rodata -s a.out
+  what did you see? what's is at "$0x80484b0"?
+  
+* address space partly determined by OS: stack, heap, shared libraries, etc.
+  see figure 1 on paper for the conventional Unix-like layout
+  modern Linux has a very nice representation about each process' address space
+    $ cat /proc/pid/maps
+  where pid is the pid from above
+
+  but most addresses are random 
+    we'll see reasons later
+  
+* What's a stack?
+  data structure to hold function information and to control
+  function call and return
+  pointed by two dedicated registers, as
+       |-------------|           (higher address)
+       | saved eip   |
+       |-------------|
+       | saved ebp   |
+       |-------------| <= %ebp
+       |locals, tmps |
+       |      &c     |
+       |-------------| <= %esp   (lower address)
+  grows down from higher address to lower ones
+  what's in the stack?
+    function parameters
+    function locals
+    and most importantly: saved ebps and return address
+      to control function calls and returns
+  see the figure on page 4 of the paper to get an idea
+
+* how a stack is used in function call and return?
+  read figure 10-11 and 10-12 in book LLL
+  and then try it in gdb (single step it)
+  
+* what's a buffer?
+  char array in local or global area
+  see the figure on page 4 again
+  
+* what's buffer overflows?
+  write into the buffer, but beyond the buffer end
+  
+* why buffer overflows are evil?
+  it corrupts the control flow by overwriting the return address
+  so function may "return" to any address
+    but must with care, see code "example2.c"
+    why is there the "segment fault"?
+  we can even change the control flow directly, if
+  you can access that address
+    read code "example3.c"
+  or even more interesting, you can cook a recursion function
+  with this style
+    void f (){
+      int i;
+      *(&i+8) = (int)f;
+    }
+
+* technically, smashing the return address directly is hard
+  think you logged remotely, or you can not re-compile the program
+  so a more feasible way is to supply some code and jump to
+  it by modifying the control flow
+    you must do the two jobs simultaneously
+  see the figure on page 6
+  
+* what code should be injected?
+  must be binary (so that machine can understand it)
+  must be position-independent
+    the so-called PIC code, as you've seen in lab 1
+  what the code does is not important, but for historical reasons, the
+  code spawns a shell
+    if the executable is root set-uid, then you got a root shell!
+  
+* how to spawn a root shell?
+  read code "shellcode.c" and the assembly followed
+    what does the code at line "0x8000136" and "0x800013d" mean?
+  the syscall sequence at page 10 is standard Linux syscall
+  to exit gracefully, add an extra "exit" syscall (page 11)
+  
+* the shellcode skeleton is on page 11
+  as we say above, the most important thing here is that the code
+  should be PIC, but the paper calculates the address in an
+  awkward way
+  here is a more elegant version:
+       jmp   L1
+   L2:
+       popl  %ecx
+       movl  $0xb, %eax
+       movl  (%ecx), %ebx
+       xorl  %edx, %edx
+       int   $0x80
+       movl  $1, %eax
+       xorl  %ebx, %ebx
+       int   $0x80
+   L1:
+       call  L2
+   straddr:
+       .int str
+       .int 0
+   str:
+       .string "/bin/sh"
+  
+* why there should not be '\x00' in shellcode?
+  how does this paper eliminate '\x00'?
+  is the shellcode above good according to the no '\x00' criterion?
+  if not, how to fix it?
+  
+* how to attack an app with buffer overflow vulnerability?
+  a basic plan is as in "overflow1.c"
+  but we have to guess the address of the buffer
+  and also the size of the buffer
+  some improvements
+    padding the buffer with "nop"
+    why this enhance the possibility
+    
+* what if the buffer is too small?
+  like this:
+  ------------------------------------------
+    | buffer              |ret |
+  ------------------------------------------
+     shelllllllllllllllllllllllllllcode
+  
+  then we can not overwrite the ret with "buffer's address", why?
+  we can store the shell code in environment variable (if we can)
+  and jump to it
+    this approach is more promising in that the Env Vars' are
+    at a very high address, so it's easier to be located
+  or you can jump to higher address of the stack
+  or you can search, in the memory for an instruction "jmp %esp"
+  and overwrite the "ret" with this address
+  or ...
+
+  

@@ -1,0 +1,3 @@
+page-level protection against the buffer-overlflow attacks:
+compiler emits stack layout info to ensure that no infor could be
+changed, including: return address, stack base pointer

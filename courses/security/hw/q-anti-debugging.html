@@ -1,0 +1,124 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember to submit your answer to this quetion BEFORE the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      (<b>ssedb: a minimal debugger</b>). Debuggers are powerful tools which allow
+      programmers to load and run executables, to attach to a already
+      running process (even
+      remote ones); and perform interesting actions. 
+      
+      <p>In this problem, you'll learn what's going on under the
+      hood of debugging, by implementing a minimal debugger called <code>ssedb</code>
+      by yourself. And further, you'll understand how anti-debugging
+      techniques can make debugging difficult, and how to overwhele these
+      anti-debugging techniques. 
+      
+      <p>
+      Though small, <code>ssedb</code> debugger includes many
+      features: loading files, setting up break points, stopping and
+      continuing processes, peeking registers
+      and memory, poking memory and registers, etc.. And finally, <code>ssedb</code> 
+      is also based-on <code>ptrace</code>, as
+      do <code>gdb</code>, <code>edb</code> or <code>ida pro</code>, etc..
+      
+      <p>
+        First, download the <a href="ssedb.c">source file</a> of <code>ssedb</code>
+        to your Linux machine, along with a trivial <a href="hello.c">testing program</a>. Compile
+        these two program files:
+        <pre>
+          $ gcc -o ssedb ssedb.c
+          $ gcc -o hello hello.c
+        </pre>
+        And then run the debugger on <code>hello</code>:
+        <pre>
+          $ ./ssedb hello
+        </pre>
+        And you may try several commands now, for instance, the <code>regs</code> command:
+        <pre>
+          (ssedb) regs
+        </pre>
+        will display contents in registers. But note that command names are
+        similar but not the same with <code>gdb</code>.
+        
+       <p>
+       Now read the source file <code>ssedb.c</code> and answer the following questions. In
+       this process, you may find
+       <a href="http://pramode.net/articles/lfy/ptrace/pramode.html">this manual</a> useful.
+       
+      <ol>
+      	<li>How the <code>regs</code> command is implemented?
+      	<li>Now, how the breaking point command <code>b addr</code> is implemented?
+      	In fact, there is a serious bug in current implementation we offered
+      	you. Let's check where is this bug. First run this
+      	<pre>
+      	$ objdump -d hello
+      	</pre>
+      	and figure out the address of the function <code>main</code>, suppose
+      	that address is <code>0xaddr</code> on your machine. Now in the <code>ssedb</code>,
+      	you set up a break point on address <code>0xaddr</code> by typing (remember this
+      	address must be in hexadecimal, which has a leading <code>0x</code>):
+      	<pre>
+      	(ssedb) b 0xaddr
+      	</pre>
+      	and then let the debugger run to hit the break point:
+      	<pre>
+      	(ssedb) c
+      	</pre>
+      	now peek the registers:
+      	<pre>
+      	(ssedb) regs
+      	</pre>
+      	What's the value of <code>eip</code>? Is this value right? Why?
+      	<p>And then disassembly the content at address <code>0xaddr</code>.
+      	<pre>
+      	(ssedb) x/x 0xaddr
+      	</pre>
+      	What's there? Have you detected the bug? How to fix this bug?
+      	<li>There is also a command to disassembly bianry into assembly
+      	intructions, but has not be completed. Now run
+      	<pre>
+      	(ssedb) x/i 0xaddr
+      	</pre>
+      	you'll see an error message indicating the file position
+      	you should supply code. Implement it. (Hint: manual disassemblying
+      	is tedious and error-prone, so you may find some libraries are
+      	helpful, such as the <a href="http://bastard.sourceforge.net/libdisasm.html">libdisasm</a>.)
+      	<li>(<b>Hard</b>.) Another feature missing from the <code>ssedb</code> is debugging
+      	symbols. For instance, when setting up breaking points, we'd like just to type
+      	a symbolic name, such as:
+      	<pre>
+      	(ssedb) b main
+      	</pre>
+      	instead of an ugly hexadecimal address for <code>main</code>. Implement this
+      	feature. (Hint: refer to the <a href="http://www.dwarfstd.org/doc/Debugging%20using%20DWARF.pdf">DEARF</a> debugging format.)
+      </ol>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

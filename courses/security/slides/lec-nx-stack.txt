@@ -1,0 +1,89 @@
+Stack smashing variants and protection
+======================================
+
+* why stack is smashable?
+  the basic problem is that some function pointer
+  stored in some memory region which is writable
+    here, function pointer: return address
+    memory: the stack
+  later, we'd see more examples: the GOT or vtable
+
+* how to protect against stack smashing?
+  compiler-based techniques:
+    stack guard: canary value below RET
+      we discussed this last week
+    stack shield: RET backed up in some memory region
+  OS-based techniques:
+    non-executable stacks
+
+* we've discussed stack guard, next, we discuss stack shield
+  section 2.3 on page 6
+  the prologue and epilogue are changed just as that of stackguard
+    there is a "retarray" with limit "rettop"
+    retarray:
+      -------------------------
+      | ret1 | ret2 | ...     |
+      -------------------------rettop
+    at prologue, the function ret address is cloned into this array
+    and at epilogue, the RET is copied back
+      so the array is essentially a stack!
+    and the stack depth is not necessarily very large
+      function call don't nest very deeply for most cases
+    can the stack shield handle function call nested very deeply? why?
+  note that on page 8, there is ret range checking
+    checks whether the ret is to a very high address
+    but this does not work in practice, for GCC and Java need to store
+    functions in the stack!
+
+* How does Microsoft VS's /GS switch work?
+  see the table on top of page 11, note the difference from the table on page 5
+  
+* however, neither stack guard nor stack shield are 100% secure
+  and next we'd discuss several ways to attack them
+  
+* #1: Function argument control
+  read sg1.c on page 11, you may want to draw a figure of stack layout
+  this is the famous "write-anything-where"
+  but the standard stack guard will terminate this program, so
+  how does the attack succeed?
+    short answer is to attack the terminating procedure!
+  you may skim the code on page 12, but don't worry about the technique
+  details, as we'd cover it later
+  
+  read top on page 13, the problem with stack shield is more serious, why?
+
+* #2: Frame pointer faking (or off-by-one attack)
+  [draw a figure here]
+  by write pass the canary by one, we changed (faked) the ebp
+  so the next return will ...
+  
+* #3: Local variable control
+  just like above, if the ebp is faked, then all local variables are under control
+  [draw a figure here]
+
+* #4: GOT
+  more on this later
+  
+* OS-based method: NX-stack
+  the basic idea is to mark the stack non-executable
+    the attacker can smashing the stack
+    but can not plant code in the stack
+  historically, this is difficult, for older architectures don't support this directly
+    but one can mark the limit in descriptor for CS to value<3G
+      PAX (a patch to Linux) makes use of this techniques
+  this is not a problem now on modern architectures
+    one instance is NX-bit in IA64's page table permission field
+  
+* But Linux does not use NX-stack
+  for that Linux will make use of stack to run code
+    signal handling
+    GCC trampoline
+    OO jit compilers, &c
+    
+* OS-based method: stack randomization
+  when a process is created, set the stack address to some random value
+    recall this is possible for that this has nothing to do with the image itself
+  this makes the guessing of address of the buffer more difficult
+    do lab2 for more details
+  recent versions of Linux or Windows have incorporated this and enabled by default
+

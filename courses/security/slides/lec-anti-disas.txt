@@ -1,0 +1,80 @@
+Anti-Disassembly
+================
+
+* What's disassembly?
+  given the executable (in binary), produce the assembly code
+    eg.:
+        input: 0xe809000000
+        output: call (next_addr+0x00000009)
+        recall that 0xe8 is near call opcode on x86
+  so disassembly the reverse process of assembly (from assembly to binary)
+    a kind of reverse-engineering in general
+  
+* why do we need disassembly?
+  debugging
+        say: gdb
+  code analysis
+       say: malware analyst  
+
+* what's anti-disassembly?
+  techniques used in malware which makes disassembly (and code analysis) harder
+
+* who need anti-disassembly?
+  for individuals or companies
+      who intends to protect intellectual properties
+  for malware writers 
+      who want intends to hide the internal secretes of his malwares
+
+* how does a disassembly engine work?
+  in its simplest form, a linear disassembly algorithm
+     on page 330 of the reading
+     from the start, one instruction after another
+        recall that x86 is CISC, which means that instructions 
+        are of variable lengths
+
+* what does a anti-disassembly code look like?
+  on page 328 and 329
+  can defeat the linear disassembly algorithm
+  key point here: code and data are all binary value, 
+      and machine don't distinguish between them
+      and thus, if the .text section contains other data 
+      (say the jump table on page 331),
+      the disassembler may also be fooled
+
+* flow-oriented disassembly
+  don't assum there are only instructions, and must take of branching
+  instructions, such as jump, calls, interrupts, &c.
+       read the code on top of page 329 again
+            after disassembly the 1st instruction (the "jump"), the disassembly
+            engine should proceed to "loc_3",
+                   leaving the area between them untouched
+
+  conditional branching is of no more difficulty
+       read code on top of page 332
+
+  call is a little harder
+       read the "call-pop" pattern on page 333
+       another common pattern is "call-call":
+               call .L
+               .string "hello"
+           .L:
+               call printf
+       moral: must be very careful at every call point
+
+* Anti-disassembly techniques
+  Unconditional jump: some conditional jumps are unconditional in fact
+       jump to same target:
+            code on page 335
+       constant condition:
+            code on page 336
+  but this can be arbitrary complicated for the fact that instructions
+  may be interleaving
+      so the disassembly may not a one-to-one map to binary
+
+* Obscuring control flow
+  function pointers:
+    may jump via local function pointers
+      signals, &c.
+    may jump via global function pointers
+      GOT, jump buffers, CTORs, DTORs, SEH, &c.
+

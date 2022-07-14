@@ -1,0 +1,203 @@
+GOT Hijacking
+=============
+
+* why are we reading this paper?
+  attacking methods so far:
+    #1: methodstack guard stops buffer overflow
+    #2: and non-executable stack make it very difficult to inject code
+    #3: randomizing the shared library loading address making ret-to-libc difficult
+  so the protector has won?
+  No, there are some more advanced techniques available
+  one of which is the one we'd like to discuss---hacking GOT
+  
+* what is static linking?
+  code, data, etc. are linked together statically
+  so, in some sense, the result executable is complete and self-contained
+  to be specific, how to resolve (standard) libraries?
+    they are linked statically
+  pros:
+    relatively simple to understand and implement
+    the image is efficient
+  cons:
+    the images occupy more spaces
+    hard to upgrade and evolve the libraries
+
+* what's dynamic linking and loading?
+  when linking happens, just mark some components as "TO BE resolved"
+    so the final image is incomplete
+  the missing components will be loaded at runtime somewhere in the address space
+  and the linking process proceeds to link the loaded libraries in
+  [draw a figure here]
+
+* what's GOT?
+  to make dynamic linking and loading possible, the image itself
+  maintain some auxiliary data structures
+    one of the DSs is called Global Offset Table (GOT), among others
+  GOT is essentially an array of function pointers attached
+  with the image, which looks like:
+            |          |
+            |          |
+            |----------|
+            |data (GOT)|
+            |          |
+            |----------|
+            |text      |
+            |          |
+            |----------|
+  one important fact to note is that GOT is located in the data segment
+    we'd see why a little later
+    but this fact means that meaning that it is writable! (and just hackable)
+  
+* function calls and external variable references are in-directed via GOT.
+  for instance, for the following (library) function call:
+    exit(0);
+  becomes something like:
+    GOT[EXIT_OFF] (0);
+  where "EXIT_OFF" is the offset for function "exit" in the array GOT.
+
+* high-level view of dynamic loading and linking
+  initially, all GOT entries are empty, including GOT[EXIT_OFF]
+    so the GOT call above will fail
+    system loads missing module in and fill in the entry with this address
+      say: loads "exit" at 0xdeadbeef, then GOT[EXIT_OFF] <- 0xdeadbeef
+  the subsequent call will go smoothly from now
+  
+* but this is not inefficiently
+  we have to fill in every GOT entry! some of which may be unnecessary
+    say: __stack_ck_fail
+  so a good idea is to amortize the cost
+    we only load and link iff the function is called!
+  this idea introduces the data structure called Procedure Linkage Table (PLT)
+  
+* so what's a PLT?
+  another array contains code (not function pointer), with each slot 16 bytes
+  data structure details (say, we have three functions f1, f2, and f3):
+      PLT0:
+           push GOT[1]        // module id
+           jmp  *GOT[2]       // code pointer to "_dl_runtime_resolve"
+           nop                // padding to 16 bytes
+           nop 
+           nop
+           nop
+      f1_PLT:
+           jmp *GOT[f1_offset]
+           push n1            // n1 is the index into some array
+           jmp PLT0
+      f2_PLT:
+           jmp *GOT[f2_offset]
+           push n2            
+           jmp PLT0
+      f3_PLT:
+           jmp *GOT[f3_offset]
+           push n3            
+           jmp PLT0
+
+* how does GOT and PLT cooperate?
+                                       GOT
+                                  |------------| 0
+            PLT                   |            | 
+   ~~~~>------------              |------------| 1
+   |    |          |              |            | 
+   |    |          |              |------------| 2
+   |    |----------|              |            |
+   |    |          |~~~~~~~~~~~~~>|------------| 3
+   |    |          |<~~~~~~~~~~~~~|            |
+   |<~~~|----------|~~~~~~~~~~~~~>|------------| 4
+   |    |          |<~~~~~~~~~~~~~|            |
+   |    |          |              |------------| 5
+   |<~~~|----------|              |            |
+        |          |              |------------| ...
+   
+  GOT[0], GOT[1] hold info about this module
+  GOT[2] hold code address to a Linux function "_dl_runtime_resolve"
+  initially, GOT[fi_offset] = &PLT[fi_offset]+1
+  
+  a function call "call f1@plt jumps to GOT[f1_offset], which jumps back to f1@plt+1
+  the subsequent code pushes onto the stack all the necessary info
+  about the called function (in some other data structure we
+  omitted here).
+  and then jumps to PLT0, which continues to push onto the
+  stack the module identifier of this module (for instance, "a.out")
+  and finally calls the function "_dl_runtime_resolve", which
+  performs all the hard job to load the necessary module and fill in the 
+  GOT[f1_offset] with correct function address.
+
+  let's study an example:
+    $ cat test.c
+    int main ()
+    {
+      printf ("hello, world\n");
+      return 0;
+    }
+  compile this with: 
+      gcc -fno-builtin test.c
+  disassemble "main":
+    $ objdump -j .text -d a.out
+080483c4 <main>:
+ 80483c4:	55                   	push   %ebp
+ 80483c5:	89 e5                	mov    %esp,%ebp
+ 80483c7:	83 e4 f0             	and    $0xfffffff0,%esp
+ 80483ca:	83 ec 10             	sub    $0x10,%esp
+ 80483cd:	b8 b0 84 04 08       	mov    $0x80484b0,%eax
+ 80483d2:	89 04 24             	mov    %eax,(%esp)
+ 80483d5:	e8 22 ff ff ff       	call   80482fc <printf@plt> // note this call
+ 80483da:	b8 00 00 00 00       	mov    $0x0,%eax
+ 80483df:	c9                   	leave  
+ 80483e0:	c3                   	ret    
+ 80483e1:	90                   	nop
+  
+  * disassemble "PLT":
+  $ objdump -j .plt -d a.out
+
+080482cc <__gmon_start__@plt-0x10>:
+ 80482cc:	ff 35 b0 95 04 08    	pushl  0x80495b0
+ 80482d2:	ff 25 b4 95 04 08    	jmp    *0x80495b4
+ 80482d8:	00 00                	add    %al,(%eax)
+	...
+
+080482dc <__gmon_start__@plt>:
+ 80482dc:	ff 25 b8 95 04 08    	jmp    *0x80495b8
+ 80482e2:	68 00 00 00 00       	push   $0x0
+ 80482e7:	e9 e0 ff ff ff       	jmp    80482cc <_init+0x30>
+
+080482ec <__libc_start_main@plt>:
+ 80482ec:	ff 25 bc 95 04 08    	jmp    *0x80495bc
+ 80482f2:	68 08 00 00 00       	push   $0x8
+ 80482f7:	e9 d0 ff ff ff       	jmp    80482cc <_init+0x30>
+
+080482fc <printf@plt>:
+ 80482fc:	ff 25 c0 95 04 08    	jmp    *0x80495c0
+ 8048302:	68 10 00 00 00       	push   $0x10
+ 8048307:	e9 c0 ff ff ff       	jmp    80482cc <_init+0x30>
+ 
+  disassembly the .got.plt, as above.
+    $ objdump -j .got.plt -s a.out
+
+ Leave to you to figure out the detailed control flow.
+  
+* hijacking GOT
+  for non-executable stack, it's impossible to inject code into the stack
+  but one can modify some entry in the GOT, say "printf", thus all
+  subsequent calls to this function are hijacked
+  read the program "got.c", on page 4 of the assigned paper
+    again, this is a "write-anything-to-anywhere" attack
+  on the 1st copy, let the "pointer" points to GOT entry "printf@got"
+    how to find the address of "printf@got"?
+  the detailed attack steps are on page 5
+    see especially the last step (4)
+  finding the address of "printf@got" and "system" is easy
+    but recall the last homework, is the address of "system" constant?
+    if not, how can we fix this?
+  middle on page 7, how is the segmentation fault triggered?
+  top on page 8, why the program failed?
+  so the final step is to cook an "Array"...
+  
+* can stack guard stop got hijacking?
+  possibly not: one can hijacking just "__stack_chk_fail@got"
+
+* can stack randomization stop GOT hijacking?
+  possibly not: the address space is not that large on a 32-bit architecture
+  see lab3 for example
+  
+  
+  

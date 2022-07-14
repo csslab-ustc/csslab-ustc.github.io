@@ -1,0 +1,308 @@
+\documentclass[a4paper, 10pt]{article}
+\usepackage{amsmath, amssymb, graphicx, styfiles/code, styfiles/bcprules}
+
+%-------------- lengths (for A4 paper only)
+\addtolength{\topmargin}{-54pt}
+\setlength{\oddsidemargin}{0cm}  % no margin
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textwidth}{16.51cm}      % 6.5in
+\setlength{\textheight}{24cm}    %
+%-------------- lengths (for A4 paper only)
+
+\renewcommand{\baselinestretch}{1.2}
+
+
+\newcommand{\ang}[1]{\text{#1}}
+\newcommand{\dotdoteq}{::=}
+\newcommand{\imply}{\supset}
+\newcommand{\hei}[1]{{\CJKfamily{hei}#1}}
+\newcommand{\kai}[1]{{\CJKfamily{kai}#1}}
+\newcommand{\largeto}{\Downarrow}
+\newcommand{\mynoindent}{\noindent}
+\newcommand{\mytt}[1]{{\tt #1}}
+\newcommand{\sep}{\ |\ }
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\smallto}{\longrightarrow}
+\newcommand{\tpr}[3]{\vdash{#1}\curvearrowright{#2}\rhd{#3}}
+
+
+\begin{document}
+
+\begin{center}
+\center{\Large {\bf School of Software Engineering, USTC (Suzhou)}}\\
+\center{\Large {\bf Exam Paper for Academic Year 2012-2013-1}}\\
+\center{\Large {\bf Open or Close: Open}}\\
+\vskip.5cm
+\begin{tabular}{l l}
+  %\hline
+  % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
+  Course: \underline{Information Security$\kern1.3cm$}\kern2cm &
+  Time: \underline{Dec. 2, 2012$\kern2.7cm$}\kern2cm \\
+  Student Name: \underline{$\kern3.35cm$} & Student No.\underline{$\kern3.88cm$}\\
+  Class: \underline{$\kern4.7cm$} & Score:\underline{$\kern4.8cm$}\\
+  %\hline
+\end{tabular}
+\end{center}
+
+\vskip.5cm
+\section*{Part I: Unix security, Set-uid}
+\mynoindent 1. (10 points) This question is based on the
+paper \textit{How to write a setuid program}
+by Matt Bishop. Answer the following questions:
+\begin{description}
+  \item[(a)] Why some programs, say "{\tt passwd}", need to be set-uid?
+  \item[(b)] On page 6 of this paper, Bishop presents one principal
+  that one should "reset effective UIDs before calling {\tt exec}". Explain
+  briefly the reason for introducing this principal.
+\end{description}
+
+\newpage
+\noindent{}2. (10 points) Read the following code and answer questions.
+\begin{code}
+int main()
+\{
+   system("ls");
+   return 0;
+\}
+\end{code}
+
+\begin{description}
+  \item[(a)] Whether or not is this code safe? Explain your conclusion briefly.
+  \item[(b)] If some hacker intends to attack this code, how the attack will
+  be performed? (You only need to explain the steps, not the technique details.)
+\end{description}
+
+\newpage
+\section*{Part II: Buffer overflow}
+\mynoindent 3. (10 points) This question is related to the paper
+\textit{Smashing the stack for profit and fun} by Alphe One. Answer
+these questions:
+\begin{description}
+  \item[(a)] How a buffer overflow happens? Why it's dangerous?
+  \item[(b)] On page 20 of this paper, if a buffer is too
+  small to hold the shell code, how can the attacker exploit such a program?
+\end{description}
+
+
+\newpage
+\noindent 4. (10 points) The following code in table
+illustrates how a canary works. The code in the left column
+is the normal code that a compiler will generate for some
+function \texttt{f}, whereas the code in the right column is the code
+that has been instrumented with canary.\\
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Original code & Code with canary\\
+\hline
+\begin{minipage}[b]{6cm}
+\begin{code}
+    .text
+f:
+    pushl    %ebp
+    movl     %esp, %ebp
+
+    // function body
+    ...
+
+    leave
+    ret
+\end{code}
+\vskip3cm
+$ $
+\end{minipage}&
+\begin{minipage}[b]{6cm}
+\begin{code}
+    .data
+canary:
+    .int     0xdeadbeef
+    .text
+f:
+    pushl    %ebp
+    movl     %esp, %ebp
+    pushl    canary
+
+    // function body as left
+    ...
+
+    movl     canary, %eax
+    cmpl     -4(%ebp), %eax
+    je       .end
+    jmp      wrong
+    .end:
+    leave
+    ret
+\end{code}
+\end{minipage}\\
+\hline
+\end{tabular}
+\end{center}
+Answer the following questions:
+\begin{description}
+  \item[(a)] Explain briefly why canary technique can
+  detect and prevent buffer overflow attacks?
+  \item[(b)] In the right column above, can the canary
+  technique 100\% detect buffer overflow attacks? Why?
+  What's the potential problem with canary?
+  \item[(c)] Please propose a method to improve canary?
+\end{description}
+
+\newpage
+\noindent 5. (10 points) Read this program and answer questions:
+\begin{code}
+\#define LEN 512
+
+void copy (char *s)
+\{
+    char temp[LEN];
+    for (int i=0; i<=LEN; i++)
+        temp[i] = s[i];
+\}
+\end{code}
+\begin{description}
+  \item[(a)] Is the code safe? Briefly explain your conclusion.
+  \item[(b)] Can canary protect this code? Why or why not?
+\end{description}
+
+\newpage
+\section*{Part III: Return-to-libc Attack}
+\noindent 6. (10 points) This question is based on the paper
+\textit{Bypassing non-executable-stack during exploitation
+using return-to-libc} by c0ntex. Answer the following questions:
+\begin{description}
+  \item[(a)] This paper assumes that the executable which
+  is being attacked is dynamically linked. Suppose that a
+  hacker, Alice, is attacking a C executable program {\tt a.out}
+  which is statically linked with libc, then whether or not Alice
+  can make use of the "return-to-libc" attack technique? Why or why not?
+  \item[(b)] On top of page 3 of this paper, the address
+  for \texttt{system} function is \texttt{0x28085260}. But
+  Alice found that, on her machine, the address is \texttt{0x28085200}
+  instead, then is there any difficulty Alice must resolve? What's it, if any?
+\end{description}
+
+
+\newpage
+\noindent 7. (10 points) This question is based on the paper
+\textit{How to hijack the Global Offset Table with pointers for root shells}.
+Answer the following questions. First consider the code below (on page 4 of
+the paper), suppose that this program is compiled by a compiler
+with stack guard protection (say, recent version of GCC), then do you
+think whether or not the attack technique on this paper would
+succeed again? Why or why not?
+\begin{code}
+//got.c
+\#include <stdio.h>
+\#include <stdlib.h>
+int main(int argc, char **argv)
+\{
+        char *pointer = NULL;
+        char array[10];
+        pointer = array;
+        strcpy(pointer, argv[1]);
+        printf("Array contains \%s at \%p$\backslash$n", pointer, \&pointer);
+        strcpy(pointer, argv[2]);
+        printf("Array contains \%s at \%p$\backslash$n", pointer, \&pointer);
+        return EXIT\_SUCCESS;
+\}
+\end{code}
+
+\iffalse
+
+\section*{Part IV: Integer Overflow}
+\noindent 7. (10 points) This problem is based on the paper
+\textit{Basic Integer Overflows} by blexim. Read the following
+code:
+\begin{code}
+int myfunction(int *array, int len)\{
+        int *myarray, i;
+
+        myarray = malloc(len * sizeof(int));
+        if(myarray == NULL)\{
+            return -1;
+        \}
+
+        for(i = 0; i < len; i++)\{
+            myarray[i] = array[i];
+        \}
+
+        return myarray;
+\}
+\end{code}
+Now, please answer this question: is this code safe? Explain
+you conclusion briefly.
+
+\newpage
+
+\section*{Part V: Format String Attack}
+\noindent 8. (10 points) This problem is based on the paper
+\textit{Exploiting Format String Vulnerabilities} by
+scut/teso. On page 15 of this paper, there is some
+code like this:
+\begin{code}
+/* 1 */ printf ("%16u%n", 7350, (int *) &foo[0]);
+/* 2 */ printf ("%32u%n", 7350, (int *) &foo[1]);
+/* 3 */ printf ("%64u%n", 7350, (int *) &foo[2]);
+/* 4 */ printf ("%128u%n", 7350, (int *) &foo[3]);
+\end{code}
+Now please answer these questions:
+\begin{description}
+  \item[(a)] what does this code sequence do?
+  \item[(b)] why this kind of code may be unsafe?
+\end{description}
+
+\newpage
+
+\section*{Part VI: Race condition}
+9. (10 points) Read the following code and
+explain briefly why this code may be unsafe.
+\begin{code}
+\#define DELAY 10000
+
+int main()
+\{
+    char * fn = "/tmp/XYZ";
+    char buffer[60];
+    FILE *fp;
+    long int  i;
+
+    /* get user input */
+    scanf("%50s", buffer );
+
+    if(!access(fn, W\_OK))\{
+      /* simulating delay */
+      for (i=0; i < DELAY; i++)\{
+        int a = i^2;
+      \}
+
+      fp = fopen(fn, "a+");
+      fwrite("\\n", sizeof(char), 1, fp);
+      fwrite(buffer, sizeof(char), strlen(buffer), fp);
+      fclose(fp);
+    \}
+    else printf("No permission \\n");
+\}
+\end{code}
+
+\newpage
+\section*{Part VII: Anti-Debugging}
+\noindent 10. (10 points) One hacker Alice wrote a virus and
+she intended to introduce some techniques to perform
+anti-debugging. So she added the following three lines of code
+to her virus:
+\begin{code}
+int main ()
+\{
+    int r = ptrace(PTRACE\_TRACEME, 0, 0, 0);   // newly added code
+    if (r<0)                                   // newly added code
+      exit (0);                                // newly added code
+
+    // remaining code for her great virus
+\}
+\end{code}
+Question: can Alice achieve her goal of anti-debugging? Why or why not?
+
+
+\fi
+
+\end{document}

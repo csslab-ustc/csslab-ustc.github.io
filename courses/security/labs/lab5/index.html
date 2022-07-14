@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE>Lab 5: Race Condition</TITLE>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.10">
+<STYLE type="text/css">
+.li-itemize{margin:1ex 0ex;}
+.li-enumerate{margin:1ex 0ex;}
+.dd-description{margin:0ex 0ex 1ex 4ex;}
+.dt-description{margin:0ex;}
+.toc{list-style:none;}
+.thefootnotes{text-align:left;margin:0ex;}
+.dt-thefootnotes{margin:0em;}
+.dd-thefootnotes{margin:0em 0em 0em 2em;}
+.footnoterule{margin:1em auto 1em 0px;width:50%;}
+.caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.title{margin:2ex auto;text-align:center}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+DIV TABLE{margin-left:inherit;margin-right:inherit;}
+PRE{text-align:left;margin-left:0ex;margin-right:auto;}
+BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
+TD P{margin:0px;}
+.boxed{border:1px solid black}
+.textboxed{border:1px solid black}
+.vbar{border:none;width:2px;background-color:black;}
+.hbar{border:none;height:2px;width:100%;background-color:black;}
+.hfill{border:none;height:1px;width:200%;background-color:black;}
+.vdisplay{border-collapse:separate;border-spacing:2px;width:auto; empty-cells:show; border:2px solid red;}
+.vdcell{white-space:nowrap;padding:0px;width:auto; border:2px solid green;}
+.display{border-collapse:separate;border-spacing:2px;width:auto; border:none;}
+.dcell{white-space:nowrap;padding:0px;width:auto; border:none;}
+.dcenter{margin:0ex auto;}
+.vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.marginpar{border:solid thin black; width:20%; text-align:left;}
+.marginparleft{float:left; margin-left:0ex; margin-right:1ex;}
+.marginparright{float:right; margin-left:1ex; margin-right:0ex;}
+.theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.part{margin:2ex auto;text-align:center}
+</STYLE>
+</HEAD>
+<BODY >
+<!--HEVEA command line is: c:\hevea\hevea -exec xxdate.exe Race_Condition.tex -->
+<h1>Lab 5: Race Condition</h1>
+<hr>
+
+<h2>Lab Overview</h2>
+<P>The learning objective of this lab is for students to gain the first-hand
+experience on the race-condition vulnerability by putting what they have learned
+about the vulnerability from class into actions.
+A race condition occurs when multiple processes access and manipulate the same
+data concurrently, and the outcome of the execution depends on the particular
+order in which the access takes place. If a privileged program has a race-condition 
+vulnerability, attackers can run a parallel process to &#X201C;race&#X201D; against
+the privileged program, with an intention to change the behaviors 
+of the program.</P><P>In this lab, students will be given a program with a race-condition
+vulnerability; their task is to develop a scheme to exploit 
+the vulnerability and gain the root privilege. In addition to the
+attacks, students will be guided to walk through several protection
+schemes that can be used to counter the race-condition attacks.
+Students need to evaluate
+whether the schemes work or not and explain why.</P><!--TOC section Lab Tasks-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc1">1</A>&#XA0;&#XA0;Lab Tasks</H2><!--SEC END --><!--TOC subsection A Vulnerable Program-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc2">1.1</A>&#XA0;&#XA0;A Vulnerable Program</H3><!--SEC END --><P>The following program is a seemingly harmless program. It contains a race-condition
+vulnerability. </P><PRE CLASS="verbatim">    /*  vulp.c  */
+
+    #include &lt;stdio.h&gt;
+    #include&lt;unistd.h&gt;
+
+    #define DELAY 10000
+
+    int main()
+    {
+       char * fn = "/tmp/XYZ";
+       char buffer[60];
+       FILE *fp;
+       long int  i;
+
+       /* get user input */
+       scanf("%50s", buffer );
+
+       if(!access(fn, W_OK)){
+           /* simulating delay */
+            for (i=0; i &lt; DELAY; i++){
+               int a = i^2; 
+            }
+
+            fp = fopen(fn, "a+");
+            fwrite("\n", sizeof(char), 1, fp);
+            fwrite(buffer, sizeof(char), strlen(buffer), fp);
+            fclose(fp);
+       }
+       else printf("No permission \n");
+    }
+</PRE><P>This is part of a <TT>Set-UID</TT> program (owned by <TT>root</TT>); 
+it appends a string of user input to
+the end of a temporary file <TT>/tmp/XYZ</TT>. Since the code runs
+with the root privilege, it carefully 
+checks whether the real user actually has the access permission to the file
+<TT>/tmp/XYZ</TT>; that is the purpose of the <TT>access()</TT> call.
+Once the program has made sure that the real user indeed has 
+the right, the program opens the file and writes the user
+input into the file. </P><P>It appears that the program does not have any problem at the first look. 
+However, there is a race condition vulnerability in this program: due to the 
+window (the simulated delay) between the check (<TT>access</TT>) and 
+the use (<TT>fopen</TT>), there is a possibility that the file used by
+<TT>access</TT> is different from the file used by <TT>fopen</TT>, even
+though they have the same file name <TT>/tmp/XYZ</TT>. If a malicious 
+attacker can somehow make <TT>/tmp/XYZ</TT> a symbolic link pointing to
+<TT>/etc/shadow</TT>, the attacker can cause the user input
+to be appended to <TT>/etc/shadow</TT> (note that the program runs with
+the root privilege, and can therefore overwrite any file).</P><!--TOC subsection Task 1: Exploit the Race Condition Vulnerabilities-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc3">1.2</A>&#XA0;&#XA0;Task 1: Exploit the Race Condition Vulnerabilities</H3><!--SEC END --><P>You need to exploit the race condition vulnerability in the above 
+<TT>Set-UID</TT> program. More specifically, you need to achieve the followings:</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+Overwrite any file that belongs to <TT>root</TT>.</LI><LI CLASS="li-enumerate">Gain root privileges; namely, you should be able to do anything 
+that root can do. 
+</LI></OL><!--TOC subsection Task 2: Protection Mechanism A: Repeating-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc4">1.3</A>&#XA0;&#XA0;Task 2: Protection Mechanism A: Repeating</H3><!--SEC END --><P>Getting rid of race conditions is not easy, because the check-and-use pattern 
+is often necessary in programs. Instead of removing race conditions,
+we can actually add more race conditions, such that to compromise the 
+security of the program, attackers need to win all these race conditions.
+If these race conditions are designed properly, we can exponentially 
+reduce the winning probability for attackers. The basic idea is to
+repeat <TT>access()</TT> and <TT>open()</TT> for several times; at each time, 
+we open the file, and at the end, we check whether the same file is opened
+by checking their <TT>i-nodes</TT> (they should be the same).</P><P>Please use this strategy to modify the vulnerable program, and repeat 
+your attack. Report how difficult it is to succeed, if you can still
+succeed.</P><!--TOC subsection Task 3: Protection Mechanism B: Principle of Least Privilege-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc5">1.4</A>&#XA0;&#XA0;Task 3: Protection Mechanism B: Principle of Least Privilege</H3><!--SEC END --><P>The fundamental problem of the vulnerable program in this lab is 
+the violation of the <EM>Principle of Least Privilege</EM>. 
+The programmer does understand that the user who runs the program 
+might be too powerful, so he/she introduced <TT>access()</TT> to limit the user&#X2019;s 
+power. However, this is not the proper approach. A better
+approach is to apply the <EM>Principle of Least Privilege</EM>; 
+namely, if users do not need certain privilege, the privilege
+needs to be disabled.</P><P>We can use <TT>seteuid</TT> system call to temporarily disable
+the root privilege, and later enable it if necessary. Please use 
+this approach to fix the vulnerability in the program, and then
+repeat your attack. Will you be able to succeed? Please report your
+observations and explanation.</P><!--TOC section Guidelines-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc6">2</A>&#XA0;&#XA0;Guidelines</H2><!--SEC END --><!--TOC subsection Two Potential Targets-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc7">2.1</A>&#XA0;&#XA0;Two Potential Targets</H3><!--SEC END --><P>There are possibly many ways to exploit the race condition vulnerability
+in <TT>vulp.c</TT>. One way is to use the vulnerability to append some 
+information to both <TT>/etc/passwd</TT> and <TT>/etc/shadow</TT>. These two
+files are used by <TT>Unix</TT> operating systems to authenticate users. If attackers
+can add information to these two files, they essentially have the power
+to create new users, including super-users (by letting uid to be zero).</P><P>The <TT>/etc/passwd</TT> file is the authentication database for a Unix machine. 
+It contains basic user attributes. 
+This is an ASCII file that contains an entry for each
+user. Each entry defines the basic attributes applied to a user. When you use
+the <TT>mkuser</TT> command to add a user to your system, the command updates the
+<TT>/etc/passwd</TT> file. </P><P>The file <TT>/etc/passwd</TT> has to be world readable, because many application
+programs need to access user attributes, such as user-names, home directories, etc.
+Saving an encrypted password in that file would mean that
+anyone with access to the machine could use password cracking programs (such as
+<TT>crack</TT>) to break into the accounts of others. To fix this problem, the shadow
+password system was created. The <TT>/etc/passwd</TT> file in the shadow system is
+world-readable but does not contain the encrypted passwords. Another file,
+<TT>/etc/shadow</TT>, which is readable only by root contains the passwords.</P><P>To find out what strings to add to these two files, run <TT>mkuser</TT>, and see
+what are added to these files. For example, the followings are what have 
+been added to these files after creating a new user called <TT>smith</TT>: </P><PRE CLASS="verbatim">
+/etc/passwd: 
+-------------
+  smith:x:1000:1000:Joe Smith,,,:/home/smith:/bin/bash
+
+/etc/shadow: 
+-------------
+  smith:*1*Srdssdsdi*M4sdabPasdsdsdasdsdasdY/:13450:0:99999:7:::
+</PRE><P>The third column in the file <TT>/etc/passwd</TT> denotes the UID of the user. 
+Because <TT>smith</TT> account is a regular user account, its value 1000 is nothing 
+special. If we change this entry to 0, <TT>smith</TT> now becomes <TT>root</TT>. </P><!--TOC subsection Creating symbolic links-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc8">2.2</A>&#XA0;&#XA0;Creating symbolic links</H3><!--SEC END --><P>You can manually create symbolic links using <TT>"ln -s"</TT>. You can also call
+C function <TT>symlink</TT> to create symbolic links in your program. 
+Since <TT>Linux</TT> does not allow one to create a link if the link already exists, 
+we need to delete the old link first. 
+The following C code snippet shows how to remove a link and then make 
+<TT>/tmp/XYZ</TT> point to <TT>/etc/passwd</TT>:</P><PRE CLASS="verbatim">  unlink("/tmp/XYZ");
+  symlink("/etc/passwd","/tmp/XYZ");
+</PRE><!--TOC subsection Improving success rate-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc9">2.3</A>&#XA0;&#XA0;Improving success rate</H3><!--SEC END --><P>The most critical step (i.e., pointing the link to our 
+target file) of a race-condition attack must occur within
+the window between check and use; namely between the <TT>access</TT> and the <TT>fopen</TT> 
+calls in <TT>vulp.c</TT>. Since we cannot modify the vulnerable program,
+the only thing that we can do is to run our attacking program in parallel
+with the target program, hoping that the change of the link does occur
+within that critical window.
+Unfortunately, we cannot achieve the perfect timing. Therefore, 
+the success of attack is probabilistic.
+The probability of successful attack might be quite low if the window
+are small. You need to think about how to increase the 
+probability (Hints: you can run the vulnerable program for many
+times; you only need to achieve success once among all these trials).</P><P>Since you need to run the attacks and the vulnerable program for many
+times, you need to write a program to automate the attack process. 
+To avoid manually typing an input to <TT>vulp</TT>, you can use 
+redirection. Namely, you type your input in a file, and then
+redirect this file when you run <TT>vulp</TT>. For example,
+you can use the following: <TT>vulp &lt; FILE</TT>.</P><P>In the program <TT>vulp.c</TT>, we intentionally added a DELAY parameter
+in the program. This is intended to make your attack easier. Once you have 
+succeeded in your attacks, gradually reduce the value for DELAY. When DELAY becomes
+zero, how much longer does it take you to succeed? </P><!--TOC subsection Knowing whether the attack is successful-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc10">2.4</A>&#XA0;&#XA0;Knowing whether the attack is successful</H3><!--SEC END --><P>Since the user does not have the read permission for accessing <TT>/etc/shadow</TT>,
+there is no way of knowing if it was modified. The only way that is possible is
+to see its time stamps. Also it would be better if we stop the attack once the
+entries are added to the respective files. The following shell script checks if
+the time stamps of <TT>/etc/shadow</TT> has been changed. 
+It prints a message once the change is noticed. </P><PRE CLASS="verbatim">        #!/bin/sh
+
+        old=`ls -l /etc/shadow`
+        new=`ls -l /etc/shadow`
+        while [ "$old" = "$new" ]
+        do
+            new=`ls -l /etc/shadow`
+        done
+        echo "STOP... The shadow file has been changed"
+</PRE><!--TOC subsection Troubleshooting-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc11">2.5</A>&#XA0;&#XA0;Troubleshooting</H3><!--SEC END --><P>While testing the program, due to untimely killing of the attack program,
+<TT>/tmp/XYZ</TT> may get into an unstable state. When this happens the OS automatically
+makes it a normal file with root as its owner. If this happens, the file has to
+be deleted and the attack has to be restarted.</P><!--TOC subsection Warning-->
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc12">2.6</A>&#XA0;&#XA0;Warning</H3><!--SEC END --><P>In the past, some students accidentally emptied the <TT>/etc/shadow</TT> file 
+during the attacks (we still do not know what has caused that). If you lose
+the shadow file, you will not be able to login again. To avoid this 
+trouble, please make a copy of the original shadow file. </P><!--CUT END -->
+<!--HTMLFOOT-->
+<!--ENDHTML-->
+<!--FOOTER-->
+<HR SIZE=2>
+
+<SPAN CLASS="textboxed">Copyright &#XA9; 2006 - 2009  Wenliang Du, Syracuse University.<BR>
+ The development of this document is funded by 
+the National Science Foundation&#X2019;s Course, Curriculum, and Laboratory 
+Improvement (CCLI) program under Award No. 0618680 and 0231122. 
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation.
+A copy of the license can be found at http://www.gnu.org/licenses/fdl.html.</SPAN>
+
+<BLOCKQUOTE CLASS="quote"><EM>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+</EM><A HREF="http://hevea.inria.fr/index.html"><EM>H</EM><EM><FONT SIZE=2><sup>E</sup></FONT></EM><EM>V</EM><EM><FONT SIZE=2><sup>E</sup></FONT></EM><EM>A</EM></A><EM>.</EM></BLOCKQUOTE></BODY>
+</HTML>

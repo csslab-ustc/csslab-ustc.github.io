@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember
+      to submit your answer to this quetion before the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      In figure "Listing 3" of this paper, the author presented a
+      recommended C code for creating secure temporary files. If 
+      that code is modified to the following one, is it still
+      secure? Why or why not?
+      <pre>
+        char *filename;
+        FILE *fp;
+        do {
+          filename = tempnam (NULL, "foo");
+          fp = fopen (filename, "w");
+          free (filename);
+        } while (fp == NULL);
+      </pre>
+
+       </div>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

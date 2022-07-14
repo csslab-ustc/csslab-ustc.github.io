@@ -1,0 +1,105 @@
+Anti-Virtual Machines
+=====================
+
+* what's anti-virtual machine techniques?
+  malware analysts use virtual machines to analyze malwares
+    thus possible damages are constrained
+  so malware writers introduce techniques to make this analysis harder
+    if run on physical machines, trigger
+    otherwise in virtual machines, dumb
+  anti-vmware techniques have been very popular among malware writers
+    but has been going down recently, for virtual machines
+    themselves are great targets for attacks 
+
+* detecting virtual machines
+  the first technique is to detecting whether or not we're running
+  in a virtual machine
+  many ways: say, virtual machine must virtualize a network card, but
+  the MAC address for that card is unique
+    thus malware can read and compare that address
+    
+* vulnerable instructions
+  e.g., privileged but non-trap instructions
+  
+* 
+  many approaches
+    hardware-based
+    software-based
+  the assigned paper and problem present a software-based on
+    based on a simple syscall "ptrace"
+      barely, child process calls ptrace with argument "PTRACE_TRACEME", 
+      which indicates her willingness to be traced
+        and thus goes under control of her parent
+        then, the parent can peek data, modify data, single stepping, insert 
+        breakpoint, inject code (process injection!), &c
+      read the code in that article and finish the problem
+    many popular debuggers, such as gdb, edb, ida pro., etc.. are all
+    ptrace-based
+  of course, for source-level debugging, debugger requires cooperation
+  from the compiler, linker, &c
+    debugging information, symbol tables, &c
+
+* debuggers are invaluable tools in security (and in all software development practice)
+  take out every bit of details
+  
+* what's anti-debugging?
+  malware does not cooperate with debuggers
+    deploy techniques to make debugging harder, if not impossible
+    
+* how to perform anti-debugging?
+  read the first assigned paper
+  what's this paper about?
+    introduce some (basic) anti-debugging techniques 
+    as well as anti-anti-debugging ones
+    
+* false assembly
+  as we discussed in last lecture
+
+* dectecing the debugger
+  for ptrace-based debugger, "PTRACE_TRACEME" could only be called once
+    so malware can call "PTRACE_TRACEME" on itself before anything else
+      to check whether it is debugged
+  anti-anti method #1: API hook
+  anti-anti method #2: API hijacking
+    
+  thus malware writers may not use API-based debugger detection
+    they may check the PCB manually
+    or, they may check other meaningful data structures (say, the heap)
+      heap and stack are different between normal execution and under debugging
+      say, "0xcccccccc"
+      
+  checking for system residue
+    e.g., search for path or registry table
+
+* identifying debugger behavior
+  to debug a process, the debugger must modify the process
+    set break points, single-stepping, etc..
+  and thus malware can detect these changes
+
+* detecting break points
+  malware can detect simple-to-find breakpoints in itself by just peeking
+    and thus one can put it deeper somewhere
+  malware can calculate a checksum of a section of code
+    one can patch the comparison
+
+* timing checks
+  recall that the process being debugged runs more slowly than usual
+  thus malware can check the running time
+    e.g.:
+      eax <- gettime ()
+      instr
+      instr
+      ...
+      ebx <- gettime()
+      sub ebx, eax
+      cmp ebx, 0xffff
+      jg DebuggerPresent
+      ...
+      
+* even debugger has run, malware can interfere with its functionality
+  e.g.: many debuggers stop at the program entry point, say "main"
+    but it may be too late, many code has been executed, say CTORs, etc.
+    thus malware can take advantage of this
+  e.g.: 
+
+  

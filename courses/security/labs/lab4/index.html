@@ -1,0 +1,320 @@
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Lab 4: Authentication</title>
+<link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+
+<table width="100%" >
+
+<tbody>
+  <tr>
+    <td>
+      <h1>Lab 4: Authentication</h1>
+      <hr>
+      
+      <h3>Lab Overview</h3>
+In this lab, you'll explore authentication. The key problem
+that authentication addresses is that how to identify the
+identity of a user. Think online banking system, on which
+many users are registered. When some user A is transferring
+money from her account into another user B's account, how
+does the online banking system know whether this is the
+real user A, but not some other (malicious) user C who is in the
+disguise of A. At first glance, this problem is trivial, 
+for the server can ask the user to input password and check
+the password to guarantee that this is the correct user, however,  
+the problem will get complicated by the fact that the network
+packet can be sniffed.
+
+<p>
+To make the discussion concrete, you will do this lab for a
+new version Touchstone web server. The new server contains
+a very simple online banking system. Any user can transfer some money
+into another user's account. However, this server contains
+severe bugs, which presents the fact that without correct and reliable
+authentication, a malicious user M can transfer money from
+any user account into her own account. Next, you'll try
+to implement some form of more strong authentication
+system to enhance the server: say, you can add cookies to
+your server, or you can use some encrypt algorithms to protect
+sensitive data during data transmission over network.
+
+<p>
+In a summary, this lab is open-ended, and you can abuse
+you freedom to present your own design and implement them.
+Nevertheless to say, the bottom line is that you can 
+guarantee that your solution is feasible.
+
+<p>
+This lab consists of three parts:
+<ul>
+  <li>Part A: you will explore identity forgery, in which 
+    a malicious user can act as a victim user;
+  </li>
+  <li>Part B: you will explore the possibility of information
+    disclosure during network transmission; and 
+  </li>  
+  <li>Part C: you will secure the server by designing
+    some cryptography algorithm and adding them to your server.
+  </li> 
+</ul>
+
+<h3>Lab Environment</h3>
+Download <a href="lab4-code.rar">lab 4 code</a>
+to start with. Build and run the Touchstone server:
+<pre>
+      $ <kbd>make</kbd>
+</pre>
+Open your browser and go to this URL
+<code>http://127.0.0.1</code>, you will get a web page. Contact
+us, if you do not get this page.
+
+<h1>Part A: Identity Forgery</h1>
+There is a new service in the Touchstone web server: the
+transfer service. You can first register an account in the
+server and log in. You can now find the account page which
+will present the transferring interface, along with user
+name, login time, among other things.
+
+<h3>Bugs in the Transfer Service</h3>
+The utility here is that some account (after logging) can
+transfer money from her own account to another account, just
+like the real bank business. Read the server's source
+code: <code>handle.c</code>, and familiarize yourself
+with the code that the server is executing, when
+one account is transferring. (Pay special attention
+to the functions <code>handlePost()</code> and
+<code>handlePostTransfer()</code>.)
+
+<div class="required">
+<p><span class="header">Exercise 1.</span>
+There are many bugs and vulnerabilities in the current
+utility for transferring money. Find as many bugs as you can. For now, just 
+focus on bugs that an adversary can trigger by giving unanticipated 
+values to the transfer page. Think carefully about what kinds of 
+inputs an attacker might provide, and try them out by entering them 
+on the transfer page. Please write
+down detail descriptions of your observation in <code>bugs.txt</code>.
+(You should find at 6 different bugs.)
+</div>
+
+<div class="required">
+<p><span class="header">Exercise 2.</span>
+Fix as many bugs as you can, from those you found
+above. Just keep your code as clean as possible. Also
+don't forget to test your implementation after you
+fix the bugs.
+</div>
+
+<h3>Identify Forgery</h3>
+As you may have noticed, when you transfer money, you
+should fill in the reciever, the currency amount. However, you
+don't need to claim who you are. So how does the server
+know your identify, even though you've logged in.
+
+<div class="required">
+<p><span class="header">Exercise 3.</span>
+Read the source code of the login web page (in your
+browser), and the server's
+source code. Make sure that you make it clear that how
+the server identify who is transferring.
+</div>
+
+<p>
+To this point, it should be clear to us that we can
+fool the server. That is: if we can construct
+a fake <code>POST</code> with some specific HTTP body
+attributes (what should they be?), and send the request to
+the server, we can fool the server that a victim is
+transferring
+money. And the server will perform the transfer!
+
+<div class="required">
+<p><span class="header">Exercise 4.</span>
+Try to construct a <code>POST</code> request about
+the money transferring, which steal money from some
+account if you know the victim's account (it's often
+the case). You can use
+<code>browser.c</code> or some tools, such as <code>firebug</code> 
+to construct the request. Your request may look like
+this:
+<pre>
+  POST / HTTP/1.1
+  
+  from=Alice&to=Bob&money=100
+</pre>
+</div>
+
+<h3>Cookie</h3>
+Up to now, you can understand
+that if very dangerous to use the account name as the
+user's identify. So we will introduce you another method: <a href="
+http://en.wikipedia.org/wiki/HTTP_cookie">the cookie</a>. Cookie
+is a small piece of data sent from a website to a
+user and stored in a user's web browser, while the user is
+browsing that website. Every time the 
+user loads the website, the browser sends the cookie (automatically)
+back to the server to notify the website of the user's previous
+activity. Cookies were designed 
+to be a reliable mechanism for websites to remember state information 
+(such as items in a shopping cart) or to record the user's browsing activity 
+(including clicking particular buttons, logging in, or recording which pages 
+were visited by the user as far back as months or years ago).
+
+<p>
+In this lab, you will design and implement a simple
+form of cookie to identify different users. Your cookie will
+work as follows (here, we suppose that you are using
+some browser, say IE, Firefox, or Chrome. If you are
+using your own browser, say <code>browser.c</code>, you
+will have to add all the cookie supporting facilities
+into your browser, which requires you, nevertheless to say, to
+add more code):
+<ul>
+  <li>when a (valid) user log in, the server will
+    send a cookie to the user; the cookie is unique, that is,
+    cookies are different from each other;
+  <li>if you are using a browser (say, IE or Chrome), the
+    cookie will be saved by the browser; so, you don't
+    need to worry about what happened under the hood;
+  <li>when you continue to visit the server, the cookie
+    will be sent, by the browser, to the server;
+  <li>the server will check the cookie to find out
+    the user's identity.
+</ul>
+
+Server will send a response if one logins or registers successfully, which 
+include <code>set-cookie: value</code> in the header of response.
+<p> 
+<div class="required">
+<p><span class="header">Exercise 5.</span>
+Locate the code which handles the post request in <code>handle.c</code>,
+and add more code. You may find the response header <code>
+Set-cookie: value</code> useful. When one user transfers money, you
+should identify the user by cookie. 
+</div>
+
+<h1>Part B: Packet Sniffing</h1>
+The request sending by the browser will
+be transmitted through the network in form of packets, before reaching
+the server. As the packet is encoded in plain text, so
+it not hard for some adversary to peek the content packet, this is
+often called
+<a href="http://en.wikipedia.org/wiki/Packet_sniffer">packet sniffing</a>. If
+the packet contains some sensitive information, such as the
+username, password, or cookie, the adversary can
+steal such information and do evil. In this part of
+lab, you will explore how this can happen in practice
+and realize the threat.
+
+<p>
+To do this, you will be using some tools for
+packet sniffing, one of such popular tools are 
+<a href="https://www.wireshark.org/">wireshark</a> 
+(formerly Ethereal). The network packet analysis software
+functionality in wireshark includes, but not limited to, 
+network packet capture, analysis and modification, etc..
+Wireshark use WinPCAP as an interface 
+directly with the card for data exchange packets.
+
+<p>
+Your job here is to use <code>wireshark</code> and steal 
+the <code>cookie</code>, then use the cookie to construct your
+<code>POST</code> request for transfer some one else's money.
+The basic process is shown in the following figure: you
+use <code>wireshark</code> to listen your own machine's
+network interface card (NIC), which any send or receive packet.
+<div style="text-align:center">
+  <img src="./3.png" height="180px">
+</div>
+
+<div class="required">
+<p><span class="header">Exercise 6.</span>
+Using the <code>Wireshark</code> to steal the cookie, and
+then use the cookie to make fake <code>POST</code>
+request. Send the request to the server and transfer
+some one else's money.
+</div>
+
+<p>
+The above exercise is a little bit ideal, for that in
+real world, no one will allow you to install wireshark
+on her machine and sniff the packets. However, one attacker
+can create more complex environment
+to achieve her goal, one sample technique
+is the <a href="http://zh.wikipedia.org/wiki/ARP欺騙">ARP
+Attack</a>. Even, you can set up a Local Area Network (LAN)
+for fishing, just as the following figure shows. In fact, wifi
+fishing has becoming more and more popular in recent years.
+<p>  
+<div style="text-align:center">
+  <img src="./1.jpg" height="300px">
+</div>
+
+<div class="challenge">
+<p><span class="header">Challenge!</span>
+According the above description, you can use any one way to
+sniff the sensitive packets from the victim, and do something
+interesting. (Nevertheless to say, this is illegal in
+practice, so you can only do this for study purpose.) 
+</div>
+
+<h1>Part C: Encryption</h1>
+<a href="https://en.wikipedia.org/wiki/Encryption">Encryption</a>
+is the standard way to protect sensitive information
+from leaking. Encryption itself does not 
+prevent interception, but denies the message content to the
+interceptor. In this part of the lab, you will explore
+how to use encryption to protect the packets.
+
+<p>
+To make things as simple as possible, we recommend you
+to use some symmetric-key algorithms, though you are
+free to choose any strategy you prefer. Symmetric-key
+algorithms
+use the same cryptographic keys for both encryption
+of plaintext and decryption of ciphertext. The keys
+may be identical or there may be a 
+simple transformation to go between the two keys. The
+keys, in practice, represent a shared secret between
+two or more parties that can be used to 
+maintain a private information link. This requirement
+that both parties have access to the secret key is one
+of the main drawbacks of symmetric 
+key encryption, in comparison to public-key encryption.
+
+<div class="required">
+<p><span class="header">Exercise 7.</span>
+Encrypt the cookie. You should modify as least
+these files: <code>index.html</code>, <code>handle.c</code>, 
+and <code>dbutil.c</code> etc..
+</div>
+
+<p>
+<a href="https://en.wikipedia.org/wiki/Public-key_cryptography">
+Asymmetric cryptography</a> now becomes the de-facto
+algorithms now. And it's more secure.
+
+<div class="challenge">
+<p><span class="header">Challenge!</span>
+Implement asymmetric encryption in the Touchstone. For
+example: change the algorithm
+to RSA, or DSA, you can refer
+<a href="https://en.wikipedia.org/wiki/Pretty_Good_Privacy">PGP</a>
+and <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">SSL</a>
+for more details. 
+</div>
+
+<h3>Handin</h3>
+This completes the lab. Remember to hand in your solution to 
+the information system.
+
+    </td>
+  </tr>
+</tbody>
+</table>
+</body>
+</html>

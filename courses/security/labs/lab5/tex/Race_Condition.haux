@@ -1,0 +1,12 @@
+\@addtocsec{htoc}{1}{0}{\@print{1}\quad{}Lab Tasks{}}
+\@addtocsec{htoc}{2}{1}{\@print{1.1}\quad{}A Vulnerable Program{}}
+\@addtocsec{htoc}{3}{1}{\@print{1.2}\quad{}Task 1: Exploit the Race Condition Vulnerabilities{}}
+\@addtocsec{htoc}{4}{1}{\@print{1.3}\quad{}Task 2: Protection Mechanism A: Repeating{}}
+\@addtocsec{htoc}{5}{1}{\@print{1.4}\quad{}Task 3: Protection Mechanism B: Principle of Least Privilege{}}
+\@addtocsec{htoc}{6}{0}{\@print{2}\quad{}Guidelines{}}
+\@addtocsec{htoc}{7}{1}{\@print{2.1}\quad{}Two Potential Targets{}}
+\@addtocsec{htoc}{8}{1}{\@print{2.2}\quad{}Creating symbolic links{}}
+\@addtocsec{htoc}{9}{1}{\@print{2.3}\quad{}Improving success rate{}}
+\@addtocsec{htoc}{10}{1}{\@print{2.4}\quad{}Knowing whether the attack is successful{}}
+\@addtocsec{htoc}{11}{1}{\@print{2.5}\quad{}Troubleshooting{}}
+\@addtocsec{htoc}{12}{1}{\@print{2.6}\quad{}Warning{}}

@@ -1,0 +1,146 @@
+Unix file system permissions
+============================
+
+* For those unfamiliar with Unix (Linux) file systems interface, please
+  read APUE chap 1 & chap 4
+
+* Conventional Unix access control
+  users:
+    Unix designed to be a multi-user system
+    each user is assigned a unique id (UID: an integer)
+    typically:
+      super user: root (with UID==0)
+      normal user: hbj (UID=1000, on my computer)
+      virtual user: daemon, nobody, ftp, ...
+  user information managed by systems
+    /etc/passwd: information file
+      sample entry: 
+      john:x:30000:40000:John Doe:/home/john:/usr/local/bin/tcsh
+    /etc/shadow: shadow file, store the real passwd
+  groups:
+    a group of some users
+    a user has a primary group
+    but one user can appear in multiple groups
+    /etc/groups
+
+* but what's the great purpose of UID?
+  access control
+  who can do what
+  a good example is file access control
+  
+* File permissions
+  every file blongs to a user (its owner) and a group
+    $ ls -l
+  file ownership can be modified by commands: chown, chgrp
+  but how can we ensure files be accessed in a proper way?
+    e.g. how can we guarantee a user Bob can access user Alices' files
+    in a proper and controled way
+      say, "Bob" can not remove "Alice"'s file
+      say, "Bob" can not read "Alice"'s file "secrets.txt"
+  file permissions (perms):
+    a permission unit has three permission bits: r, w, x
+      e.g.: rwx
+    three sets: owner (Linux calls this user), group, others
+      e.g.: rwx rwx rwx, rwx r-- r--
+  taken all these together
+    rwxr--r-- bob bob
+  binary representation
+    e.g.: 0b111000000 => 0x700
+  when a file is newly created, what's this file's default permission?
+     depend on the environment variable "umask"
+       what does it mean?
+       where is it located? (check the file: /etc/profile)
+  check your umask, run
+    $ umask
+    on my system, this will print: 022
+    what does it mean? what's the default perm?
+    why choose umask this value?
+  what's the least permissive (most secure) value for umask?
+    how to set that value to your umask?
+    
+* directory permission
+  same bits, but different semantics from those of files
+    r: can list (read) directory contents
+    w: can add or remove files from a directory
+    x: can enter a directory
+  especially, when the "w" bit is set, anyone can remove anyone's files, how
+  can we prevent this?
+    the "t" bit (sticky bit)
+    everyone can only remove herself's files
+    e.g., run: 
+       $ ls -l /
+    and then check the directory "/tmp"
+      what's it's permission bits? why?
+    
+* the above file permission model is a little too coarse:
+  what about a user "Alice" want to let "Bob" read from
+  a file "score.txt" specific info, without disclosing this file's content?
+    is this a good idea to set "score.txt" this perm: rw----r--? why?
+  
+  another well-known example is passwd management: how
+  to let each user modify their passwd without corrupting 
+  files "passwd" or "shadow"?
+    what about set "shadow" this perm: rw-rw--w-?
+
+* a simple idea is to write another program
+  "another level of indirection"
+  consider the case above, "Alice" wrote another executive
+  program "readfile.exe"(Alice is the owner) and
+  the sole purpose of the executable "readfile.exe" is to read
+  specific info from file "score.txt" and return that info to "Bob"
+    thus, we have this perms:
+      "a.txt": rw-rw----
+      "readfile.exe": r-xr-xr-x
+
+  when Bob run "readfile.exe", the execution flow is:
+  
+            run                    read
+      Bob =======> readfile.exe ==========> a.txt
+          <=======              <=========
+          get value             return value
+
+  but is this possible? why? 
+    (read APUE section 4.4 & 4.5 for the answers)
+
+* the setuid bit (s-bit)
+  enable the process executes with the file owner's permission, not the user's
+  e.g.:
+    $ ls -l /usr/bin/passwd
+  
+  this bit shares the owner's "x" bit, e.g.:
+    $ chmod o+s a.out  
+  
+* whether or not a user can corrupt the "shadow" file now? why?
+
+* what if the set-uid file is mis-behaved? 
+
+* how does the system implement "set-uid"?
+  each process maintains this information, thus the process data
+  structure may look like:
+  
+    struct process{
+      int pid;
+      ...;
+      int r_uid;    // real id, owner of this process
+      int e_uid;    // effective id, owner of this executable
+      int s_uid;    // saved id
+      ...;
+    };
+  system checks against "e_uid" for permission checking
+
+* how set-uid bit is set and changed?  
+  the initial process has the 3 ids equal to the login user's id, say 1000
+  
+  every forked sub-process either:
+    exec a non-setuid program, all 3 ids remain unchanged
+    exec a setuid program, e_uid and s_uid assigned with the file owner
+  
+  every process can make syscall to explicitly changes its uids:
+    seteuid(), setuid(), etc.
+    $ man seteuid
+    $ man setuid
+    
+  however, these calls have a rather complex semantics, and are
+  not conforming on different systems
+    read section 5 of the assigned paper "Setuid Demystified"
+  

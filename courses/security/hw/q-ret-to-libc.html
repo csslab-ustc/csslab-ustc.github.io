@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember to submit your answer to this quetion before the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      Compile this program <code>a.c</code> with <code>gcc</code>:
+      <pre>
+        int main (){
+          system ("ls -l");
+          return 0;
+        }
+      </pre>
+      and try to find out the address of the function
+      <code>system</code> (you may want to read the paper for the detail
+      of the technique), write down the address you've found. And then repeat 
+      the process for a second time, and again write down the adress of 
+      function <code>system</code>. Are the two addresses same or not? What's
+      the challenge when you permform a return-to-libc attack on your machine?
+      
+      <p>
+      Now compile this program again with:
+      <pre>
+        gcc -static a.c
+      </pre>
+      and then find out the address for <code>system</code> (Hint: don't use
+      <code>gdb</code>, use <code>objdump</code> instead). Can you attack
+      this program with return-to-libc? Why?
+       </div>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

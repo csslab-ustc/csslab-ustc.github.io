@@ -1,0 +1,60 @@
+vulnerabilities of set-uid programs
+=====================================
+
+* why set-uid programs are vulnerable?
+  designed to run temporarily as another user, but one can guarantee that
+  this can be secure? can not be hijacked?
+  
+  next, we'd discuss some (not all) types of hijacks that
+  corrupts set-uid programs
+    
+* environment variables (env. vars., etc.)
+  user can control env. vars. so it's very dangerous to run
+
+* env. vars. case study: PATH
+  PATH controls where to find what
+  e.g.: echo $PATH
+  what does that print on your computer?
+  what does that mean?
+  
+  what does this program do?
+    int main (){
+      system ("ls");
+    }
+  
+  user can control PATH:
+    $ export PATH=~/hacker:$PATH
+    
+  what the effect of this?
+  
+* IFS
+  IFS specifies characters to be interpreted as white spaces
+    e.g.: export IFS="/ \t\n"
+    system ("/bin/bash");  =======> system ("bin bash");
+    
+  the IFS bug has been fixed in modern shell (but not old)
+
+* LD_LIBRARY_PATH
+  nearly all programs in Linux are dynamically linked (and loaded)
+    e.g.: libc.so
+  what's the pros. and cons.?
+  
+  Linux: ld.so/ld-linux.so
+  the specified path, the runpath, the default path
+  for safety, ld.so will ignore this env. vars. for set-uid programs
+  unless the ruid==0 (root)
+    
+* LD_PRELOAD
+  e.g.: export LD_PRELOAD=./libmylib.so.1.0.1
+    #include <stdio.h>
+    void sleep (int s){
+      printf ("I am not sleeping!\n");
+    }
+  for safety, ld.so will ignore this env. vars. for set-uid programs
+        unless the ruid==0 (root)
+
+* privilege and cleanups
+  opened files, file descriptors are inherited via "fork"
+
+
+ 

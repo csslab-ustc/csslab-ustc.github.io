@@ -1,0 +1,109 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember to submit your answer to this quetion BEFORE the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      (<b>Binary bomb</b>). A binary bomb (a.k.a., logical bomb), in 
+      its simplest form, is an executable
+      that requires the user to input some secret code, if the user's
+      input code does not match
+      an internal code, then the bomb <i>explodes</i> (then you died... :-( ). 
+
+      <p>In this problem, you will be given such a binary bomb, and your job is to
+        figure out what the secret code is. In this process, you'll learn how
+        anti-disassembly techniques can help the bomb writer hide the secret code,
+        and also learn how you can fight against it with anti-anti-disassembly
+        techniques.
+        
+      <p>
+        First, download the <a href="bomb">binary bomb</a> to your Linux machine. And
+        you may first change the mode:
+        <pre>
+          $ chmod 755 bomb
+        </pre>
+        Then run the bomb, and the bomb will print:
+        <pre>
+          Please input the secret code:
+        </pre>
+       and then you should input the secret code you guessed (Hint: the secret code is
+       a string which is no
+        more than 5 characters long.). And it's obvious that
+        if the code you input does not match the internal pre-settled code, the bomb
+        will explode and print something like:
+       <pre>
+          Wrong secret code! You failed!...
+        </pre>
+       Only if your input code is corret, the bomb will print:
+       <pre>
+          Correct secret code! Success!
+        </pre>
+       
+      <p>Your job is to figure out what's the correct secret code, using any way
+        you think helpful (disassembly, debugging, etc.). 
+      <p>You may find the following steps helpful:
+      <ol>
+      	<li>First, disassemble this bomb with <code>objdump</code>:
+      	  <pre>
+      	  $ objdump -d bomb
+      	  </pre>
+      	  What's the output? Can you figure out where is the entry point <code>main</code>?
+      	  What happened here? (Hint: read LLL book related chapter on ELF symbol table.)
+      	<li>Now, let's debug this bomb with <code>gdb</code>:
+      	  <pre>
+      	  $ gdb -q bomb
+      	  </pre>
+      	  If you try to set a break point on <code>main</code> in <code>gdb</code>:
+      	  <pre>
+      	  (gdb) b main
+      	  </pre>
+      	  Do you succeed? Why? 
+      	  Then try to run this bomb:
+      	  <pre>
+      	  (gdb) r
+      	  </pre>
+      	  What's the output? Can you debug the bomb? (Don't worry about what's going
+      	  on under the hood, as we'll discuss this in the future.)
+      	<li>Finally, let's try a more professional disassembler (and debugger): <code>ida</code>.
+      	<code>ida</code> is not freeware, but you can download
+      	<a href="http://www.hex-rays.com/products/ida/support/download_demo.shtml">a demo one</a>.
+      	Extract the tarball to your machine:
+      	  <pre>
+      	  $ tar -vxzf &lt;the_tarball&gt;
+      	  </pre>
+      	  And then run the <code>ida</code> from prompt:
+      	  <pre>
+      	  $ ./idaq
+      	  </pre>
+      	  Open the bomb and disassembly it. Can you figure out the secret code now? Can
+      	  you debug the bomb with <code>ida</code>? 
+      	  (You can find out the ida manual <a href="http://www.hex-rays.com/products/ida/support/idadoc/index.shtml">here</a>.)
+      </ol>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

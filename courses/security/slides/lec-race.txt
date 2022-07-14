@@ -1,0 +1,147 @@
+Race condition
+==============
+
+* what's a race condition?
+  multiple computations operate on some shared resources
+    computation: processes, threads, cpus, etc.
+    resources: memories, files, I/O devices, etc.
+  e.g., for the C code (b in memory):
+    b = b + 1;
+  possible instruction sequence on machine:
+    [b] -> r
+    inc r
+    r -> [b]
+  consider a multi-core machine with core C1 and core C2
+    possible assembly code:
+      [b] -> C1
+      [b] -> C2
+      C1++
+      C2++
+      C1 -> [b]
+      C2 -> [b]
+    what's the value in b?
+    other results?
+ 
+  another example on file system. sample code:
+      if (0==access("a.txt", W_OK)){
+        fopen ("a.txt", "w");
+      }
+      else error ("file not found");
+  safe on a single-core machine?
+  safe on a multi-core machine? why?
+ 
+* why race conditions occur?
+  
+* how to prevent them?
+  must guarantee exclusive access
+  the simplest idea is locking! (many other ideas)
+    to make operation sequence atomic
+
+* What's a lock?
+  another shared resources
+    say an external variable
+  e.g., suppose we want to add lock to protect "b=b+1", the first try looks like:
+  
+    // theLock==0 indicates lock is released; otherwise the lock is held;
+    // initially lock released
+    int theLock = 0;
+    
+    // two operations to lock and unlock the "theLock"
+    void lock (){
+      while (theLock)
+        ;      
+      theLock = 1;
+    }
+    
+    void unLock (){
+      theLock = 0;
+    }
+  
+  now we can protect the code by this lock:
+    lock ();
+      b = b + 1;   // critical region
+    unLock ();
+    
+  * safe? why or why not?
+  
+* then how to write a correct version of lock?
+  test and assignment must be atomic
+    good news is that many architecture support this kind of operation
+      e.g., "xchg" on x86 
+  the second try with "xchg" (must we write "lock" in assembly?):
+  
+         .globl lock
+     lock:
+         movl  $1, %eax
+       start:
+         xchg  %eax, theLock
+         cmpl  $0, %eax
+         jne   start
+         ret
+         
+  does this work? why or why not?
+  
+  basic requirements:
+    addresses are accessed exclusively
+    this instruction is atomic
+    this instruction is serial
+
+* this kind of lock is called a "spin lock"
+  lesson: in thinking race, one must think at lowest level
+  (spin) lock is rather subtle, consider:
+    void foo (){
+      lock ();
+      bar ();
+      unLock ();
+    }
+    void bar (){
+      lock ();
+      foo ();
+      unLock ();
+    }
+  
+  what's problem with this?
+
+* motivations for lock files:
+  the above lock are good at dealing with critical region
+    but what if one want to deal with process-level locking?
+      difference address space
+  the key idea is that file systems are still global!
+  lock files:
+    when some process wants to set up a lock by creating a file (say "lock.txt")
+    other processes proceed only when no such file ("lock.txt") exists
+      code fragment:
+         
+         void lock (){
+           while (create ("lock.txt")<0)   // pseudo-code
+             ;
+         }
+         
+         void unLock (){
+           remove ("lock.txt");
+         }
+         
+         // code as above         
+         lock ();
+           b = b+1;
+         unLock ();
+         
+    * what if the file exists before any application?
+    * what if the attack can remove or create this file?
+    * what if the function "create" is not atomic?
+  read Steven's chap3 and chap4 for details, for more information on Linux file system interfaces
+  
+* what's a time of check - time of use (TOCTOU) race condition?
+  read the rules in section "handling the file system" on this paper
+
+* what's "/tmp"?
+  to save temporary files
+    removed automatically by the system
+  to shared files between different users
+    so must with some care
+      e.g., why should the sticky bit be set?
+
+* how to use "/tmp" securely?
+  use safe and atomic syscalls...
+  
+   

@@ -1,0 +1,77 @@
+Integer Overflow
+================
+
+Paper I: Basic Integer Overflow
+
+* Why are we reading these two papers?
+  integer overflow is now common in many languages
+  combined with other feature, it's very dangerous yet hard to detect
+  these two papers discuss what's integer overflow, how it happens and 
+  how to fix them
+  
+* so, what's an integer?
+  low-level representations for C's integer values are transparent
+    on 32-bit system, a sequence of 32-bit 0 or 1
+    
+* what's an integer overflow?
+  storing a value that can not reside in 32-bit
+    e.g.:
+      0x7fffffff+0x7fffffff
+  what will happen for such integer overflow occurs?
+    The ISO C99 standard specifies that an integer overflow causes
+      "undefined behaviour"
+    meaning that compilers conforming to the standard
+      may do anything they like from completely ignoring the 
+      overflow to aborting the program.
+    most c compilers perform modulo
+    try your gcc compiler to see what it does with integer overflows?
+    what about Java or C#?
+    
+* widthness overflows
+  store a large value into a small one
+    e.g., read the code "ex1.c"
+  analyze the output:
+    l = 0xdeadbeef (32 bits)
+    s = 0xffffbeef (16 bits)
+    c = 0xffffffef (8 bits)
+  explain s and c?
+  
+* how to exploit widthness overflow?
+  read the code "width1.c", why print out s=0 but segment fault?
+  
+* arithmetic overflows
+  read the code "ex2.c"
+  note that is the integer is unsigned, it's an overflow
+  if the integer is signed, then there will be a chance to overflow it
+    read "ex3.c" and "ex4.c"
+    
+* how to exploit signed overflows?
+  what's wrong with statement [1]?
+  how it can be exploited with as a heap overflow?
+  what's wrong with statement [3]?
+  
+* what's a signedness bug?
+  signed integers used as unsigned ones or vice verse
+  what's the problem with line [1] in section 3.1
+  why it's hard to exploit this kind of bug?
+  
+* how does a signedness bug stem from integer overflows?
+  look at program in section 3.2
+ 
+* Leave to you to study the two concrete examples
+
+Paper II: Nearly All Binary Searches and Mergesorts are Broken
+by Joshua Bloch
+
+* this paper originally posted by Bloch on his blog (on Google), but for the
+  reason you know, his blog can not be accessed..., so I posted a copy
+  of the blog here
+  
+* what's the security problem discussed in this paper?
+
+* Where did this bug locate? How did Bloch find the bug?
+
+* How to resolve this problem?
+
+* Final remark: integers in math and CS are different concept
+

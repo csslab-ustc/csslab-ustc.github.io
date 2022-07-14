@@ -1,0 +1,5 @@
+http://www.phrack.com/issues.html?issue=56&id=7#article
+
+http://www.win.tue.nl/~aeb/linux/hh/virus/unix-viruses.txt
+
+http://blog.chinaunix.net/attachment/attach/26/40/46/9726404697228d82cda2af11366fa7722d3a4f1a58.pdf

@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember to submit your answer to this quetion before the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      Compile this program on your machine with gcc (make sure you are using
+      the pre-installed gcc version 4.3.3)
+      <pre>
+        #include &lt;stdio.h&gt;
+        
+        int main ()
+        {
+          int i;
+
+          __asm__ volatile("movl %ebp, 4(%esp)");
+          printf ("%%ebp = %08x\n");
+          return 0;
+        }
+      </pre>
+      Then run this program 5 times. What are the outputs? Whether or
+      not they are the same value? Why it's much more difficult to 
+      apply Alphe One's method to attack this program?
+      <p>
+      If you are not familar with gcc inline assembly, read
+      <a href="http://blog.csdn.net/littlehedgehog/article/details/2259665" target="_blank">this article</a>.
+       </div>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

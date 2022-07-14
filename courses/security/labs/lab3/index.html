@@ -1,0 +1,449 @@
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Lab 3: Privilege Separation</title>
+<link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+
+<table width="100%" >
+
+<tbody>
+  <tr>
+    <td>
+      <h1>Lab 3: Privilege Separation</h1>
+      <hr>
+
+      <h3>Lab Overview</h3>
+In this lab, you'll explore privilege separation. The
+key insight of privilege separation is to give minimal
+privilege to each component of a system, so that when
+one component of the system is comprised, other components
+will not be comprised too. 
+
+<p>
+To make the discussion
+concrete, you will do this lab for the Touchstone web 
+server, that is, you will privilege-separate the Touchstone
+web server by giving each component appropriate
+privilege. To be specific, you will first examine possible bugs
+in the source code of the Touchstone web server, and comprise
+the Touchstone web server by designing and performing
+exploitations. Finally, you will
+break up the application into privilege-separated components
+to minimize the effects of possible vulnerabilities.
+
+<p>
+This lab consists of three parts:
+<ul>
+  <li>Part A: you will examine the architecture of the Touchstone
+    web server. The Touchstone web server in this lab differs dramatically
+    from those from lab 1 and 2, the current one is based on
+    the idea of <i>services</i>;
+  </li>
+  <li>Part B: you will explore <i>jail</i>, by which you
+    can constraint the service in some fake root directory; and
+  </li>  
+  <li>Part C: you will privilege-separate the Touchstone
+    web server by assigning each component appropriate
+    privilege.
+  </li> 
+</ul>
+
+<h3>Lab Environment</h3>
+Download <a href="lab3-code.rar">lab 3 code</a>
+ to start with. In order to bind to the port 80 (the
+default HTTP port), you will start the
+<code>touchstone</code> web server with the root
+privilege in this lab (in Linux, only
+root-privilege process can bind to port less than 1024):
+<pre>
+      $ <kbd>make</kbd>
+      $ <kbd>sudo ./touchstone</kbd> 
+        Password: (enter seed password)
+</pre>
+Open your browser and go to this URL
+<code>http://127.0.0.1</code>, you will get a web page. Contact
+us, if you do not get this page.
+
+<p>
+In this lab, you will disable ASLR:
+<pre>
+      $ <kbd>su root</kbd>
+        Password: (enter root password)
+      # <kbd>sysctl -w kernel.randomize_va_space=0</kbd>
+</pre>
+which will make your exploitations easier. However, keep in kind
+that it's also possible to compromise the application
+when ASLR and other protections are on, just as you did
+in lab 2.
+
+<h1>Part A: The Touchstone Web Server</h1>
+To help you finish this lab, let's first examine the
+architecture and source code of the Touchstone web
+server, which differs from the ones that you've
+seen in previous labs.
+
+<p>
+The overall design and architecture
+of the Touchstone web server is described in the following
+figure. The server consists of three main components: the
+server (<code>server</code>), the HTTP request dispatcher
+(<code>httpd</code>), and one or more
+services (<code>Filesv, Banksv</code>, etc..).
+
+<div style="text-align:center">
+  <img src="./2.jpg" height="300px">
+</div>
+
+<p>
+The server launches the HTTP dispatcher
+<code>httpd</code>, and two services: the
+<code>filesv</code> and the <code>banksv</code> (indicated
+by the solid black arrows). The server
+accepts incoming connections on the 80 port (the upper
+grey arrow), and routes
+the request to the HTTP dispatcher (the dotted grey
+arrow). The HTTP dispatcher reads
+the request line from the coming socket (the first line)
+and decides which kind the request belongs to. Generally speaking, a 
+web server will accept static and dynamic requests. To
+illustrate this, the Touchstone web server consists of
+two sample services to serve static web pages and dynamic bank
+services, which models a typical web-based electronic bank. Nevertheless
+to say, a production
+web server will likely to contain more kinds of services.
+
+<p>
+Next, the dispatcher will route the requests to the
+corresponding service. The service continues to read
+the HTTP headers and the body (if any), and respond
+appropriately. Now, the Touchstone is up.
+
+<p>
+The main design consideration for the current architecture
+is to simplify design and to increase throughout. By
+routing different request into different service, each
+service can be kept as simple as possible and be
+implemented without too much difficulty. By using a
+multi-process architecture, requests can be processed
+concurrently and high throughout can be achieved (hopefully).
+
+<div class="required">
+<p><span class="header">Exercise 1.</span>
+In order to gain deeper understanding of the internal
+architecture of the Touchstone web server, let's
+use gdb to debug the <code>banksv</code> service.
+
+<p>
+First, launch the server:
+<pre>
+  $<kbd> sudo ./touchstone</kbd>
+</pre>
+now use gdb to attach to the <code>banksv</code> service:
+<pre>
+  $<kbd> ps -a</kbd>
+  PID TTY          TIME CMD
+  24356 pts/0    00:00:00 touchstone
+  24357 pts/0    00:00:00 filesv
+  24358 pts/0    00:00:00 banksv
+  24359 pts/0    00:00:00 httpd
+  $<kbd> sudo gdb </kbd>
+  Password: (enter seed password)
+  (gdb) <kbd>attach 24358</kbd>
+  Attaching to process 24358
+  (gdb) <kbd>b Handle_post</kbd> 
+  Breakpoint 1 at 0x80d0d9f: file handle.c, line 28.
+  (gdb) <kbd>set follow-fork-mode child</kbd>
+</pre>
+this will set a break point on the function <code>Handle_post</code>.
+Now open your browser and visit the URL <code>127.0.0.1</code>, 
+click the <code>Register</code> (or the <code>Login</code>) button, 
+a POST http request will be sent to the Touchstone (as indicated
+by the <a href="http://en.wikipedia.org/wiki/POST_%28HTTP%29">
+FORM</a>), and the above break point will be hit. Now let's
+continue the execution:
+<pre>
+  (gdb) <kbd>c</kbd>
+  Continuing. (waiting user for clicking register or login button from index.html)
+  
+  [New process 25533]
+  [Thread debugging using libthread_db enabled]
+  
+  Breakpoint 1, Handle_post (uri=0xbf951084 "/", fd=6) at handle.c:74
+  74        char *info = "HTTP/1.1 200 OK\r\n\r\n";
+</pre>
+And then single-step the source code, examine carefully
+where the user input goes: 
+<pre>
+  (gdb) <kbd>n</kbd>
+  75        Body_t *b = getBody(&num);
+  (gdb) <kbd>n</kbd>
+  77        char *name = b[0]->value;
+  (gdb) <kbd>n</kbd>
+  78        char *pwd  = b[1]->value;
+  (gdb) <kbd>n</kbd>
+  80        char *type = b[num-1]->value;
+  (gdb) <kbd>p name</kbd>
+   $3 = 0x90ca4b8 "sa12"   <kbd><----login user name</kbd>
+  (gdb) <kbd>p pwd</kbd>
+   $4 = 0x90ca6c0 "1234"   <kbd><----login user password</kbd>
+  (gdb) <kbd>p type</kbd>
+   $6 = 0x90ca8c8 "Login"  <kbd><----Post Request type</kbd>
+</pre>
+Next, the user input will be be fed into the database:
+<pre>
+  (gdb) <kbd>n</kbd>
+   82        init_db();
+  (gdb) <kbd>s</kbd>               
+   init_db () at ./sql_lite3/sqlhelper.c:32
+   32        if(open_db()==SUCCESS){
+   .....
+</pre>
+</div>
+
+<div class="required">
+<p><span class="header">Exercise 2.</span>
+Finally, you will write some code. 
+Extend the current sqlite3 user table, to add more
+information. For instance, you can add time and IP
+address to the user table, so that when one user has
+logged in, the web page can display the last login
+time, the current login address, etc.. You may want to read
+some <a href="http://blog.csdn.net/skywalker256/article/
+details/4556939">sqlite3</a> documentations.
+</div>
+
+
+<h1>Part B: Jail and Jail Breaking</h1>
+In this part, we will discuss jail and jail breaking. Jail is
+a special form of sandbox, which provides a restricted
+environment to run programs that are not completely
+trustworthy. For example, if the program is 
+downloaded from an untrusted source, running the
+program in an unrestricted environment can expose the
+system to potential risks. If these programs 
+can be executed in a restricted environment, even if
+the programs behave maliciously (the programs might
+contain malicious contents or they might 
+be compromised by attackers during the execution), their
+damage is confined within the restricted environment.
+
+<h3>Jail</h3>
+Recall that in order to bind to the port 80, the server, along
+with the dispatcher and the services, run with the root
+privilege. However, this may incur serious security
+vulnerabilities. To make the discussion concrete, let's
+try to steal some some important
+or sensitive files from the Touchstone host.
+
+<p>
+The <code>filesv</code> service is responsible for the
+HTTP's GET method, which will (basically) reads a local
+file and responds to the client. Normal HTTP request
+is supposed to access only those files stored in the web 
+server, say, <code>index.html</code>. However, an adversary
+can visit any file in the file system, with the root privilege.
+
+<div class="required">
+<p><span class="header">Exercise 3.</span>
+Modify the code snippet
+in the <code>browser.c</code> to send a constructed HTTP request to
+the web server to visit <code>/etc/passwd</code> file. That is, you
+can read that file remotely, as follows.
+<pre>
+  $<kbd> ./browser 80</kbd>
+  sock_client = 3
+  Response = HTTP/1.1 200 OK
+
+  root:x:0:0:root:/root:/bin/bash
+  daemon:x:1:1:daemon:/usr/sbin:/bin/sh
+  ......
+</pre>
+</div>
+
+<p>
+To defeat this kind of attack, one can use the the basic
+idea of <a href="http://en.wikipedia.org/wiki/Chroot">choot</a> 
+to isolate code that has potential security vulnerabilities.
+
+<p>
+<div class="required">
+<p><span class="header">Exercise 4.</span> 
+Add some code to the <code>server.c</code> to add
+<a href="http://www.ibm.com/developerworks/cn/linux/l-cn-chroot/">chroot</a>
+support. Change root directory from <code>/</code> to
+<code>/jail</code> . After this, you can compile and run 
+the new web server:
+<pre>
+  $ <kbd>cd server</kbd>
+  $ <kbd>make </kbd>
+  $ <kbd>sudo ./chroot-setup.sh</kbd>
+   + grep -qv uid=0
+   + id 
+   + rm -rf /jail
+   + mkdir -p /jail
+   + cp -p index.html /jail
+   + ./chroot-copy.sh touchstone /jail
+   + ./chroot-copy.sh httpd /jail
+   ...
+  $ <kbd>cd /jail</kbd>
+  $ <kbd>sudo ./touchstone</kbd>
+</pre>
+Now re-do exercise 3 to visit the file
+<code>/etc/passwd</code>. If your chroot protection
+works, your browser will behave like this (leaking
+no sensitive information):
+<pre>
+  $ <kbd>./browser 80</kbd>
+  sock_client = 3
+  Response = HTTP/1.1 200 OK
+
+  <html><b>File does not exist!</b></html>
+</pre>
+</div>
+
+<h3>Jail Breaking</h3>
+The basic idea of jail is to confine each process into
+its own (fake) root directory, however, this is not
+true for root-privileged processes. If a root-privileged
+process is comprised, the process may escape from the
+jail, this is called 
+<a href="http://www.bpfh.net/computing/docs/chroot-break.html"> 
+jail breaking</a>. Unfortunately, this is pretty true
+for the Touchstone web server: all process are root-privileged
+by default, so it's possible for these process to break
+the jail, once they are comprised.
+
+<div class="challenge">
+<p><span class="header">Challenge!</span>
+Perform the buffer-overflow attack, as you did in the lab 1, 
+inject shell code into the server and execute. The primary
+task of the shell code is to break the jail. And then read
+or unlink the file </code>/etc/passwd</code>. 
+</div>
+
+
+<h1>Part C: Privilege Separation</h1>
+<a href="https://en.wikipedia.org/wiki/Privilege_separation"
+target="_blank">Privilege separation</a>
+is a technique to divide a program into small parts which are 
+limited to the specific privileges they require in order
+to finish a specific task. This is used to mitigate the
+potential damage of a computer security attack.
+
+<p>
+Two aspects make privilege separation challenging in the real world 
+and in this lab. First, privilege separation requires that you take 
+apart the application and split it up in separate pieces. Although 
+it is relatively easy to split the Touchstone web application, spliting
+real-world applications may be very difficult, if not
+impossible. And it's very common that you must redesign certain parts to 
+make privilege separation possible. 
+
+<p>
+Second, you must ensure that 
+each piece runs with minimal privileges, which requires setting 
+permissions precisely and configuring the pieces correctly. Hopefully, 
+by the end of this lab, you'll have a better understanding of why many 
+applications have security vulnerabilities related to failure to properly 
+separate privileges: proper privilege separation is hard! 
+
+<p>
+Having surveyed the structure of Touchstone and acquired the base 
+knowledge about jail, now let's start to think about how 
+to apply privilege separation to the infrastructure of Touchstone, 
+so that bugs in one component won't allow an adversary to 
+comprise the whole system.
+
+<h3>Privilege-separate the web server setup using Unix principals 
+and permissions</h3>
+As introduced in <code>Part A</code>, Touchstone consists of three
+parts: the <code>httpd(dispatcher)</code>, the <code>filesv</code>
+service and the <code>banksv</code> service. The
+ <code>httpd</code> dispatcher routes requests to corresponding 
+services. As the <code>httpd</code> daemon runs
+with root privilege, so it can 
+
+<div class="required">
+<p><span class="header">Exercise 5.</span>
+Modify your browser code to inject some shell code 
+the server. Your shell code attack the <code>httpd</code>
+daemon and unlink the file <code>/db/users.db</code>. Using
+ret-to-libc attack can make this a little simpler.
+</div>
+
+<p>
+The reason for this problem is that Touchstone violates one
+basic security principal: least privilege.
+Different process should not delete some files belonging
+to another process: the dynamic services should not
+unlink static 
+files that the server is serving. Conversely, the static service 
+should not touch the databases. Here, you can see the
+reason why the Touchstone web server is splited
+into different services.
+
+<p>
+To mitigate this problem, you
+should run the dispatcher and these services under
+unprivileged users rather than root. Also, you should
+set up appropriate permissions for files and
+databases.
+
+<div class="required">
+<p><span class="header">Exercise 6.</span>
+Modify the function in the file <code>server.c</code> , to set up
+the user and group IDs properly when services are launched.
+Think carefully about how your code can set 
+the user and group IDs by
+<code>setresuid()、setgroups()、setresgid()</code>.
+
+<p>
+Set file and directory permissions to ensure that the 
+static service cannot read the database files from the
+dynamic service, and vice versa. Try to modify
+the <code>chroot-setup.sh</code> to set the permission for
+different files.
+</div>
+
+
+<div class="required">
+<p><span class="header">Exercise 7.</span>
+Compile the new Touchstone web server:
+<pre>
+  $ <kbd>make </kbd>
+  $ <kbd>sudo ./chroot-setup.sh</kbd>
+   + grep -qv uid=0
+   + id 
+   + rm -rf /jail
+   + mkdir -p /jail
+   + cp -p index.html /jail
+   + ./chroot-copy.sh touchstone /jail
+   + ./chroot-copy.sh httpd /jail
+   ...
+  $ <kbd>cd /jail</kbd>
+  $ <kbd>sudo ./touchstone</kbd>
+</pre>
+try to perform buffer overflow attack against the web serve.
+Can you trick the web server into mis-behaving? Is it
+exploitable?
+</div>
+ 
+<div class="challenge">
+<p><span class="header">Challenge!</span>
+Perform buffer overflow attack on the Touchstone web server. Can
+you succeed? If yes, how? 
+</div>
+
+<h3>Handin</h3>
+This completes the lab. Remember to hand in your solution to 
+the information system.
+
+    </td>
+  </tr>
+</tbody>
+</table>
+</body>
+</html>

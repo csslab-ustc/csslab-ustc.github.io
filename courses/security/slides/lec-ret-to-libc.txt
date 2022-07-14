@@ -1,0 +1,89 @@
+Return-to-libc
+==============
+
+* For those unfamiliar with the background knowledge of linking
+  and loading, read LLL chap 4 and chap 7
+
+* why are we reading this paper?
+  stack smashing is hard in the presence of stack guard and stack shield
+  furthermore, hard to inject code when stack is NX
+  however, there is already so many function pointers in memory, so
+  sometimes one need not inject code indeed
+    but just jump to some address
+  one technique is called return to libc
+    jump to C library functions
+
+* the roadmap
+  there is some typo with the figure on page 1, see the figure below instead
+  * before                     * after
+  
+    |          |               |addr      | 
+    |----------|               |----------|
+    |arg       |               |junk      |
+    |----------|               |----------|
+    |ret       |               |system    |
+    |----------|               |----------|
+    |ebp       |               |ebp***    |
+    |----------|               |----------|
+    |          |               |          |
+    |buf       |               |buf       |
+    |----------|               |----------|
+
+* how does one know the exact offset from buffer to the saved eip?
+  #1: disassemble the binary
+  #2: guessing
+    used in this paper
+    repeat running gdb in a guess-try manner (page 2)
+  
+* how does one know where the library "system" is located?
+  if dynamically linked and dynamically loaded
+    at some higher address (e.g., in modern Linux)
+    for instance, it's 0x28085260 in this paper
+  if statically linked
+    relatively easy
+  
+* how can one find a string pattern "/bin/sh"?
+  can put it in the shellcode, but not so easy to get its address
+  can input as arguments
+  can put in the environment variables
+    the paper does this
+    "SHELL=/bin/sh"
+    see page 3, it's 0xbfbffe25
+    see lab 3 for another way
+
+* to put all these details together
+  * see the figure on page 3
+  
+        |0xbfbffe25|
+        |----------|
+        |junk      |
+        |----------|
+        |0x28085260|
+        |----------|
+        |ebp***    |
+        |----------|
+        |          |
+        |buf       |
+        |          |
+        |----------|
+        
+* on top of page 4, why the first try failed?
+  
+* on bottom of page 4, the last two lines, how does the segmentation fault occur?
+
+* on page 5, how to exit gracefully? Why does this work?
+
+* How does modern Linux protect against return-to-libc attacks?
+  let's look at the "system"'s address
+    on my machine, it's 0xb7ec2200
+    how does this address stop a hacker?
+    what's essential here?
+  some Linux patches even map library to a low address starting
+    with 0x00********
+    how does this work?
+  In summary, it's much more difficult to perform a return-to-libc
+  attack on modern Linux
+    but there are enough code in memory
+    for instance, we may return-to-GOT ... (next time)
+    
+  

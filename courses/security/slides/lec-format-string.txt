@@ -1,0 +1,121 @@
+Format String Attack
+====================
+
+* Why are we reading this paper?
+  a new class of vulnerabilities on format string disclosed in about 2000
+  more dangerous than buffer overflow (maybe)
+    see the table on page 3
+  some sample shown in table on page 4
+    note the eldest bug is more than 8 years long
+
+* so, what's a format string?
+  a special kind of string used as format function argument
+    format function sample: 
+      printf ("value = %d\n", x);
+    typical prototype (say the "printf" function):
+      int printf (const char *s, ...);
+    with "s" the format string, followed by a list of variable arguments (possible 0)
+    the trick is that the argument "s" is treated specially by the library
+      extra arguments are taken according to the format string
+  
+* what does a format strings vulnerability look like?
+  if the format strings are controllable by user, then behaviour
+  of the function is changed
+  read the sample code on top of page 5
+  
+* which kind of functions are dangerous?
+  almost all related to format strings
+    see page 5 for a partial list of these functions
+
+* how does a format string function (like "printf") work internally?
+  how does one know the number of the arguments?
+  how does one know the types of the arguments?
+  how does one get these arguments?
+  to answer all these questions, one have to understand its implementation
+  here is the skeleton code for "printf" from C library (much simplified):
+    int printf (const char *s)
+    {
+      va_list ap;
+      char c;
+      
+      va_start (ap, s);
+      
+      while (c=*s++){
+        swith (c){
+        case '%':
+          c=*s++;
+          switch (c){
+          case '%':
+            putchar ('%');
+            break;
+          case 'd':
+            int i = va_arg (ap, int);
+            // print an integer
+            ...
+            break;
+          case 'f':
+            float f = va_arg (ap, float);
+            // print a float
+            ...
+            break;
+          case 'x':
+            // other cases similar
+            ...;
+          default:
+            error ("unknown format string");
+            break;
+          }
+          break;
+        default:
+          putchar (c);
+          break;
+        } // end of switch
+      } // end of while
+      va_end(ap);
+    }
+
+* what's the stack layout for the "va_arg" macro?
+  see the stack layout on page 7 (low address at down-side)
+
+* now turn back to attack. 
+  How to crash a process?
+    read the sample code on page 9
+      why "%s%s" may crash the program?
+      why "%n%n" may crash the program?
+
+* View process memory
+    read section 3.3.1 on page 10, how to dump the stack?
+    read section 3.3.2, how to dump an arbitrary memory address?
+      remember that the format string located in a local buffer in the caller
+    
+* how to write to arbitrary memory address?
+  how does the attack in section 3.4.1 trigger a buffer overflow?
+  how does format string "%n" work, on top of page 14?
+  
+* what does figure 1, on page 16, mean?
+  why does the code on bottom of page 16 use the format
+  string "%16u%n%16u%n%32u%n%64u%n", instead of "%16u%n%32u%n%64u%n%128u%n"?
+  how to synthesize all these together? 
+    on page 18.
+  
+* Variations of Exploitation
+  * what's a "short write"? how does it cooperate with "%hn"? (page 18)
+  * how to do "stack poping" more effectively?
+  * how to do "direct parameter access"?
+  
+* Beyond attacking code pointers on the stack (page 24)
+  GOT overwrite
+  DTORS
+  C library hook
+  __atexit
+  function pointers
+  jmpbuf
+  libc
+  
+  some of which have been discussed, and some will be discussed soon, say
+  the function pointers and jumbuf will be in the next topic: heap overflow
+  
+      
+
+
+

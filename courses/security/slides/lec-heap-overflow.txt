@@ -1,0 +1,101 @@
+Heap Overflows
+==============
+
+* what's a heap?
+  memory that dynamically allocated by application
+    (un-)initialized globals, dynamically allocated, ...
+  sample code:
+    int i = 3;
+    int j;
+    
+    void f ()
+    {
+      int x = 4;
+      int *p = malloc (sizeof(*p));
+    }
+  where is i, j, f, x, and p located?
+  heap grows upwards
+  
+Part I: data and bss
+
+* what does a heap overflow look like?
+  read the code on page 3
+    try it, and see what the output is on your machine
+  what's the heap layout?
+    what's in the 0x18-0x10 bytes?
+  how to apply this to a BSS overflow?
+  
+* what does a BSS overflow look like?
+  read the code on page 4
+    try it, and see what the output is on your machine
+  and then what about there is a file pointer (file name) in the heap
+    e.g., read the vulnerable code on page 5
+      how to overflow "buf"?
+      what to be overflowed in to "tmpfile"?
+        an address
+      how to find this address (for a string)?
+        user input (say argv[2], where is it? how does on locate it?)
+        or env. vars.
+      the final attack string argv[1] looks like:
+        "A...A0xdeadbeef"
+      code on page 6 achieve this goal
+  
+* note that one does not need an executable heap for now
+  but the heap is executable indeed!
+
+* of course, file pointer is not the only source for heap overflows, 
+  let's turn to function pointers, what's the vulnerability in 
+  code on top of page 9?
+    what should be written into "funcptr"?
+      one can "call-into-libc"
+        recall how we locate the function "system" (page 10)
+      one can "call-into-argv" (page 11)
+        then shellcode needs an executable stack
+      or anywhere that contains some code
+
+* another common vulnerability comes from the jmp_bufs, what are they?
+  external variables holding machine context
+    "setjmp" saves machine state (stack pointers, eip, callee-saved, etc.)
+    "longjmp" restores machine state later
+    poor-man's exception handling in C
+  they are standard C library functions (<stdjmp.h>),
+  and read the sample code on page 12
+
+* summary so far:
+  file pointers
+  external function pointers
+  jump buffers
+  but these are not exhausted
+    C++ virtual function, and others on bottom on page 15
+    
+Part II: dynamic heap
+
+* what's a dynamic heap?
+  applications need to allocate memory at runtime
+    OSes offer coarse utilities
+      brk, sbrk, or mmap, etc.
+    (C) libraries implement fine-grained interfaces via "malloc" families
+      malloc(), free(), calloc(), etc.
+      organizing the memory region returned by brk or mmap, as some
+      kind of data structures
+
+* what's under the hood of "malloc" or "free"?
+  typical C library implementation (say glibc) are too complex to be 
+  discussed in a class hour
+  so, we start with a dirty simple allocator
+    read the question 
+  this allocator is loosely based on section 8.7 of K&R
+    free list + first fit
+  what happened on "malloc(0)"?
+  how to hack this memory allocator?
+  what about changing the field "size"?
+  what about "free()" a pointer twice?
+  can you cook some code which achieves "write-anything-anywhere"?
+  
+* this algorithm is slow, so can not be used in production code
+    both malloc and free are O(n)
+  so some advanced algorithms are deployed (but with same key ideas)
+    on page 2, the paper describes a splay-tree-based algorithm in system V
+  from page 7, the paper discusses an algorithm (called Douge Lee allocator) 
+  used in (an older version of) Linux GNU glibc malloc
+  with the same theme of hacking the (meta) memory management information

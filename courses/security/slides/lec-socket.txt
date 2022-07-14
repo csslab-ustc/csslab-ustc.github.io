@@ -1,0 +1,83 @@
+Socket
+======
+
+* Socket is an software abstraction for programming the network protocal stack
+  * the normal socket: the TCP/UDP layer
+  * the raw socket: all leyers
+
+* the normal socket
+  * int sockfd = socket(domain, type, protocal)
+    * domain: the domain this socket belongs to. E.g., AF_INET, AF_INET6, AF_UNIX, ...
+      type: type of this protocal. E.g., SOCK_STREAM, SOCK_DGRAM, SOCK_RAW, ...
+  * e.g., for TCP
+    int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+  * e.g., for UDP
+    int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+
+* case study for normal socket: TCP
+  * the server side: the socket-bind-listen-accept idiom
+    int sockfd = socket(...); // as above
+    bind(sockfd, addr, addr_len);
+    listen(sockfd, backlog);
+    int fd = accept(sockfd, client_addr, client_addr_len);
+  * the client side: the socket-connect idiom
+    int sockfd = socket(...);
+    int fd = connet(server_addr);
+
+* case study for normal socket: UDP
+  * the server side: the socket-bind idiom
+    int sockfd = socket(...); // as above
+    bind(sockfd, addr, addr_len);
+    // normal read from/write to the socket
+    recvfrom(sockfd, buf, buf_size, 0, addr, addr_len);
+    sendto(sockfd, buf, buf_size, 0, addr, addr_len);
+  * the client side: the socket-recv-send idiom
+    int sockfd = socket(...);
+    // normal read from/write to the socket
+    recvfrom(sockfd, buf, buf_size, 0, addr, addr_len);
+    sendto(sockfd, buf, buf_size, 0, addr, addr_len);
+
+* Raw socket:
+  * why do we need a raw socket?
+    * what if we want to send an IP packet directly?
+      contain a fake IP address
+    * what if we want to send an MAC packet directly?
+      contain a fake MAC address
+    * what if we want to design a new protocal?
+  
+* Raw socket at IP layer:
+  * typical uses for TCP/UDP/ICMP:
+    int sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
+    int sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_UDP);
+    int sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+  * layout of the recieved packet:
+    [ip header/ tcp header/ data]
+  * layout of the packet to send:
+    [tcp header / data]
+  * we can control whether or not to include the IP header (the default is NO)
+    int flag = 1;
+    setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &flag, sizeof(int));
+    // then the layout of the packet to send:
+    [ip header/ tcp header/ data]
+  * some limitations:
+    * can not process IP packets whose address is not same as host
+    * can not process TCP/UDP packets
+
+* Raw socket at MAC layer:
+  * typical usages:
+    int sockfd = socket(PF_PACKET, SOCK_RAW, htos(ETH_P_IP));
+    int sockfd = socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ARP));
+    int sockfd = socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ALL));
+  * layout for the packet:
+    [MAC header/ data]
+
+* case study: ARP cache poisoning:
+
+
+
+
+
+
+
+
+

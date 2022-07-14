@@ -1,0 +1,161 @@
+% 开题报告模板：不超过一页
+\documentclass[conference]{IEEEtran}
+
+\pagestyle{plain}
+
+
+\usepackage{todonotes}
+\usepackage{fontspec,xltxtra,xunicode}
+%\usepackage{threeparttable}
+\usepackage{listings}
+%\usepackage{titlesec}
+%\usepackage{fontspec} % 定制字体
+\usepackage{xcolor} % 定制颜色
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{ %
+backgroundcolor=\color{white},      % choose the background color
+%basicstyle=\footnotesize\ttfamily,  % size of fonts used for the code
+basicstyle=\small\ttfamily,  % size of fonts used for the code
+columns=fullflexible,
+tabsize=2,
+breaklines=true,               % automatic line breaking only at whitespace
+captionpos=b,                  % sets the caption-position to bottom
+commentstyle=\color{mygreen},  % comment style
+escapeinside={\%*}{*)},        % if you want to add LaTeX within your code
+keywordstyle=\color{blue},     % keyword style
+stringstyle=\color{mymauve}\ttfamily,  % string literal style
+%frame=single,
+rulesepcolor=\color{red!20!green!20!blue!20},
+% identifierstyle=\color{red},
+%language=Java,
+mathescape
+}
+
+
+\defaultfontfeatures{Mapping=tex-text}
+%\setromanfont{Heiti SC} %设置中文字体
+\setromanfont{Songti SC} %设置中文字体
+
+\XeTeXlinebreaklocale “zh”
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt %文章内中文自动换行，可以自行调节
+
+\newfontfamily{\Song}{Songti SC} %设定新的字体快捷命令
+%\newfontfamily{\E}{Weibei SC} %设定新的字体快捷命令
+\newfontfamily{\kai}{Kaiti SC} %设定新的字体快捷命令
+\newfontfamily{\hei}{Heiti SC} %设定新的字体快捷命令
+
+%\titleformat*{\section}{\hei}
+%\titleformat*{\subsection}{\hei}
+
+%%%%%% 设置字号 %%%%%%
+\newcommand{\chuchuhao}{\fontsize{48pt}{\baselineskip}\selectfont}
+\newcommand{\chuhao}{\fontsize{42pt}{\baselineskip}\selectfont}
+\newcommand{\xiaochuhao}{\fontsize{36pt}{\baselineskip}\selectfont}
+\newcommand{\yihao}{\fontsize{28pt}{\baselineskip}\selectfont}
+\newcommand{\erhao}{\fontsize{21pt}{\baselineskip}\selectfont}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sanhao}{\fontsize{15.75pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\xiaosihao}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\dawuhao}{\fontsize{11.5pt}{\baselineskip}\selectfont}
+\newcommand{\wuhao}{\fontsize{10.5pt}{\baselineskip}\selectfont}
+\newcommand{\xiaowuhao}{\fontsize{9pt}{\baselineskip}\selectfont}
+\newcommand{\liuhao}{\fontsize{7.875pt}{\baselineskip}\selectfont}
+\newcommand{\qihao}{\fontsize{5.25pt}{\baselineskip}\selectfont}
+
+\renewcommand\refname{参考文献}
+\renewcommand{\abstractname}{{\hei 摘要}}
+
+%%%% 下面的命令设置行间距与段落间距 %%%%
+\linespread{1.2}
+% \setlength{\parskip}{1ex}
+\setlength{\parskip}{0.5\baselineskip}
+
+
+%%% 插图, Figure --> 图
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+
+
+%indent
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
+\setlength{\parindent}{2em}  %中文缩进两个汉字位
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{开题报告题目}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{\IEEEauthorblockN{作者1}
+\IEEEauthorblockA{单位1\\
+***@mail.ustc.edu.cn}
+\and
+\IEEEauthorblockN{作者2}
+\IEEEauthorblockA{单位2\\
+***@mail.ustc.edu.cn}
+}
+
+% make the title area
+\maketitle
+
+\iffalse
+% 中文摘要
+\begin{abstract}
+论文摘要。。。
+\end{abstract}
+
+\vskip.2cm
+
+% 中文关键词
+\renewcommand{\abstractname}{{\hei 关键词}}
+\begin{abstract}
+关键词1；关键词2；关键词3；关键词4
+\end{abstract}
+
+\vskip.2cm
+
+% 中图法分类号
+\renewcommand{\abstractname}{{\hei 中图法分类号}}
+\begin{abstract}
+TP319
+\end{abstract}
+
+\vskip.2cm
+
+% 英文摘要
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+Abstract in English...
+\end{abstract}
+
+\vskip.2cm
+
+% 英文关键词
+\renewcommand{\abstractname}{Keywords}
+\begin{abstract}
+Keywords 1，Keywords 2，Keywords 3，Keywords 4
+\end{abstract}
+\fi
+
+\section{开题}
+开题报告
+
+
+\end{document}
+
+
+
+
+
+

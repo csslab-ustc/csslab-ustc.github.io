@@ -1,0 +1,76 @@
+<HTML>
+<HEAD>
+<TITLE>
+  Information Security: Home Page
+</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+</HEAD>
+
+
+
+<BODY>
+<font face="Trebuchet MS">
+
+<TABLE cellPadding=10 align=left border=0>
+  <TBODY>
+  <TR>
+    <td>
+      <h3>Reading Questions</h3>
+      
+      Remember to submit your answer to this quetion BEFORE the next class.
+      
+      <p>
+      
+      <div style="margin: 1pc 4% 0pc 4%;
+                  padding: 0.5pc 0.5pc 0.5pc 0.5pc;
+                  background-color: #e0e0ff;
+                  border: 1px dashed red;">
+    
+      (<b>Undocumented instructions</b>). In this problem, let's investigate what
+      will happen if Intel's CPUs have
+      some undocumented instructions. By definition, <i>undocumented
+      instructions</i> mean such kind of instructions which can run
+      on the chip, but have no official documentation (from Intel or
+      anywhere else) at all.
+      
+      <p>
+      So, you may think: are you telling a fiction? How can this happen? But
+      the truth is this is not fiction at all. In fact, in the past several
+      decades, researchers and hackers have been successful in finding dozens
+      of undocumented instructions in various Intel CPUs. For instance, you
+      can refer to the <a href="http://www.rcollins.org/secrets/OpCodes.html">
+      Collins' collection</a>, or section 5 of this 
+      <a href="http://en.wikipedia.org/wiki/X86_instruction_listings#Undocumented_instructions">wiki page</a>,
+      for a (obviously incomplete) list of such instructions.
+      
+      <p>
+      To further solid your impression, let's write a small program to test
+      undocumented instructions. The instrction we choose is the
+      <code>salc</code> instruction (as described <a href="http://www.rcollins.org/secrets/OpCodes.html">above</a>), write this test case:
+      <pre>
+      // test.c
+      int main ()
+      {
+        __asm__(".byte 0xd6\n");    // 0xd6 is the opcode for "salc" in binary form, why don't I write "salc" directly?
+        return 0;
+      }
+      </pre>
+      Compile this program and then disassembly the generated binary:
+      <pre>
+      $ gcc test.c
+      $ objdump -d a.out
+      </pre>
+      Locate the <code>main</code> function, what assembly
+      instruction does the opcode <code>0xd6</code> correspond to?
+      What does this case mean?      
+      
+      <p>
+      Now with undocumented instructions, can you propose some techniques that
+       the malware writers can use to detect 
+      emulators or virual machines?
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</BODY>
+</HTML>

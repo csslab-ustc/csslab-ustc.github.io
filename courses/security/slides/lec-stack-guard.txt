@@ -1,0 +1,81 @@
+Stack guard
+===========
+
+* Why are we reading this paper?
+  fixing individual buffer overflow tends to be not that hard
+    array bounds checking for each buffer write
+    and use safe version of libraries
+    do not use unsafe library functions: strcpy, gets, ...
+  but preventing such kind of errors systematically is hard
+    languages like C have pointers!
+  this paper presents such a systematic approach: stack guard
+  a compiler technology-based technique
+    no code modification required!
+  and has been employed in recent version of GCC and MS VC
+
+* What are stack guard?
+  basic form is a 32-bit integer (called canary) below the retaddress
+  see figure 2 on page 3
+  stack guard can not only detect but also prevent overflows
+  
+* how is canary planted and checked?
+  the compiler
+    its standard prologue planted (figure 4)
+    and epilogue checks it (figure 5)
+    
+* this technique is dirty simple
+  less than 100 lines of code modification to gcc 2.7
+  
+* canary randomization
+  attacker can mimic the canary if it is static
+  can use randomization here
+  but the attacker can also search the entire address
+  space, it's harder
+
+* MemGuard is more aggressive and is OS-based
+  in prologue, it marks the page containing the return address word as READ-only
+    by specifically designed syscalls
+      so that kernel knows it is quasi read-only
+  in epilogue, it undo this property
+  subsequently, any write to this page will page-fault and thus traps
+  to kernel
+    kernel decides whether or not to allow this write
+      kernel knows where the retaddress is located. how?
+  much like copy-on-write
+  
+* MemGuard is costly
+  every write will incur syscall
+    1800 times according to the author (right bottom on page 5)
+  optimization techniques exist
+    this paper makes use of the debug registers on x86
+    I'm not sure whether or not this technique can scale to other machines
+
+* why not just mark all memory non-executable, except for .text?
+  Java and gcc needs to use the stack to run code (temporarily) ...
+  
+* stack guard effectiveness
+  see table 1 on page 8
+    why memguard is ineffective on perl case?
+  
+* efficiency
+  see table 2 on page 9, micro-benchmarks
+  table 3 is the memguard version, with max slowdown 1743x
+  macro-benchmarks in table 4 and 5
+  
+* discussion
+  non-executable stack
+    must modify the kernel
+    can not protect other area, say the heap
+  array-bounds checking
+    can eliminate any buffer overflow problems, not just on stack
+  memory access checking
+  safe languages
+    Use safe languages such as Java or C#?
+    
+* applications
+  Stack guard is very promising and successful
+  has been used by gcc (-fno-stack-protector) and MS VC (/GS)
+    
+    
+
+  

