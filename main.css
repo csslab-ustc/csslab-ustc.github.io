@@ -3,7 +3,7 @@ body {
 	"Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans",
 	"Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
 	"Segoe UI Symbol";
-	background: #ececec;
+	background: rgb(225, 223, 233);
 }
 
 
@@ -27,25 +27,21 @@ div.header {
 div.header-img {
 	padding-top: 1em;
 	padding-left: 1em;
-	vertical-align: middle;
 	float: left;
 }
 
 div.header-text {
-	padding-top: 1.4em;
-	padding-left: 6em;
 	color: white;
-	vertical-align: middle;
-
+	padding-top: 21px;
+	padding-left: 100px;
 }
 
 div.layout-menu-container {
 	position: fixed;
-
 }
 
 div.layout-menu {
-	padding-top: 5em;
+	padding-top: 100px;
 	text-align: left;
 	font-size: 130%;
 	font-family: math;
@@ -77,14 +73,14 @@ div.menu-item {
 }
 
 div.layout-content-container {
+	padding-top: 110px;
+	padding-left: 12em;
 	text-align: left;
 	/*display: inline-block;*/
 }
 
 div.layout-content {
 	/*margin: auto;*/
-	padding-top: 7em;
-	padding-left: 12em;
 	max-width: 1400px;
 }
 
@@ -93,14 +89,25 @@ div.split-line {
 	margin-bottom: 0.6em;
 }
 
+div.layout-content hr {
+	height: 1px;
+	border-width: 0;
+	width: 98%;
+	color: gray;
+	background-color: gray;
+}
+
 /*-----------projects page style begin---------------*/
 
 div.project-layout {
-	padding-bottom: 1em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	padding-left: 0.5em;
 }
+
 .project-image img {
-	width: 10em;
-	height: 10em;
+	width: 8em;
+	height: 8em;
 	border-radius: 5%;
 	background-repeat: no-repeat;
 	background-position-y: 9%;
@@ -108,10 +115,9 @@ div.project-layout {
 }
 
 div.project-text {
-	padding-left: 11em;
+	padding-left: 10em;
 	padding-top: 0.5em;
 	height: 8em;
-	vertical-align: middle;
 }
 
 /*-----------projects page style end---------------*/
@@ -119,7 +125,9 @@ div.project-text {
 /*-----------courses page style begin---------------*/
 
 div.course-layout {
-	padding-bottom: 1em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	padding-left: 0.5em;
 }
 .course-image img {
 	width: 8em;
@@ -134,7 +142,6 @@ div.course-text {
 	padding-left: 10em;
 	padding-top: 0.5em;
 	height: 8em;
-	vertical-align: middle;
 }
 
 /*-----------courses page style end---------------*/
