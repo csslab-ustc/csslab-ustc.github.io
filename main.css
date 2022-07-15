@@ -147,10 +147,18 @@ div.course-text {
 /*-----------courses page style end---------------*/
 
 /*-----------members page style begin---------------*/
-div.members-layout, div.member {
-	display: -webkit-flex;
-	display: flex;
-	justify-content: space-around;
+div.members-layout {
+	width: 98%;
+	padding-left: 50px;
+	padding-top: 10px;
+}
+
+
+div.member {
+	display: inline-block;
+	width: 33%;
+	height: 110px;
+	padding-right: 10px;
 }
 
 
@@ -160,11 +168,11 @@ div.members-layout img {
 	border-radius: 50%;
 	background-repeat: no-repeat;
 	background-position-y: 9%;
+	float: left;
 }
 
 div.member-text {
-	padding-left: 1em;
-	padding-top: 2em;
-	vertical-align: middle;
+	margin-left: 130px;
+	padding-top: 20px;
 }
 /*-----------members page style end---------------*/
