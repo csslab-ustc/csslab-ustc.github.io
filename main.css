@@ -106,8 +106,8 @@ div.project-layout {
 }
 
 .project-image img {
-	width: 8em;
-	height: 8em;
+	width: 5em;
+	height: 5em;
 	border-radius: 5%;
 	background-repeat: no-repeat;
 	background-position-y: 9%;
@@ -115,9 +115,9 @@ div.project-layout {
 }
 
 div.project-text {
-	padding-left: 10em;
+	padding-left: 8em;
 	padding-top: 0.5em;
-	height: 8em;
+	height: 5em;
 }
 
 /*-----------projects page style end---------------*/
