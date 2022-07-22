@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Native Interface Security</title>
+    <title>Plato: Rust Security Project</title>
 </head>
 
 <link rel="stylesheet" type="text/css" href="../../bootstrap.min.css">
@@ -41,50 +41,51 @@
         <!-- content -->
         <div class="layout-content-container">
             <div class="layout-content">
-                <h2>The Native Interface Security Project</h2>
+                <h2>Plato: Rust Security Project</h2>
                 <div class="split-line"></div>
                 <h4>Overview:</h4>
                 <p>
                     <!-- background -->
                     Rust is an emerging language which provides both
-                    efficiency and security.
+                    efficiency and security, by introducing a group
+                    of novel language features such ownership, borrows,
+                    explicit lifetimes, and automatic memory management.
+                    As a result, Rust has been widely
+                    used successfully in many scenarios such as OS kernels,
+                    Web browsers, Database engines, and compilers.
                 </p>
                 <p>
                     <!-- problem and challenges -->
-                    Although NFIs are very important in real systems, it brings grand
-                    challenges to guarantee the safety and security of such systems.
-                    Due to the intrinsic differences between different languages: the
-                    memory model, the data layout, the calling convention, the memory
-                    management, the locking strategies, among many others, it's
-                    very challenging to write reliable multilingual software systems.
-                    Taking Python as an example, Python has built-in support for
-                    garbage collection, whereas C does not have, so an object allocated
-                    in C has to be reclaimed manually. Failure to do so may
-                    result in a memory leaking. As one can imagine, this is rather
-                    a tedious and error-prone process.
+                    Although Rust provide a high degree of security guarantees, it
+                    still suffers from memory and concurrency vulnerabilities, due
+                    to the unsafe feature it introduced.
+                    And recent studies have demonstrated that there .
                 </p>
     
                 <p>
                     <!-- solutions -->
-                    The goal of this project is to investigate the security of
-                    the native function interfaces. To be specific, this project aims to:
+                    The goal of the Plato project is to investigate the security of
+                    the Rust language. To be specific, this project aims to:
                 </p>
                 <ul>
                     <li>
-                        perform thorough study on vulnerabilities of current NFIs, and
-                        investigate the common bug patterns;
+                        perform thorough study on vulnerabilities of Rust language, including
+                        both memory and concurrency bugs;
                     </li>
                     <li>
                         study effective techniques to fix these vulnerabilities automatically (APR);
                     </li>
                     <li>
-                        develop practical system prototypes.
+                        study theory and practice to migrate legacy code (especially C/C++ codebase)
+                        to Rust, thus leveraging Rust's security checking capabilities.
                     </li>
                 </ul>
                 <div class="split-line"></div>
                 <h4>Publications:</h4>
                 <ul>
-                    <li></li>
+                    <li>
+
+                    </li>
                 </ul>
     
                 <div class="split-line"></div>
@@ -94,7 +95,6 @@
                     <li>Shuang Hu</li>
                     <li>Baojian Hua</li>
                     <li>Wanrong Ouyang</li>
-                    <li>Zhizhong Pan</li>
                 </ul>
 
             </div>
