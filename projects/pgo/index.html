@@ -45,11 +45,39 @@
                 <div class="split-line"></div>
                 <h4>Overview:</h4>
                 <p>
-                
-                </p>
+                    The kernel is the core of the operating system, responsible for the execution of core functions such as CPU resource scheduling,
+                    process management, and file system. Improving the performance of the kernel can speed up program execution running on it.
+                    Static compiler optimization is a traditional method to improve the running speed of the program. Most of the static compiler optimization
+                    methods are based on heuristics' algorithm, this optimization method is sometimes not suitable for actual running scenarios, even produces
+                    negative optimization. In order to overcome the limitations of static optimization, related researchers have gradually explored and
+                    summarized a technology that utilizes important information at runtime to guide compilation optimization, which is often referred to as PGO.
+                    
+               </p>
                 <p>
-                
+                    PGO is an effective method to improve program performance. At present, this technology has been applied in large open source projects such
+                    as PHP, Chrome browser, .NET, Firefox and Linux kernel, and Significant performance gains have been achieved. The Android kernel is
+                    based on the Linux kernel. Some researchers have applied the PGO technology to the Android kernel and achieved significant performance
+                    improvements.
                 </p>
+                <P>
+                    Unfortunately, using PGO to optimize the Android kernel will consume a lot of manpower. First, the kernel needs to be instrumented. In this process,
+                    about 20 modifications to the Android kernel source code are required. If manual instrumentation is used, it usually takes at least half an hour to
+                    complete and it is prone to errors. Second, it is necessary to complete the compilation of the kernel, replacement, collection of profile files,
+                    optimization and recompilation, etc., which is quite cumbersome and time-consuming. There are many Android applications. Third, in order to improve
+                    the overall performance of the system, it is necessary to collect profile files in many typical scenarios, that is, the above process needs to be repeated many times,
+                    and the demand for manpower is further expanded. Last, due to frequent updates of Android applications, the previous optimization may fail after the application update.
+                    Therefore, the entire process needs to be re-executed to optimize the Android kernel. In this case, the demand for manpower will reach a new height, and it is
+                    extremely unfavorable to be applied to actual production.
+                </P>
+    
+                <p>
+                    The goal of the PGO project is to investigate the PGO technology in Android kernel. To be specific, this project aims to: :
+                </p>
+                <ul>
+                    <li>investigate the key point to make PGO technology achieve better optimization result on Android platform</li>
+                    <li>develop practical PGO framework for Android platform. </li>
+                </ul>
+                
                 
                 <div class="split-line"></div>
                 <h4>Publications:</h4>
