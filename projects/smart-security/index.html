@@ -41,42 +41,35 @@
         <!-- content -->
         <div class="layout-content-container">
             <div class="layout-content">
-                <h3>: The Smart Contract Security Project</h3>
+                <h3>SmartSec: The Smart Contract Security Project</h3>
                 <div class="split-line"></div>
                 <h5>Overview:</h5>
                 <p>
-                    Smart contracts ...
+                    Smart contracts are programs that executed inside a peer-to-peer network where nobody has special
+                    authority over the execution, thus have been widely used to implement functionalities such as tokens of value,
+                    ownership, voting, finance, management, healthcare, and internet of things (IoTs).Once the smart contract code is written,
+                    it is compiled into bytecode by the contract compilers, and stored on the Ethernet blockchain platform for execution. When
+                    a node in the network sends a transaction to the address where the smart contract resides or when certain conditions are
+                    satisfied, the smart contract code will be triggered. Then the smart contract will automatically execute, independently and
+                    automatically, on each network node in a prescribed manner. Because smart contracts mostly involves monetary transactions,
+                    security is of paramount importance.
                 </p>
                 <p>
-                    Although FFIs are very important in multilingual systems, they bring grand
-                    challenges to guarantee the safety and security of such systems.
-                    Due to the intrinsic differences between different languages, such as the
-                    memory model, the data layout, the calling convention, the memory
-                    management, and the locking strategies, it is
-                    very challenging to write reliable multilingual software systems.
-                    Taking Python as an example, Python has built-in support for
-                    garbage collection, whereas C does not, so an object allocated
-                    in C has to be reclaimed manually. Failure to do so may
-                    lead to memory leaking. Worse yet, such kind of failures are rather
-                    tedious and error-prone to diagnose and rectify.
+                    In recent years, many vulnerabilities and security issues have been detected or reported for smart
+                    contracts. These security issues include integer overflows, reentrancy, unauthorized access, external calls,
+                    arithmetic overflows, unsafe type inference, costly loops, overpowered owners, and so on. These vulnerabilities often lead to
+                    considerable losses. For example, the famous the Dao attack stole 3.6 million Ether coins by exploiting a contractual
+                    vulnerability in recursive calls, which eventually led to a hard fork of Ether.
                 </p>
                 <p>
-                    The goal of the SecFFI project is to investigate the security of
-                    the foreign function interfaces. To be specific, this project aims to:
+                    The goal of the SmartSec project is to investigate the security of smart contract. To be specific, this project aims to:
                 </p>
                 <ul>
-                    <li>
-                        perform thorough study on vulnerabilities of FFIs
-                        in the wild, and investigate the common bug patterns;
-                    </li>
-                    <li>
-                        study effective techniques to fix FFI-related
-                        vulnerabilities automatically (APR);
-                    </li>
-                    <li>
-                        develop practical software prototypes.
-                    </li>
+                    <li>perform thorough study on vulnerabilities of smart contract in the wild, and investigate the common bug patterns;</li>
+                    <li>perform empirical study on mainstream smart contract toolchains，discuss and reveal the security issues on them；</li>
+                    <li>develop practical tools to detect and fix vulnerabilities in smart contracts. </li>
                 </ul>
+                
                 <div class="split-line"></div>
                 <h5>Publications:</h5>
                 <ul>
@@ -96,6 +89,7 @@
                     <li>Qiliang Fan</li>
                     <li>Baojian Hua</li>
                     <li>Xia Liu</li>
+                    <li>Zhizhong Pan</li>
                 </ul>
 
             </div>
