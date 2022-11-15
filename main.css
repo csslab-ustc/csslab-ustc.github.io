@@ -100,14 +100,14 @@ div.layout-content hr {
 /*-----------projects page style begin---------------*/
 
 div.project-layout {
-	padding-top: 0.5em;
-	padding-bottom: 0.5em;
+	padding-top: 0.1em;
+	padding-bottom: 0.1em;
 	padding-left: 0.5em;
 }
 
 .project-image img {
-	width: 8em;
-	height: 8em;
+	width: 6em;
+	height: 6em;
 	border-radius: 5%;
 	background-repeat: no-repeat;
 	background-position-y: 9%;
@@ -115,9 +115,9 @@ div.project-layout {
 }
 
 div.project-text {
-	padding-left: 10em;
+	padding-left: 8em;
 	padding-top: 0.5em;
-	height: 8em;
+	height: 6em;
 }
 
 /*-----------projects page style end---------------*/
