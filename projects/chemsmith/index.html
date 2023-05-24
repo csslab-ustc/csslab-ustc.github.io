@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChemSmith: Detecting Bugs in Quantum Chemical
+        Computation Software</title>
+</head>
+
+<link rel="stylesheet" type="text/css" href="../../bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="../../main.css">
+<body>
+
+<div class="main-container">
+    <!-- header -->
+    <div class="header">
+        <div class="header-container">
+            <div class="header-img">
+                <img src="../../logo.png" width="60px" alt="">
+            </div>
+            <div class="header-text">
+                <h1>Computer Systems & Security Group, USTC</h1>
+            </div>
+        </div>
+    </div>
+    
+    <div class="layout">
+        <div class="layout-menu-container">
+            <div class="layout-menu">
+                <div class="menu-item"><a href="../../index.html" >Home</a>
+                </div>
+                <div class="menu-item"><a href="../../publications/index.html">Publications</a>
+                </div>
+                <div class="menu-item"><a href="../../projects/index.html">Projects</a>
+                </div>
+                <div class="menu-item"><a href="../../courses/index.html">Courses</a>
+                </div>
+                <div class="menu-item"><a href="../../members/index.html">Members</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- content -->
+        <div class="layout-content-container">
+            <div class="layout-content">
+                <h3>ChemSmith: Detecting Bugs in Quantum Chemical
+                    Computation Software</h3>
+                <div class="split-line"></div>
+                <h5>Overview:</h5>
+                <p>
+                    Based on molecular dynamics and density functional theory
+                    (DFT), the first-principle calculation has become an indispensable part of realms in Chemistry,
+                    Biology, material computation and prediction, and condensed matter physics. Multiple quantum
+                    chemical calculation software such as Gaussian, SIESTA, VASP, QUANTUM ESPRESSO, and
+                    ABACUS are developed to perform molecular dynamics simulation, electronic structure
+                    calculation, and produce predictions of materials which includes, but are not limited to their
+                    crystal structure, Physical and Chemical properties, Thermodynamic properties, and Mechanical
+                    properties. Nevertheless, less effort is made to study potential vulnerabilities in these systems.
+                </p>
+                <p>
+                    In this project, to fill the gap, we present the general
+                    methodology for detecting vulnerabilities in quantum chemical computation programs. Our key
+                    idea is to leverage fuzz-based approach via a chemistry oracle. To validate our approach, we
+                    designed and implemented the first prototype system: ChemSmith, to detect and understand
+                    vulnerabilities in quantum chemical computation software. ChemSmith has several key
+                    components: first, it constructs and generates a large spectrum of random structured data
+                    following the Forms Data Format (FDF) files that can be accepted by computation software.
+                    Second, ChemSmith incorporates domain-specific chemical knowledge database, to guarantee
+                    and validate special-purpose chemical properties such as value ranges or data symmetry. Third,
+                    ChemSmith leverages the key insight of error feedback fuzzing by monitoring program
+                    executions, resource usage, unusual exceptions and crashes to discover functional
+                    vulnerabilities. Furthermore, ChemSmith leverages differential testing approach to ensure the
+                    rationality, accuracy, and consistency of results. Finally, any irrational and unexpected result
+                    should be automatically detected and manually classified for the purpose of vulnerability
+                    analysis.
+                </p>
+                <p>
+                    From a long-term perspective, ChemSmith represents the first step towards
+                    detecting vulnerabilities in quantum chemical computation software, thus making the whole
+                    ecosystem more reliable and trustworthy.
+                </p>
+
+                <div class="split-line"></div>
+                <h5>Publications:</h5>
+                <ul>
+                    <!--
+                    <li>
+                        <b>RusBox: Towards Efficient and Adaptive Sandboxing for Rust.</b>
+                        [pdf]<br>
+                        Wanrong Ouyang, and Baojian Hua.<br>
+                        The 32nd International Symposium on Software Reliability Engineering, Fast Abstract.
+                        (ISSRE 2021). 2021.<br>
+                        <br>
+                    </li>
+                    <li>
+                        <b>An Empirical Security Study of the Native Code in Python Virtual Machines.</b>
+                        [pdf]<br>
+                        Chengman Jiang, Baojian Hua, et al.<br>
+                        Journal of Computer Science. 2021.<br>
+                        <br>
+                    </li>
+                    -->
+
+                </ul>
+    
+                <div class="split-line"></div>
+                <h5>Members:</h5>
+                <ul>
+                    <li>Baojian Hua</li>
+                    <li>Pu Ji</li>
+                    <li>Feng Qiu</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</div>
+<h2></h2>
+<hr>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
