@@ -172,7 +172,8 @@ div.members-layout img {
 }
 
 div.member-text {
-	margin-left: 130px;
-	padding-top: 20px;
+	margin-left: 20px;
+	margin-top: 6px;
+	float: left;
 }
 /*-----------members page style end---------------*/
