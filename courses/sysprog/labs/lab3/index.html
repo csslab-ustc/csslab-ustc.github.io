@@ -4,8 +4,8 @@
     <title>Assignment 3: A Minimal Debugger</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
 </head>
-<body style="width:1100px;">
-<h1>Assignment 3: A Minimal Debugger</h1>
+<body>
+<h1>Lab 3: Debugger</h1>
 <hr />
 
 <h2>Overview</h2>
@@ -16,11 +16,11 @@
 <h3>Hand-in Procedure</h3>
 <p>
     When you finished the assignment, zip you code files with file
-    name <tt>studentid-assignment3.zip</tt>
-    (e.g <tt>SA19225111-assignment3.zip</tt>),
+    name <tt>studentid-assignment1.zip</tt>
+    (e.g <tt>SA19225111-assignment1.zip</tt>),
     and submit it to
     <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
-    The deadline is 23:59, 2022/11/4 (Beijing time).
+    The deadline TBA (Beijing time).
     Any late submission will <b>NOT</b> be accepted.
 </p>
 
@@ -37,7 +37,7 @@
     In this assignment, you'll learn what's going on under the hood of debugging,
     by implementing a minimal debugger called <tt>ssedb</tt> by yourself. And further,
     you'll understand how anti-debugging techniques can make debugging difficult,
-    and how to overwhelm these anti-debugging techniques.
+    and how to overwhele these anti-debugging techniques.
 </p>
 <p>
     Though small, <tt>ssedb</tt> debugger includes many features: loading files, setting up break points,
@@ -524,7 +524,73 @@ main()
 <p>
     The code above shows the program being traced.
 </p>
+<h3>
+    System call tracing
+</h3>
+<p>
+    The Linux implementation of `ptrace' has the ability to trace system calls.
+    The PTRACE_SYSCALL request restarts the child process (just like PTRACE_CONT)
+    but arranges for it to stop at the next entry to or exit from a system call.
+    This opens up some interesting possibilities.
+</p>
 
+<pre>
+#include &ltsys/ptrace.h>
+#include &ltsignal.h>
+#include &ltlinux/user.h>
+#include &ltsys/types.h>
+#include &ltsys/wait.h>
+main()
+{
+
+    int  status = 0, pid, r;
+    struct user_regs_struct uregs;
+    if ((pid=fork())==0) {
+        printf("pid = %d, ppid = %d\n", getpid(), getppid());
+        ptrace(PTRACE_TRACEME, 0, 0, 0);
+        kill(getpid(), SIGINT);
+        r = getpid();
+        printf("%d\n", r);
+    } else {
+        wait(&status);
+        ptrace(PTRACE_SYSCALL, pid, 0, 0);
+        wait(&status);
+        ptrace(PTRACE_GETREGS, pid, 0, &uregs);
+        //this should print 20, syscall number of getpid
+        printf("syscall nr: %d\n", uregs.orig_eax);
+        // 64 is syscall number of getppid
+        uregs.orig_eax = 64;
+        ptrace(PTRACE_SETREGS, pid, 0, &uregs);
+        ptrace(PTRACE_CONT, pid, 0, 0);
+        wait(&status);
+        if(WIFEXITED(status))printf("child over\n");
+        sleep(1000);
+    }
+}
+</pre>
+<p>
+    The code above  shows a child process which first prints its own process id
+    as well as its parent process id and then delivers a signal to itself.
+    Because it is ready to be traced, this will result in the process getting stopped.
+    The parent waits for this to happen and restarts the child by invoking PTRACE_SYSCALL.
+    The next instruction in the child is an invocation of the `getpid' system call;
+    the child gets stopped once again. Each system call has a unique `call number'
+    - the operating system kernel uses this to identify the actual function to be executed.
+    The parent process extracts this call number by invoking PTRACE_GETREGS
+    (the `orig_eax' field of `ureg' holds the call number) and changes it to the
+    call number of `getppid' by invoking PTRACE_SETREGS. The child is then restarted and allowed
+    to run to completion by invoking PTRACE_CONT. Because the call number has been changed,
+    the child will execute `getppid' instead of `getpid'!
+</p>
+<p>
+    This system call `redirection' has significance in the context of User Mode Linux (UML),
+    which is a port of the Linux kernel to itself. UML allows you to run a modified version
+    of the Linux kernel on top of the actual Linux kernel! You can run processes under the
+    control of the modified kernel. When these processes execute system calls, they should
+    execute code present in the modified kernel and not the original host kernel. This is
+    achieved by using the PTRACE_SYSCALL facility offered by UML; interested readers should
+    check out some of the papers available on the net which describe UML architecture.
+</p>
 <h3>
     System call tracing
 </h3>
@@ -556,9 +622,9 @@ main()
         wait(&status);
         ptrace(PTRACE_GETREGS, pid, 0, &uregs);
         //this should print 20, syscall number of getpid
-        printf("syscall nr: %d\n", uregs.orig_rax);
+        printf("syscall nr: %d\n", uregs.orig_eax);
         // 64 is syscall number of getppid
-        uregs.orig_rax = 64;
+        uregs.orig_eax = 64;
         ptrace(PTRACE_SETREGS, pid, 0, &uregs);
         ptrace(PTRACE_CONT, pid, 0, 0);
         wait(&status);
@@ -669,8 +735,8 @@ main()
     ptrace(PTRACE_ATTACH, pid, 0, 0);
     wait(&status);
     ptrace(PTRACE_GETREGS, pid, 0, &uregs);
-    printf("rip: %x\n", uregs.rip);
-    uregs.rip = addr;
+    printf("eip: %x\n", uregs.eip);
+    uregs.eip = addr;
     ptrace(PTRACE_SETREGS, pid, 0, &uregs);
     ptrace(PTRACE_CONT, pid, 0, 0);
     wait(&status);
@@ -726,7 +792,7 @@ main()
 <hr>
 <h2>Part C: Implement</h2>
 <p>
-    First, download the <a href="./src.zip">source file</a> of <code>ssedb</code>
+    First, download the <a href="ssedb.c">source file</a> of <code>ssedb</code>
     to your Linux machine, along with a trivial testing program:
 <pre>
     #include&ltstdio.h>
@@ -742,7 +808,7 @@ main()
 
     Compile the testing program files:
 <pre>
-          $ gcc -static -o hello hello.c
+          $ gcc -o hello hello.c
         </pre>
 And then run the debugger on <code>hello</code>:
 </p>
@@ -829,7 +895,7 @@ And then run the debugger on <code>hello</code>:
 <br>
 <hr>
 This completes this assignment. Remember to zip you homework with file
-name <tt>studentid-assignment3.zip</tt> (e.g <tt>SA19225111-assignment3.zip</tt>), and
+name <tt>studentid-assignment1.zip</tt> (e.g <tt>SA19225111-assignment1 .zip</tt>), and
 submit it to <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
 
 <p>

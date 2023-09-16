@@ -4,16 +4,21 @@
     <title>Assignment 1: Shell</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
 </head>
-<body style="width:1100px;">
-<h1>Assignment 1: Shell</h1>
+<body>
+
+<h1>Lab 1: Shell</h1>
 <hr />
 
 <h2>Overview</h2>
 <p>
-    A shell is software that provides an interface for an operating system's users to
-    provide access to the kernel's services. On Unix-based or Linux-based operating systems,
-    a shell can be invoked through the shell command in the command line interface (CLI),
-    allowing users to direct operations through computer commands, text or script.
+    A shell is software that provides an interface for
+    an operating system's users to
+    provide access to the kernel's services.
+    On Unix-based or Linux-based operating systems,
+    a shell can be invoked through the shell command
+    in the command line interface (CLI),
+    allowing users to direct operations through computer
+    commands, text or script.
 </p>
 <p>
     This assignment will implement a mini shell similar to the shell of the Unix.
@@ -24,11 +29,11 @@
 <h3>Hand-in Procedure</h3>
 <p>
     When you finished the assignment, zip your code files with the file
-    name <tt>student ID-assignment1.zip</tt>
-    (e.g <tt>SA19225111-assignment1.zip</tt>)
+    name <samp>student ID-assignment1.zip</samp>
+    (e.g <samp>SA19225111-assignment1.zip</samp>)
     and submit it to the
     <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
-    The deadline is 23:59,2022/10/7 (Beijing time).
+    The deadline is TBA (Beijing time).
     Any late submission will <b>NOT</b> be accepted.
 </p>
 
@@ -42,23 +47,35 @@
     executes them. In Ubuntu, the graphical interface is as shown in the figure below.
    
 </p>
-<img src="figures/shell1.PNG" height="120" width="240"/>
+<img src="figures/shell1.PNG"
+     height="120"
+     width="240"
+     alt=""/>
 <h3>Basic Commands:</h3>
-<h4>
-    1. ls
-</h4>
+<div>
+    <kbd>
+        $ ls
+    </kbd>
+</div>
 <p>
- The <tt>ls</tt> (list) command lists all files and folders in your current
-    working directory. You can also specify paths to other directories if you want to view their contents.
+ The <kbd>ls</kbd> (list) command lists all files and folders
+    in your current
+    working directory. You can also specify paths to other
+    directories if you want to view their contents.
 </p>
 
 
-   <img src="figures/ls.PNG" height="90" width="600" />
+<img src="figures/ls.PNG"
+     height="90"
+     width="600"
+     alt=""/>
 
 <h5>ls syntax:</h5>
-<pre>
-    ls [options] [file|dir]
-</pre>
+<div>
+    <kbd>
+        $ ls [options] [file|dir]
+    </kbd>
+</div>
 <p>
     For example:
 </p>
@@ -66,7 +83,8 @@
     ls -l
 </pre>
 <p>
-    In the above example, it will list all files and folders in your current working directory with
+    In the above example, it will list all files and folders
+    in your current working directory with
     the long format - show permissions.
          
 </p>
@@ -117,7 +135,7 @@
 <pre>
     cat name.txt 
 </pre>
-<img src="figures/catp.PNG" height="200" width="250" />
+<img src="figures/catp.PNG" height="200" width="250" alt=""/>
 <p>
     	
 In the above example, the data present in this file is unordered. So, to sort the data,

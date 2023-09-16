@@ -1,384 +1,133 @@
-<HTML>
-<HEAD>
-    <TITLE>System Programming in C, Autumn 2022: Home Page</TITLE>
-    <META http-equiv=Content-Type content="text/html; charset=gb2312">
+<html lang="en-us">
+<head>
+    <title>System Programming in C, Fall 2023: Home Page</title>
+    <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="./labs/labs.css" type="text/css">
 </head>
-<BODY>
 
-<font face="Trebuchet MS">
-    <table width="100%">
-        <tr>
-            <td align="center">
-                <h1>System Programming in C</h1>
-                <h4>School of Software Engineering<br>
-                    University of Science and Technology of China</h4>
-                <h2>Autumn 2022</h2>
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>Course Summary</h2>
-                <p>
-                    Welcome to the course "System Programming in C".
-            This course mainly discusses how to use the C language for system-level software development.
-            C language is a process - oriented, abstract general programming language, widely used in low-level development.
-            C language can compile and process low-level memory in a simple way.
-            Through this course, you will learn to use CLion for project development and debugging, and cmake for compiling your C language projects.
-            More importantly, you will use C for low-level system software development, such as realizing a classic Linux shell and debugger GDB, in the following courses.
-                </p>
-                <p>
-                    There are 6 experiments in this course, which are:
-                </p>
-                    <ul>
-                        <li>Lab0:Software Setup</li>
-                        <li>Lab1:Shell</li>
-                        <li>Lab2:mini Network Analyzer</li>
-                        <li>Lab3:A minimal Debugger</li>
-                        <li>Lab4:Concurrency</li>
-                        <li>Lab5:Mini Database (Tentative)</li>
-                    </ul>
-                    <p>
-                        We hope that by studying the above, you will have mastered the basic syntax of C and gained a deeper understanding of system-level programming.
-                    </p>
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>People</h2>
-                Instructor:
-                <ul>
-                    <li><b><a href="https://csslab-ustc.github.io/">Hua, Baojian</a></b>; Email: bjhua @ ustc.edu.cn</li>
-                </ul>
-                    TAs:
-                <ul>
-                    <li><b>Wu, Yufei</b>; Office: 501-9, Sixian building; Email: wuyf21 @ mail.ustc.edu.cn</li>
-                    <li><b>Zheng, Wenlong</b>; Office: 501-9, Sixian building; Email: zwl21 @ mail.ustc.edu.cn</li>
-                </ul>
+<body>
 
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>Class Time & Location</h2>
-                <ul>
-                    <li>Friday 11, 12, 13 (for week 3-5, 7-9); Sunday 6, 7, 8 (for week 4-5, 7-10)</li>
-                    <li>Online</li>
-                </ul>
+<div style="text-align: center">
+<h1>System Programming in C</h1>
+    <h2>Fall 2023</h2>
 
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>Contact</h2>
-                <ul>
-                    <li>Office Hour: After every class. Otherwise, send us an email in advance to appoint,
-                        if you would like to meet and discuss.</li>
-                    <li> <a href="https://piazza.com/class/l7zru7adpy5ph">Piazza Forum</a>:
-                        Create a new Post in Piazza if you have any problems with
-                        assignments or course content, we also encourage anyone
-                        to answer questions asked by others.</li>
-                    <li>QICQ Group: 366321234. This group is used only for course announcements,
-                        we will discuss homework or course content problems in Piazza.</li>
-                </ul>
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>Homework Policy </h2>
-                <ul>
-                    <li>Lab should be attempted
-                        individually. If you have any difficulty in solving these problems, you may discuss
-                        with your classmates, the instructor or the TAs etc., but final submitted work should be your own.</li>
+    <span class="myanchor"><a href="index.html">Home</a></span>
+        &nbsp;&nbsp; // &nbsp;&nbsp;
+    <span class="myanchor"><a href="schedule.html">Schedule</a></span>
+        &nbsp;&nbsp; // &nbsp;&nbsp;
+    <span class="myanchor"><a href="resources.html">Resources</a></span>
+</div>
 
-                        <li>Late homework will NOT be considered, for whatever reason.</li>
+<hr>
+<h2>Course Overview</h2>
+<p>
+    This is an advanced graduate course on system programming
+    using the C programming language. C is a low-level
+    system language specially designed to build system
+    software such as operating system kernels, compilers,
+    network stacks, database engines, and browsers, among
+    others.
+    In this course, we will study the basic design disciplines
+    of these systems, and investigate how and why C is the
+    right language for these tasks.
+</p>
+<p>
+    We will be employing a "learning-by-doing" rational in
+    course, that is, we will be building diverse and practical
+    systems using C: a compiler, a shell, a Web server,
+    a network sniffer,
+    a concurrence library, a debugger, and a MapReduce library.
+</p>
+<p>
+    To realize this rational, we have 7 labs planned
+    in this course:
+    <ul>
+        <li>Lab 0: Software Setup</li>
+        <li>Lab 1: Compiler</li>
+        <li>Lab 2: Shell</li>
+        <li>Lab 3: Network Sniffer</li>
+        <li>Lab 4: Debugger</li>
+        <li>Lab 5: Concurrency</li>
+        <li>Lab 6: MapReduce (Tentative)</li>
+    </ul>
+<p>
+    We hope that, by the end of this course, you will not only
+    learn the essence of C programming, but also (and more
+    importantly) gain
+    a deeper understanding of computer systems
+    and system-level programming.
+</p>
 
-                        <li>Don't post your solutions to any public websites.</li>
+<hr>
+<h2>People</h2>
+Instructor:
+<ul>
+    <li><b><a href="https://csslab-ustc.github.io/">Hua, Baojian</a></b>; bjhua - ustc.edu.cn</li>
+</ul>
+TAs:
+<ul>
+    <li><b>Ma, Jingnan</b>; majingnan - mail.ustc.edu.cn</li>
+    <li><b>Xu, Hao</b>; xuhaoo - mail.ustc.edu.cn</li>
+    <li><b>Zhao, Jiacheng</b>; jiachengz - mail.ustc.edu.cn</li>
+</ul>
 
-                </ul>
+<hr>
+<h2>Class Time & Location</h2>
+<ul>
+    <li>Saturday 7-10; Sunday 1-4</li>
+    <li>Online</li>
+</ul>
 
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h2>Schedule</h2>
-                The following schedule of the course is tentative and subject to
-                change at any time.
+<hr>
+<h2>Contact</h2>
+<ul>
+    <li>Office Hour: After every class.
+        Otherwise, send us emails in advance to appoint,
+        if you would like to meet and discuss.
+    </li>
+    <li> <a href="https://piazza.com/class/l7zru7adpy5ph">Piazza Forum</a>:
+        Create a new post in Piazza if you have any problems with
+        assignments or course topics, and we also encourage anyone
+        to answer questions asked by others.
+    </li>
+    <li>QICQ Group: 885032859. This group is used only
+        for course announcements, and we will discuss homework
+        or course content problems in Piazza.
+    </li>
+</ul>
 
-                <p>
+<hr>
+<h2>Homework Policy</h2>
+<ul>
+    <li>Lab should be attempted
+        individually. If you have any difficulty in
+        solving these problems, you may discuss
+        with your classmates, the instructor or the TAs etc.,
+        but final submitted work should be your own.
+    </li>
+    <li>Late homework will NOT be considered, for whatever
+        reason.
+    </li>
+    <li>Do not post your solutions to any public websites.
+    </li>
+</ul>
 
-                <table border="1" width="100%">
-                    <tr>
-                        <td>
-                            <b>Time</b>
-                        </td>
-                        <td>
-                            <b>Topic</b>
-                        </td>
-                        <td>
-                            <b>Material</b>
-                        </td>
-                        <td>
-                            <b>Programming Assignments</b>
-                        </td>                        
-                    </tr>
+<hr>
+<h2>Evaluation</h2>
+<ul>
+    <li>No tests.</li>
+    <li>Score: 80% for assignments and 20% for class attending.</li>
+</ul>
 
-                    <tr>
-                        <td>
-                            September 16
-                        </td>
-                        <td>
-                            Introduction
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec01-overview.pptx">Class Introduction</a>;
-                            <br><a href="slides/lec02-charIO.pptx">Character Input and Output</a>
-                        </td>
-                        <td>
-                            &nbsp;<a href="labs/lab0/index.html">Lab 0: Software Setup</a>
-                        </td>
-                    </tr>
+<hr>
+<br>
+<br>
+</body>
+</html>
 
-                    <tr>
-                        <td>
-                            September 18
-                        </td>
-                        <td>
-                            Program Execution Basis<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec03-exp.pptx">Declarations and Expressions</a>
-                            <br><br>&nbsp;<b>CODE</b>:<a href="sampleCode/lec2.zip">sample code</a>
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            September 23
-                        </td>
-                        <td>
-                            Modular Programming<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec04-stm.pptx">Control Flow</a>
-                            <br><br>&nbsp;<b>CODE</b>:<a href="sampleCode/lec3.zip">sample code</a>
-                        </td>
-                        <td>                           
-                        &nbsp;<a href="labs/lab1/index.html">Lab 1: Shell</a>
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            September 25
-                        </td>
-                        <td>
-                            Abstraction<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec05-fun.pptx">Functions</a>
-                            <br><br>&nbsp;<b>CODE</b>:<a href="sampleCode/lec4.zip">sample code</a>
-                        </td>
-                        <td>
-                            
-                        </br>
-                            
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            September 30
-                        </td>
-                        <td>
-                            Higher-order Function<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec06-pointer.pptx">Pointers and Arrays</a>
-                            <br><br>&nbsp;<b>CODE</b>:<a href="sampleCode/lec5.zip">sample code</a>
-                        </td>
-                        <td>
-                            
-                        </br>
-                            
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            October 9
-                        </td>
-                        <td>
-                            Recitation<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/review_slides/sysprog-Review-01.pptx">Course Review: Theory Part</a>
-                            <br><a href="slides/review_slides/c_programming_coding_Review-01.pptx">Course Review: Coding Part</a>
-                        </td>
-                      
-                        <td>
-                            &nbsp;<a href="labs/lab2/index.html">Lab 2: mini Network-Analyzer</a>
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            October 14
-                        </td>
-                        <td>
-                            Structures and MapReduce<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec07-struct.pptx">Structures</a>
-                            <br><br>&nbsp;<b>CODE</b>:<a href="sampleCode/lec6.zip">sample code</a>
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td>
-                            October 16
-                        </td>
-                        <td>
-                            Module and Memory<br>
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec08-module.pptx">C Module System</a>;
-                            <br><a href="slides/lec09-memory.pptx">Memory Layout</a>
-                        </td>
-                        <td>
-                    
-                        </br>
-                       
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            October 21
-                        </td>
-                        <td>
-                            No class
-                        </td>
-                        <td>&nbsp;
-                            
-                        </td>
-                        <td>
-                            &nbsp;<a href="labs/lab3/index.html">Lab 3: A Minimal Debugger</a>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            October 28
-                        </td>
-                        <td>
-                            Abstract Data Type & Polymorphism
-                        </td>
-                        <td>
-                            &nbsp;<b>LEC</b>:<a href="slides/lec10-adt.pptx">Abstract Data Type</a>;
-                            <br><a href="slides/lec11-polymorphism.pptx">Polymorphism</a>
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            October 30
-                        </td>
-                        <td>
-                            Polymorphism
-                        </td>
-                        <td>
-                            &nbsp;<b>CODE</b>:<a href="sampleCode/lec7.zip">sample code</a>
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            November 6
-                        </td>
-                        <td>
-                            Recitation
-                        </td>
-                        <td>&nbsp;
-                            
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            November 6
-                        </td>
-                        <td>
-                            Recitation
-                        </td>
-                        <td>&nbsp;
-                            
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
-
-                </table>
-                <br>
-                <hr>
-            </td>
-        </tr>
-        <!--
-                <tr>
-                    <td>
-                        <h2>Software</h2>
-                        The programming labs require ANSI C compilers which compile
-                        C99. And we have installed GNU GCC on the lab machines
-                        (with a nice IDE called CodeBlocks):
-                        <ul>
-                            <li><a href="http://www.codeblocks.org">CodeBlocks</a>.
-                            <li><a href="http://gcc.gnu.org">The GNU GCC compiler</a>; with
-                                <a href="http://www.mingw.org">Windows dialect</a>.
-                        </ul>
-                        <hr>
-                    </td>
-                </tr>-->
-                <tr>
-                    <td>
-                        <h2>Testing and Grading</h2>
-                        <ul>
-                            <li>No final test. :-)</li>
-                            <li>Evaluated: 80% for assignments and 20% for class attending.</li>
-                        </ul>
-                        <!--
-                        Final Test:
-                        <ul>
-                          <li>Time: August 15, 9:00--11:00 AM
-                          <li>Location: room 248, Mingde building
-                        </ul>
-                        Good luck!
-                        -->
-                <hr>
-
-            </td>
-        </tr>
-    </table>
-</font>
-</BODY>
-</HTML>

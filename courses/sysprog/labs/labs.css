@@ -1,6 +1,23 @@
+body {
+    width: 800px;
+}
+
 div.code {
     margin-top: 1.6em;
     margin-bottom: 1.6em;
+}
+
+span.myanchor{
+    font-size: 20px;
+}
+
+b.read{
+    #color: #3333ff;
+    color: darkorange;
+}
+
+b.lab{
+    color: darkred;
 }
 
 .code pre {
