@@ -1,5 +1,5 @@
 body {
-    width: 800px;
+    width: 720px;
 }
 
 div.code {
@@ -9,6 +9,10 @@ div.code {
 
 span.myanchor{
     font-size: 20px;
+}
+
+span.todo{
+    color: red;
 }
 
 b.read{
