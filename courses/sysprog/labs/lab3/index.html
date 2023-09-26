@@ -11,6 +11,11 @@
 
 <h2>Overview</h2>
 <p>
+    <span class="todo">
+        introduce
+    </span>
+</p>
+<p>
     In this lab, you will be required to complete a Wireshark -
     like software.
     You need to implement four specific functions: packet sniffing,
@@ -20,9 +25,9 @@
 
 <h3>Hand-in Procedure</h3>
 <p>
-    When you finished the assignment, zip you code files with file
-    name <samp>studentid-lab-3.zip</samp>
-    (e.g <samp>SA19225111-assignment2.zip</samp>),
+    When you finished the lab, zip you code files with file
+    name <samp>ID-lab-3.zip</samp>
+    (e.g., <samp>SA19225111-lab-3.zip</samp>),
     and submit it to
     <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
     The deadline is TBA (Beijing time).
@@ -32,8 +37,23 @@
 
 <hr />
 
-<h2>Part A: Background</h2>
-<h3>1 Wireshark</h3>
+<h2>Part A: Web Server</h2>
+
+
+<h3>1. Time Server</h3>
+<span class="todo">
+    todo
+</span>
+
+
+
+
+<h3>2. Web Server</h3>
+
+
+<br>
+<h2>Part B: Network Sniffer</h2>
+
 <p>
     <a href="https://en.wikipedia.org/wiki/Wireshark">Wireshark</a>
     is a free and open-source packet analyzer,using the Qt widget toolkit
@@ -69,8 +89,8 @@
     basics usage of wireshark.
 </p>
 
-<br>
-<h3>2 Raw socket</h3>
+
+<h3>2. Raw socket</h3>
 <p>
     In this experiment, you need to have some knowledge of socket
     programming first.</p>
@@ -124,8 +144,8 @@
     the usage of different parameters of socket function above.
     for example : https://zhuanlan.zhihu.com/p/59327439.
 </p>
-<br>
-<h3>3 promiscuous mode</h3>
+
+<h3>3. promiscuous mode</h3>
 <p>
     The device is connected to the network through a network
     interface card (NIC). A NIC is a physical or logical connection
@@ -159,8 +179,7 @@
     mr.mr_type = PACKET_MR_PROMISC;
     setsockopt(sock, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mr, sizeof(mr));
 </pre>
-<br>
-<h2>Part B : packet sniffer</h2>
+
 <p>
     Download the <a href="./src.zip">source code</a> and unzip.
     This source code is incomplete, you need to fill in the
@@ -177,17 +196,17 @@
 </p>
 <img src="Lab2%20mini-Wireshark.assets/image-20211008185057440.png" width="500" alt=""/>
 <div class="question">
-    exercise 1 : Complete the code above to make sure your
+    <b>Exercise 1:</b>
+    Complete the code above to make sure your
     function works correctly as required. You need to
     submit your source code.
 </div>
-<br>
-<h2>
-    Part C : packet analysis
-</h2>
-<h3>Step 1 Packet Printer</h3>
+
+<h3>
+    3. packet analysis
+</h3>
 <p>
-    In this experiment, you need to analyze the structure of
+    In this part, you need to analyze the structure of
     ARP, ICMP, TCP, and UDP packets and print detailed information
     of them. Refer to the ICMP analysis function given in
     <samp>PacketProcess.h</samp> and <samp>packetProcess.c</samp>
@@ -198,7 +217,7 @@
 </p>
 <img src="Lab2%20mini-Wireshark.assets/image-20211008190726961.png" width="700" alt=""/>
 <div class="question">
-    exercise 2 : Complete the code of Step 1 correctly,
+    <b>Exercise 2:</b> Complete the code of Step 1 correctly,
     and submit your source code.
 </div>
 <h3>Step 2 : packet filter</h3>
@@ -217,11 +236,12 @@
     program to check if it works correctly.
 </p>
 <div class="question">
-    exercise 3 : Complete the code of Step 2 to make sure your
+    <b>Exercise 3:</b>
+    Complete the code of Step 2 to make sure your
     function works correctly as required. Submit your source code.
 </div>
-<br>
-<h2>Part D : packet spoofing</h2>
+
+<h3>4. Packet spoofing</h3>
 <p>
     In this experiment, you need to use two virtual machines,
     Host A and Host B. Host A is used to send the forged packet
@@ -258,7 +278,8 @@
     data packets in the Wireshark.
 </p>
 <div class="question">
-    exercise 4 : Write TCP_forge.h and TCP_forge.c in your
+    <b>Exercise 4:</b>
+    Write TCP_forge.h and TCP_forge.c in your
     project to achieve the forgery of TCP protocol packets.
 </div>
 
@@ -277,7 +298,8 @@
     data packets in the Wireshark.
 </p>
 <div class="question">
-    exercise 5 : Write ARP_forge.h and ARP_forge.c in your
+    <b>Exercise 5:</b>
+    Write ARP_forge.h and ARP_forge.c in your
     project to achieve the forgery of ARP protocol packets.
 </div>
 
@@ -296,14 +318,15 @@
     data packets in the Wireshark.
 </p>
 <div class="question">
-    exercise 6 : Write ICMP_forge.h and ICMP_forge.c in your
+    <b>Exercise 6:</b>
+    Write ICMP_forge.h and ICMP_forge.c in your
     project to achieve the forgery of ICMP protocol packets.
     You need to submit your source code.
 </div>
 <br>
-<h2>Part E : Design your own MAC layer protocol</h2>
+<h2>5. Design your own MAC layer protocol</h2>
 <p>
-    In this experiment, you need to design a new link layer
+    In this part, you need to design a new link layer
     communication protocol to achieve a two-way communication
     between two hosts.
 </p>
@@ -326,11 +349,12 @@
 
 <br>
 <hr>
-This completes this assignment. Remember to zip you
-homework with file
-name <samp>studentid-lab-3.zip</samp> (e.g.,
+This completes this lab. Remember to zip you
+code with file
+name <samp>ID-lab-3.zip</samp> (e.g.,
 <samp>SA19225789-lab-3.zip</samp>), and
-submit it to <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+submit it to <a href="http://yjs.ustc.edu.cn/">Postgraduate Information
+    Platform</a>.
 
 <p>
     Happy hacking!
