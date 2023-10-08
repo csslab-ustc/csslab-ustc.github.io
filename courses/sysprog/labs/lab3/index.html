@@ -16,8 +16,7 @@
     </span>
 </p>
 <p>
-    In this lab, you will be required to complete a Wireshark -
-    like software.
+    In this lab, you will be required to complete .
     You need to implement four specific functions: packet sniffing,
     packet analysis, packet spoofing, and design your own link
     layer protocol and using it to communicate with another machine.
@@ -49,61 +48,15 @@
 
 
 <h3>2. Web Server</h3>
+<span class="todo">
+    todo
+</span>
 
 
+<hr>
+<h2>Part B: ICMP Tunneling</h2>
 
-<br>
-<h2>Part B: Network Sniffer</h2>
-
-<p>
-    <a href="https://en.wikipedia.org/wiki/Wireshark">Wireshark</a>
-    is a free and open-source packet analyzer,using the Qt widget toolkit
-    in current releases to implement its user interface, and using pcap
-    to capture packets; it runs on Linux, macOS, BSD, Solaris, some
-    other Unix-like operating systems, and Microsoft Windows.
-    Wireshark is used for network troubleshooting, analysis, software
-    and communications protocol development, and education.
-</p>
-<p>
-    We recommend that you install Wireshark on your own computer and
-    try using some features provided by Wireshark. Enter the following
-    command in the terminal to start the installation:
-</p>
-<pre>
-    sudo add-apt-repository ppa:wireshark-dev/stable
-    sudo apt update
-    sudo apt install wireshark
-</pre>
-<p>For convenience, when the terminal prompts whether to allow
-    non-super users to capture data packets, select "yes".</p>
-<p>
-    After the installation, run the following command in the terminal:
-</p>
-<pre>
-    wireshark
-</pre>
-<p>The Wireshark GUI is displayed. As follows:</p>
-<img src="Lab2%20mini-Wireshark.assets/image-20211006165548178.png" width="680" alt=""/>
-
-<p>
-    We encourage you to search for more information to learn the
-    basics usage of wireshark.
-</p>
-
-
-<h3>2. Raw socket</h3>
-<p>
-    In this experiment, you need to have some knowledge of socket
-    programming first.</p>
-<p>
-    The network programming we usually use is to send and receive
-    data at the application layer. Each program can only receive
-    data sent to itself, that is, each program can only receive
-    data from the bound port of the program. The received data
-    usually includes only application-layer data. In some cases
-    we need to perform more low-level operations, such as listening
-    to all data sent and received by the native machine,
-    modifying headers, and so on.</p>
+<h3>1. Raw Socket</h3>
 <p>
     With raw sockets, we can capture all IP packets sent to the
     local machine (including IP headers and TCP/UDP/ICMP headers)
@@ -129,7 +82,7 @@
     in the case of stream and datagram sockets.
 </p>
 
-<img src="Lab2%20mini-Wireshark.assets/Figure-24.jpg" width="700" alt=""/>
+<img src="Lab2%20mini-Wireshark.assets/Figure-24.jpg" width="500" alt=""/>
 <p>
     In this experiment, we need to obtain all types of packets
     from the MAC layer, so when constructing the socket, the
@@ -146,7 +99,18 @@
     for example : https://zhuanlan.zhihu.com/p/59327439.
 </p>
 
-<h3>3. promiscuous mode</h3>
+<h3>2. ICMP Tunnel</h3>
+<span class="todo">
+    todo
+</span>
+
+
+
+
+<hr>
+<h2>Part C: Network Sniffing</h2>
+
+<h3>1. Promiscuous Mode</h3>
 <p>
     The device is connected to the network through a network
     interface card (NIC). A NIC is a physical or logical connection
@@ -204,7 +168,7 @@
 </div>
 
 <h3>
-    3. packet analysis
+    3. Network Sniffing
 </h3>
 <p>
     In this part, you need to analyze the structure of
@@ -221,7 +185,7 @@
     <b>Exercise 2:</b> Complete the code of Step 1 correctly,
     and submit your source code.
 </div>
-<h3>Step 2 : packet filter</h3>
+<b>Packet filter</b>
 <p>
     When doing network sniffing, sniffers are often only
     interested in certain types of packets, such as TCP packets
@@ -242,7 +206,7 @@
     function works correctly as required. Submit your source code.
 </div>
 
-<h3>4. Packet spoofing</h3>
+<h2>Part D. Packet Spoofing</h2>
 <p>
     In this experiment, you need to use two virtual machines,
     Host A and Host B. Host A is used to send the forged packet
@@ -325,7 +289,7 @@
     You need to submit your source code.
 </div>
 <br>
-<h2>5. Design your own MAC layer protocol</h2>
+<h3>5. Customized MAC Layer Protocol</h3>
 <p>
     In this part, you need to design a new link layer
     communication protocol to achieve a two-way communication
