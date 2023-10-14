@@ -10,16 +10,17 @@
 <hr />
 
 <h2>Overview</h2>
+    <p>
+        In this lab, you will need to complete relevant
+        content in network programming.
+        You need to implement four specific functions: web server,
+        ICMP tunneling, packet sniffing, packet analysis, and packet
+        spoofing.
+    </p>
+
 <p>
-    <span class="todo">
-        introduce
-    </span>
-</p>
-<p>
-    In this lab, you will be required to complete .
-    You need to implement four specific functions: packet sniffing,
-    packet analysis, packet spoofing, and design your own link
-    layer protocol and using it to communicate with another machine.
+    You should download <a href="../lab3.zip">this source code</a>
+    to start with.
 </p>
 
 <h3>Hand-in Procedure</h3>
@@ -38,20 +39,286 @@
 
 <h2>Part A: Web Server</h2>
 
+<h3>1. Square Server</h3>
+<p>
+    In this Part, you need to implement a square server. The server
+    should be capable of returning the square of a number when the
+    client inputs a number. And when the client inputs "bye," the client
+    should disconnect from the server. To begin, you will learn how
+    to use certain relevant system calls:
+</p>
+<h4>The Socket Interface</h4>
 
-<h3>1. Time Server</h3>
-<span class="todo">
-    todo
-</span>
+<p>
+    The socket interface in C provides a mechanism for setting up a
+    communication channel to another host system. For both clients
+    and servers, the initial function call is the same.
+
+</p>
+<img src="figures/socket1.png" width="400" alt=""/>
+
+<p>
+    Processes call socket() to request a new socket instance from the
+    OS. As with other forms of IPC such as pipes, sockets are treated
+    as files, so the process receives a file descriptor from the return
+    value. If the socket creation failed, the OS returns a negative value.
+</p>
+
+<pre>
+    /* defined in sys/socket.h */
+    int socket(int family, int type, int protocol);
+</pre>
+
+<p>
+    The domain field is used to declare the intended scope of routing
+    needed; different values here indicate whether the socket will be
+    used for IPv4, IPv6, or local communication. The type field determines
+    whether the socket will read and write data as a byte stream,
+    fixed-size messages, or as unprocessed (raw) data. The protocol field
+    is typically unused and set to 0
+</p>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Constant</th>
+            <th>Purpose</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="4">domain</td>
+            <td>AF_INET</td>
+            <td>Use for HTTP IPv4 addresses</td>
+        </tr>
+        <tr>
+            <td>AF_INET6</td>
+            <td>Use for HTTP IPv6 addresses</td>
+        </tr>
+        <tr>
+            <td>AF_LOCAL</td>
+            <td>Unix domain socket for HTTP IPC</td>
+        </tr>
+        <tr>
+            <td>AF_NETLINK</td>
+            <td>Netlink socket for HTTP kernel messages</td>
+        </tr>
+    </tbody>
+</table>
+
+<h4>Client Socket Interface</h4>
+
+<p>
+    Once a client process has created a socket, the next step is to build
+    the socket address structure and to establish a connection with the
+    socket at the server host. The client is primarily concerned with
+    specifying the IP address of the server and the associated port number.
+    In the case of a connection-less protocol like UDP, this step does not
+    actually involve contacting the server; rather, this step just involves
+    configuring the socket’s peer IP address.
+</p>
+
+<pre>
+    /* defined in sys/socket.h */
+    int connect (int socket, const struct sockaddr *address, socklen_t address_len);
+</pre>
+
+<p>
+    Once the address information is established, it can be passed to
+    the connect() function to establish the initial connection to
+    the socket at a server address, so long as it is accepting requests.
+    If TCP is the transport layer protocol used, connect() will send
+    an initial message to the server host process to initiate the TCP
+    3-way handshake, making the server aware of the connection. If UDP
+    or another connectionless protocol is used, connect() simply sets
+    the IP address of the peer in the client host’s socket.
+</p>
+
+<h4>Server Socket Interface</h4>
+
+<pre>
+    int setsockopt (int socket, int level, int option_name, const void *option_value, socklen_t option_len);
+    int bind (int socket, const struct sockaddr *address, socklen_t address_len);
+</pre>
+<p>
+    Setting up the server socket involves a different sequence of
+    steps from the client process. the process should make a sequence
+    of function calls to become a server. Typically (though not required),
+    the first call is to setsockopt() to configure the socket with
+    the SO_REUSEADDR option. This option avoids a common error during
+    the next step, bind(). The bind() call links the port number with
+    the current process. Sometimes when a port number is reused, a
+    timing problem can cause the previous process (which is no longer
+    running) to fail to release the port fully. Setting the SO_REUSEADDR
+    option tells bind() to ignore this and forcefully replace the port
+    association.
+</p>
+
+<pre>
+    int listen (int socket, int backlog);
+    int accept (int socket, struct sockaddr *address, socklen_t *address_len);
+</pre>
+
+<p>
+    Connection-oriented TCP sockets require two additional function calls.
+    The first, listen(), converts the socket to a connection-oriented
+    server socket with a designated request queue. The second parameter,
+    backlog, can be used to modify the maximum number of enqueued connection
+    requests. Once the process has converted its socket to a server socket,
+    repeated calls to accept() establish connections with incoming requests.
+    The accept() function is blocking, so the process will wait at that
+    point until a new request comes in. When a new request arrives,
+    accept() performs the server side of the 3-way handshake to establish
+    the connection, storing information about the client in the address and
+    address_len fields.
+</p>
+<img src="figures/socket7.png" width="300" alt=""/>
+
+<p>
+    In this experiment, square-client.c and square-server.c are supplemented
+    to realize square server, we've already shown some of the code.
+    You should first start square-server.c, and then run square-client.c.
+    The result is as follows:
+</p>
+<pre>
+    css-lab@tiger:~$ <kbd>make square-server </kbd>        
+    gcc square-server.c -o square-server.out
+    ./square-server.out
+    Server is listening on port 12345...
+    Accepted connection from 127.0.0.1:42852
+    Received from client: 5
+    Sent to client: Square: 25
+    Received from client: 25
+    Sent to client: Square: 625
+    Received from client: -1
+    Sent to client: Square: 1
+</pre>
+
+<pre>
+    css-lab@tiger:~$ <kbd>make square-client </kbd>  
+    gcc square-client.c -o square-client.out
+    ./square-client.out
+    Connected to server. Enter 'bye' to exit.
+    Enter a message: 5
+    Server response: Square: 25
+    Enter a message: 25
+    Server response: Square: 625
+    Enter a message: -1
+    Server response: Square: 1
+</pre>
 
 
 
+<div class="question">
+    <b>Exercise 1:</b>
+    Currently, the square-server can only send back the square 
+    of an integer when the client sends an integer. 
+    Please implement the feature where the server automatically 
+    disconnects when the client sends "bye". 
+    Besides, when the client sends either an integer or a floating-point 
+    number, the server should appropriately return the square 
+    of that integer or floating-point number.</br>
+
+    Hint: You can establish your own protocol, for instance, when 
+    the client sends "i 1", the server processes it as an integer, 
+    when the client sends "f 1", the server processes it as a float. 
+    When the client sends "bye", the server disconnects.
+</div>
 
 <h3>2. Web Server</h3>
-<span class="todo">
-    todo
-</span>
 
+<p>
+    Processes running at the application layer of the protocol
+    stack are not fundamentally different from non-networked
+    concurrent applications. The primary differences between
+    such distributed application processes and non-networked
+    processes are that the data is exchanged via an IPC channel
+    based on a predefined communication protocol, and that
+    channel has a significantly higher likelihood of
+    intermittent communication failures. In this section,
+    we will demonstrate how to use TCP sockets to implement
+    the basic functionality of HTTP, the protocol that
+    underlies web-based technologies.
+</p>
+<img src="figures/socket2.png" width="400" alt=""/>
+<p>
+    HTTP is the protocol that defines communication for web browsers
+    and servers. Readers who have built personal or professional web
+    pages have relied on this protocol, even if they were unaware of
+    the details of its operation. HTTP applications use TCP connections
+    for their transport layer.and the figure shows the basic structure
+    of HTTP in relation to the functions that establish the socket
+    connection. The client—a web browser—sends an HTTP request to the
+    server and receives a response.
+</p>
+
+<p>
+    In this experiment, we have already implemented the GET request
+    and completed a simple index.html file. You need to place index.html
+    in your system (recommended in the root directory). You can then
+    access it through your browser. First, you need to know your server's
+    IP address:
+</p>
+
+<pre>
+css-lab@tiger:~$ <kbd>ifconfig</kbd>
+eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST> mtu 1500
+      inet 192.168.37.60  netmask 255.255.240.0  broadcast 192.168.47.255
+      inet6 fe80::215:5dff:fe9b:2b4e  prefixlen 64  scopeid 0x20<link>
+      ether 00:15:5d:9b:2b:4e  txqueuelen 1000  (Ethernet)
+      RX packets 98802  bytes 62267057 (62.2 MB)
+      RX errors 0  dropped 0  overruns 0  frame 0
+      TX packets 63864  bytes 17556137
+      TX errors 0 dropped 0 overruns 0 carrier 0 collisions 0
+</pre>
+
+
+
+<p>
+    You can make requests in your browser using your IP address and
+    the port number occupied by the web server:
+</p>
+<img src="figures/socket10.png" width="400" alt=""/>
+
+<div class="required">
+    <b>Exercise 2:</b>
+    When accessing the URL http://your_server_ip:8080/index.html in a browser, which 
+    path does the server look in to find index.html?
+</div>
+<div class="required">
+    <b>Exercise 3:</b>
+    Try entering the following command in the terminal. Does 
+    it pose any potential security risks?
+</div>
+<pre>
+            curl "http://192.168.37.60:8080/index_$(printf 'a%.0s' {1..1500}).html?"
+</pre>
+
+<p>
+    When you input a non-existent file, you will receive an error message:
+</p>
+<img src="figures/socket11.png" width="400" alt=""/>
+
+<p>
+    Now, you need to supplement the rest of the content in web-server.c:
+</p>
+
+<div class="required">
+    <b>Exercise 4:</b>
+    Implement the DELETE request. You can refer to the
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE">
+        DELETE document</a>
+    for details on how to use DELETE.<br>
+
+</div>
+
+<div class="challenge">
+    <i>Challenge:</i>
+    When making multiple HTTP requests simultaneously in different
+    tabs of a browser, only one request receives a response. Please
+    analyze the reason for this and attempt to resolve the issue.
+</div>
 
 <hr>
 <h2>Part B: ICMP Tunneling</h2>
@@ -82,7 +349,7 @@
     in the case of stream and datagram sockets.
 </p>
 
-<img src="Lab2%20mini-Wireshark.assets/Figure-24.jpg" width="500" alt=""/>
+<img src="figures\raw_socket.jpg" width="500" alt=""/>
 <p>
     In this experiment, we need to obtain all types of packets
     from the MAC layer, so when constructing the socket, the
@@ -91,18 +358,142 @@
     data link layer. The construction format is as follows:
 </p>
 <pre>
-    int sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))；
+    int sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 </pre>
 <p>
     You should search more information by yourself to learn
     the usage of different parameters of socket function above.
-    for example : https://zhuanlan.zhihu.com/p/59327439.
+    for example : <a href="https://zhuanlan.zhihu.com/p/59327439">
+        https://zhuanlan.zhihu.com/p/59327439</a>.
 </p>
 
 <h3>2. ICMP Tunnel</h3>
-<span class="todo">
-    todo
-</span>
+<p>
+    In this section, we will implement an ICMP tunnel with the
+    help of raw sockets.
+</p>
+<p>
+    The firewall of computer will inspects and filters network packets, 
+    deciding whether to allow or deny the transmission of packets based 
+    on defined rules and policies.For example, firewall sometimes 
+    blocks access to some ports. However, general firewalls do not 
+    block the ICMP protocol (ping packets). Therefore, we can bypass the 
+    firewall for network communication by establishing an ICMP tunnel.
+</p>
+
+<p>
+    ICMP(Internet Control Message Protocol) is used to send control 
+    messages in TCP/IP networks, providing feedback on various problems 
+    that may occur in the communication environment. The packets 
+    format of ICMP is:
+</p>
+<img src="figures\icmp_format.png" width="350" alt=""/>
+
+<p> The types of ICMP protocols are divided into two categories, 
+    query packets and error packets. And there are two types 
+    of query packets, <samp>Echo request</samp> and <samp>
+    Echo reply</samp>. When you send a <samp>Echo request</samp>
+    packet to an IP, it will reply with a <samp>Echo reply</samp> packet, 
+    which is how the <samp>ping</samp> command works:
+</p>
+<img src="figures\ping.png" width="500" alt=""/>
+
+<p>
+    We can find the structure describing ICMP in netinet/ip_icmp.h
+</p>
+<pre>
+    struct icmphdr
+    {
+      uint8_t type;		/* message type */
+      uint8_t code;		/* type sub-code */
+      uint16_t checksum;
+      union
+      {
+        struct
+        {
+          uint16_t	id;
+          uint16_t	sequence;
+        } echo;			/* echo datagram */
+        uint32_t	gateway;	/* gateway address */
+        struct
+        {
+          uint16_t	__glibc_reserved;
+          uint16_t	mtu;
+        } frag;			/* path mtu discovery */
+      } un;
+    };
+</pre>
+
+<p>
+    With this, we can easily construct ICMP packages.
+    ICMP messages have an optional <samp>data</samp> field, 
+    which means we can put the information here, and use
+    <samp>Echo request</samp> to implement network communication.
+</p>
+
+
+
+<p>
+    In <samp>main.c</samp>, we forked a child process for receiving 
+    ICMP packets first.
+</p>
+
+<div class="question">
+    <b>Exercise 1:</b>
+    What happens if a host pings your IP or the destination IP is yourself?
+    How to avoid it? You need to submit your source code.
+</div>
+
+<p>
+    We use the following structure to organize the data segments:
+</p>
+
+<pre>
+    typedef struct icmp_tunnel
+    {
+        unsigned char sname[NAMESIZE];
+        unsigned char dname[NAMESIZE];
+        unsigned char data[BUFFSIZE];
+    }tunnel;
+</pre>
+
+We will put this structure in the data segment of the ICMP packet 
+and send it to the specified IP with the type <samp>Echo request</samp>.
+If the other host is online, it can receive the message we sent, and likewise, 
+we can also receive the message sent by the other, so ICMP 
+tunnel communication can be achieved.
+
+<pre>
+     -----------------------------------------------------------------------
+    |css-lab@tiger:~$ <kbd>sudo ./icmp</kbd>       |css-lab@tiger:~$ <kbd>sudo ./icmp</kbd>      |
+    |Enter your name: H1                |Enter your name: H2                |
+    |Who you want to talk: H2           |Who you want to talk: H1           | 
+    |Enter the dest IP: 127.0.0.1       |Enter the dest IP: 127.0.0.1       |
+    |hello!                             |       H1 : hello!                 |
+    |I'm H1                             |       H1 : I'm H1                 |
+    |        H2 : hi                    |hi                                 |
+    |        H2 : I'm H2                |I'm H2                             |
+     -----------------------------------------------------------------------
+</pre>
+
+<div class="question">
+    <b>Exercise 2:</b>
+    Now that we are communicating in plaintext, please use any encryption 
+    and decryption algorithms to make our data less vulnerable to eavesdropping.
+    You need to submit your source code.
+</div>
+
+<div class="challenge">
+    <i>Challenge:</i>
+    In the case of a complex network, the packets we send can be lost. 
+    Please design a communication protocol so that the ICMP tunnel 
+    ensure each packet can be successfully received at most one time.
+    Ensure that this process is not easily forged by 
+    malicious hosts.
+    </br></br>  
+    Hint: Maybe you need to add new fields to your message, and Token, Ack,  
+    Timeout retransmission and other methods are useful.
+</div>
 
 
 
@@ -135,40 +526,16 @@
 <p>
     In this experiment, we need to open the promiscuous mode
     of the local network card in the following way to obtain
-    all data packets.
+    all data packets.Finally, Turn off promiscuous mode after use.
 </p>
-<pre>
-    struct packet_mreq mr;
 
-    // Turn on the promiscuous mode
-    mr.mr_type = PACKET_MR_PROMISC;
-    setsockopt(sock, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mr, sizeof(mr));
-</pre>
-
-<p>
-    Download the <a href="./src.zip">source code</a> and unzip.
-    This source code is incomplete, you need to fill in the
-    correct code blocks so that the function can work correctly.
-</p>
-<p>
-    In this experiment, <samp>main.c</samp> is supplemented to
-    realize the sniffing function of network packets, we've already
-    shown some of the code. Use the raw socket to complete the
-    packet sniffing function.
-</p>
-<p>
-    The result is as follows:
-</p>
-<img src="Lab2%20mini-Wireshark.assets/image-20211008185057440.png" width="500" alt=""/>
 <div class="question">
-    <b>Exercise 1:</b>
-    Complete the code above to make sure your
-    function works correctly as required. You need to
-    submit your source code.
+    <b>Exercise 1:</b> Create a raw socket, enable promiscuous 
+    mode and turn off promiscuous mode after use.
 </div>
 
 <h3>
-    3. Network Sniffing
+    2. Network Sniffing
 </h3>
 <p>
     In this part, you need to analyze the structure of
@@ -177,10 +544,6 @@
     <samp>PacketProcess.h</samp> and <samp>packetProcess.c</samp>
     to complete the analysis function of the remaining three packets.
 </p>
-<p>
-    Run ICMP analysis function, the result is as follows:
-</p>
-<img src="Lab2%20mini-Wireshark.assets/image-20211008190726961.png" width="700" alt=""/>
 <div class="question">
     <b>Exercise 2:</b> Complete the code of Step 1 correctly,
     and submit your source code.
@@ -188,16 +551,17 @@
 <b>Packet filter</b>
 <p>
     When doing network sniffing, sniffers are often only
-    interested in certain types of packets, such as TCP packets
-    or DNS query packets. Therefore, after the packet is captured
+    interested in certain types of packets, such as TCP packets.
+     Therefore, after the packet is captured
     by the MAC layer, you need to implement filtering functions
     to filter out some uninteresting packets.
 </p>
 <p>
-    Check the <samp>filter.h</samp> file for details of the
+    Check the <samp>filter.h</samp> for details of the
     function declarations. Refer to the given function
-    <samp>filterByIpAddress()</samp> and complete filter by
-    MAC address, protocol type, and port number. Run your
+    <samp>filterByIpAddress()</samp> and <samp>filterByMacAddress()</samp>,
+    please complete filter by
+    protocol type, and port number. Run your
     program to check if it works correctly.
 </p>
 <div class="question">
@@ -206,6 +570,8 @@
     function works correctly as required. Submit your source code.
 </div>
 
+
+<hr>
 <h2>Part D. Packet Spoofing</h2>
 <p>
     In this experiment, you need to use two virtual machines,
@@ -213,102 +579,59 @@
     and host B is used to receive the packet.
 </p>
 <p>
-    We have given a program for forging UDP datagrams. Run this
-    program on host A and use Wireshark to capture packets on host B.
-    The specific information of captured data packets is shown as follows:
+    We have given a program for forging ICMP datagrams. Run this
+    program and use partC network sniffer to capture packets.
 </p>
-<img src="Lab2%20mini-Wireshark.assets/udp1.png" width="750" alt=""/>
 <p>
-    Refer to this program to complete the forgery of TCP, ARP,
-    and ICMP packets. According to programming specifications,
-    You need to write implementations of these three types of
-    protocol forgeries into one engineering project (such as
-    ForgeProject) rather than three independently running
-    programs. In your project, there is only one main function,
-    The specific functions of TCP, ARP, and ICMP should appear
-    in header files.
+    Refer to this program to complete the forgery of UDP and ARP
+    packets. 
 </p>
-<h3>
-    1 TCP packet forgery
-</h3>
-<p>
-    Forge a SYN packet on host A and send it to host B for
-    establishing a TCP connection. If you use the Wireshark to
-    capture packets on host B, you can capture the SYN packet
-    and the reply packet sent by host B. As shown below:
-</p>
-<img src="Lab2%20mini-Wireshark.assets/image-20211008195111778.png" width="800" alt=""/>
-<p>
-    You can view and analyze the details about this two
-    data packets in the Wireshark.
-</p>
-<div class="question">
-    <b>Exercise 4:</b>
-    Write TCP_forge.h and TCP_forge.c in your
-    project to achieve the forgery of TCP protocol packets.
-</div>
 
 <h3>
-    2 ARP packet forgery
+    1 ARP packet forgery
 </h3>
 <p>
     Forge an ARP packet on host A to request the MAC address
-    of host B. After using the Wireshark to capture packets
-    on host B, you can capture the ARP packet and host B's
-    reply packet. As shown below:
-</p>
-<img src="Lab2%20mini-Wireshark.assets/arp1.PNG" width="880" alt=""/>
-<p>
-    You can view and analyze the details about this two
-    data packets in the Wireshark.
+    of host B. After using the partC network sniffer to capture 
+    packets on host B, you can capture the ARP packet. 
+    You can view and analyze the details about the packet 
+    in the partC network sniffer.
 </p>
 <div class="question">
-    <b>Exercise 5:</b>
-    Write ARP_forge.h and ARP_forge.c in your
+    <b>Exercise 4:</b>
+    Complete ARP_forge.c in your
     project to achieve the forgery of ARP protocol packets.
+    You need to submit your source code.
 </div>
 
 <h3>
-    3 ICMP packet forgery
+    2 UDP packet forgery
 </h3>
 <p>
-    On host A, forge an ICMP Echo(Ping) Request packet which
-    destination IP address is host B. After the preceding code is run,
-    the request packet and the ICMP Echo(Ping) Reply packet from
-    host B are captured on host B. As shown below:
-</p>
-<img src="Lab2%20mini-Wireshark.assets/image-20211008202305979.png" width="700" alt=""/>
-<p>
-    You can view and analyze the details about this two
-    data packets in the Wireshark.
+    On host A, forge a UDP packet which
+    destination IP address is host B. After the preceding 
+    code is run, the packet are captured on host B.
+    You can view and analyze the details about the packet
+     in the partC network sniffer.
 </p>
 <div class="question">
-    <b>Exercise 6:</b>
-    Write ICMP_forge.h and ICMP_forge.c in your
-    project to achieve the forgery of ICMP protocol packets.
+    <b>Exercise 5:</b>
+    Write UDP_forge.c in your
+    project to achieve the forgery of UDP protocol packets.
     You need to submit your source code.
 </div>
-<br>
-<h3>5. Customized MAC Layer Protocol</h3>
+<h3>3. TCP packet forgery</h3>
 <p>
-    In this part, you need to design a new link layer
-    communication protocol to achieve a two-way communication
-    between two hosts.
+    Forge a SYN packet on host A and send it to host B for
+    establishing a TCP connection. If you use the partC network 
+    sniffer to capture packets on host B, you can capture the 
+    SYN packet and the reply packet sent by host B. 
+You can view and analyze the details about this two
+    data packets in the partC network sniffer.
 </p>
-<p>
-    You need to implement the program as shown below:
-</p>
-<pre>
-    Machine A send    : hello!
-    Machine B receive : hello!
-    Machine B send    : a message from B
-    Machine A receive : a message from B
-</pre>
 <div class="challenge">
-    <i>Challenge:</i> Design your own MAC layer protocol and use
-    it to communicate
-    between two hosts. To simplify this question, let's assume that
-    the two sides of the communication take turns sending messages.
+    <i>Challenge:</i> Design the forgery of TCP packet 
+    and complete the verification of TCP checksums.
     Submit your source code.
 </div>
 
