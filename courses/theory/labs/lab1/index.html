@@ -1,0 +1,236 @@
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Lab 1: SoftWare Setup</title>
+  <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+  <h1>Lab 1: Software Setup</h1>
+  <hr />
+
+  <h2>Overview</h2>
+  <p>
+    In this course, there will be (roughly) one lab per lecture. The
+    purpose of these assignments is to familiarize you with the main
+    course topic. One novel point is that all these assignments will
+    be finished in a mechanized way, that is, you will finish them
+    using some tools. The tools used in this course are Python, Z3, etc..
+  </p>
+
+  <p>
+    This is the first lab, in Part A, you are required to
+    install all the necessary tools and software, and have some ideas
+    of how they work and how to use them. In Part B, you're going to
+    solve several problems as a Python warming up. Some problems are tagged
+    with <samp>Exercise</samp>, which you should solve. And one problem
+    is tagged with <samp>Challenge</samp>, which is optional.
+    Download <a href="lab1-code.zip">this code template</a> to start with.
+    For any problems, feel free to ask the TAs for help.
+  </p>
+
+  <h3>Hand-in Procedure</h3>
+  <p>
+    When you finished the lab, zip you code files (exclude .venv and other temporary folder)
+    with file name <samp>&lt;ID&gt;-lab1.zip</samp> (e.g., <samp>SA19225789-lab1.zip</samp>),
+    and submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+    The deadline is 23:59 of 24th November 2023 (Beijing time).
+    Any late submission will <b>NOT</b> be accepted.
+  </p>
+
+  <hr />
+
+
+  <h2>Part A: Preparation</h2>
+  <p>
+    In this part, you'll install all the necessary tools and software,
+    and have some ideas of how they work and how to use them.
+  </p>
+
+  <h3>Python Installation</h3>
+  <p>
+    In this course, we recommend you to use the Python as main (we'll
+    be using the Python binding to send out the assignments. Of course, there
+    are other bindings for Z3, say OCaml or .Net bindings, if you want to
+    use these bindings, talk to the TAs in advance). You can download Python installation
+    package from <a href="https://www.python.org/downloads/">official site</a>.
+    We recommend Python 3.12.0 or higher version, but if you want to manage multiple
+    versions of Python, try <a href="https://github.com/pyenv/pyenv">pyenv</a>
+    or <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/">
+    anaconda</a>.
+  </p>
+  <p>
+    <b>tips:</b> if you are using Windows, please remember add your Python binary to the
+    PATH environment. The figure below demonstrates what you should do at installation time:
+  </p>
+  <img src="figures/python-install.png" style="width: 640px; height: auto;" alt=""/>
+
+  <h3>PyCharm Installation</h3>
+  <p>
+    PyCharm is one popular Python IDE, it can effectively manage your Python
+    development environment. You can download PyCharm from the
+    <a href="https://www.jetbrains.com/pycharm/download">official website</a>.
+    you can use the community edition for free or register an account with your
+    USTC email to get education-free license for professional edition.
+  </p>
+  <p>
+    After the PyCharm has installed, you can start Python project by open the given
+    code template folder:
+  </p>
+  <ol>
+    <li>Create project with exist folder, and select the code template folder which given: </li>
+    <img src="figures/pycharm-create.jpeg" style="width: 640px; height: auto" alt=""/>
+    <li>Select project interpreter in preferences page:</li>
+    <img src="figures/pycharm-setting.jpeg" style="width: 640px; height: auto" alt=""/>
+    <li>Select Python 3.12, which you installed earlier: </li>
+    <img src="figures/python-select.jpeg" style="width: 640px; height: auto" alt=""/>
+  </ol>
+
+  <h3> Z3Py Installation </h3>
+  <p>
+    Z3 is a theorem prover/solver from Microsoft Research.
+    In this course, you'll solve SAT & SMT problems using Z3,
+    and also you will have the opportunity to solve
+    many realistic problems using Z3: say, program verification, symbolic execution,
+    reversing engineering from information security, and so on.
+    For more information about Z3, you can check its
+    <a href="https://github.com/Z3Prover/z3">project homepage</a>.
+  </p>
+  <p>
+    The Z3Py package is the Z3 API in Python (Z3 also has the C, .Net and OCaml APIs).
+    The next steps show you how to install Z3Py package on PyCharm project:
+  </p>
+  <ol>
+    <li>To speed up Python packages installation, you can try set the pip source to 
+      USTC mirror (https://mirrors.ustc.edu.cn/pypi/web/simple)
+    </li>
+    <img src="figures/pip-setting.jpeg" style="width: 640px; height: auto" alt=""/>
+    <li>Search z3-solver package and install it:
+    </li>
+    <img src="figures/z3-solver.jpeg" style="width: 640px; height: auto" alt=""/>
+    <li>Search setuptools package and install it:
+    </li>
+    <img src="figures/setuptools.jpeg" style="width: 640px; height: auto" alt=""/>
+  </ol>
+
+  <br />
+  <hr />
+  <h2>Part B: Python Warming Up</h2>
+  <p>
+    Python is a widely used programming language and is easy to learn and use.
+    Given that most of our assignments are composed in Python, it is recommended 
+    to allocate some time for familiarizing yourself with the language 
+      if you haven't already.
+    <a href="https://wiki.python.org/moin/BeginnersGuide">the basic syntax</a> or
+    <a href="https://www.runoob.com/python/python-tutorial.html">the Python tutorial</a>.
+  </p>
+
+  <div class="question">
+    <b>Exercise 1:</b> find <samp> python_warmup.py </samp> code file, 
+    try to understand the Python code in the file, comments can help you 
+    understand it better. Feel free to modify the code and play with it, 
+    have fun with Python!
+  </div>
+
+  <p>This and the future assignments will use
+    <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree"> AST (abstract syntax tree) </a>
+    to encode formal languages. To let you get familiarized yourself with the creation and 
+    operations on AST.In this part, you'll implement a very simple arithmetic calculator in Python.
+  </p>
+
+  <p>
+    The syntax for the calculator language is described by the
+    following context-free grammar (CFG):
+  </p>
+  <pre>
+    exp ::= num
+          | exp + exp
+          | exp - exp
+          | exp * exp
+          | exp / exp
+          | (exp)
+  </pre>
+  <p>
+    The expressions generated from the CFG above can be represented
+    by trees. For instance,
+    the expression <samp>3 * 4 + 10 / 2</samp> to AST like:
+  </p>
+  <pre>
+                +
+              /   \
+             /     \
+            *       /
+           / \     /  \
+          /   \   /    \
+         3    4  10     2
+
+  </pre>
+  <div class="question">
+    <b>Exercise 2:</b> find the<samp> calculator.py </samp> code template, 
+    and fill in the missing data structures in it. You also need to
+    implement the <samp>__str__()</samp> method in these
+    classes to print the necessary information. Make sure your code
+    pass the unit tests 1&2.
+  </div>
+
+  <p>
+    Based on the AST data structures, we can implement various computations on the AST.
+    One special and important operation you'll be building is an interpreter. Simply
+    speaking, an interpreter reads in some program as input, and output its
+    result. Consider again the example <samp>3 * 4 + 10 / 2</samp>, the interpreter
+    will output <samp>17></samp>.
+  </p>
+  <div class="question">
+    <b>Exercise 3:</b> Finish the interpreter by filling in the missing
+    code in the <samp>eval_value()</samp> function. 
+    Don't forget to test your code using unit tests 3&4.
+  </div>
+
+  <div class="challenge">
+    <i>Challenge:</i> For simplicity,our test cases are written by AST manually. In most cases,
+    AST is generated by processing source code file, the programme do these work called lexer
+    and parser. Try to implement a lexer/parser that reads the algebraic expressions from a file and
+    generates the AST automatically. Consider to use
+    <a href="https://wiki.python.org/moin/LanguageParsing">some tools</a>, if you don't
+    want to write everything from scratch.
+  </div>
+
+  <hr />
+
+  <h2>Part C: Z3 Warming Up</h2>
+  <p>
+    To make sure you have installed Z3 correctly, we provide a simple
+    test case for you to test your installation. View this simple logical proposition. 
+    And we want to get the solution that make it satisfiable (i.e., let it be <b>True</b>):
+    <pre>
+      P /\ Q
+    </pre>
+  </p>
+  
+  <p>
+    If Z3 is installed correctly, z3_test.py will run without any
+    error and the output should look like:
+  </p>
+  <img src="figures/z3_success.jpeg" style="width: 640px; height: auto" alt=""/>
+
+  <div class="question">
+    <b>Exercise 4:</b> find the <samp>z3_warmup.py</samp> code file, try to understand 
+    the code with the help of the comments. Feel free to modify the code and play with it, 
+    have fun with Z3!
+  </div>
+
+<hr />
+<p>
+  After finished the lab, don't forget zip you code files 
+  <b>(exclude .venv and other temporary folder)</b>
+  with file name <samp>&lt;ID&gt;-lab1.zip</samp> (e.g.,
+  <samp>SA19225789-lab1.zip</samp>), and submit it to
+  <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+</p>
+<br>
+  Have fun!
+<br>
+</body>
+
+</html>
