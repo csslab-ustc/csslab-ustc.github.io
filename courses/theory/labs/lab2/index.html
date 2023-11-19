@@ -1,50 +1,33 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
-    <title>Proof Engineering in Z3</title>
+    <title>Lab2: Proof Engineering with Z3</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
-    <style>
-      table {
-          border-collapse: collapse;
-          width: 50%;
-          margin: 20px;
-      }
-
-      th, td {
-          border: 1px solid black;
-          padding: 10px;
-          text-align: center;
-      }
-
-      th {
-          background-color: #f2f2f2;
-      }
-  </style>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async
-          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js">
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
   </script>
 </head>
 <body>
-<h1>Assignment 2: Proof Engineering in Z3</h1>
+<h1>Lab 2: Proof Engineering with Z3</h1>
 <hr />
 
 <h2>Overview</h2>
 <p>
-  In this assignment, we'll study how to perform basic 
+  In this lab, we'll study how to perform basic
   theorem proving with Z3 by finishing several exercises.
   These examples will cover basic logical connectives include implication,
   disjunction and conjunction. After finishing the examples, you'll do
   some proofs on your own, these problems will tagged with
-  <tt>Exercise</tt>. There are some challenging problems which are
+  <samp>Exercise</samp>. There are some challenging problems which are
   tagged <i>Challenge</i>, which are optional.
   Download <a href="lab2-code.zip">this code template</a> to start with.
   For any problems, feel free to ask the TAs for help.
 </p>
 
 <p>
-  Before starting with this assignment, make sure you've finished
-  <a href="../lab1/index.html">assignment 1</a> and
+  Before starting with this lab, make sure you have finished
+  <a href="../lab1/index.html">lab 1</a> and
   have Python and Z3 properly installed on your computer.
 </p>
 
@@ -52,9 +35,9 @@
 <h3>Hand-in Procedure</h3>
 <p>
   When you finished the lab, zip you code files (exclude .venv and other temporary folder) 
-  with file name <samp>&lt;ID&gt;-lab2.zip</samp> (e.g., <samp>SA19225789-lab1.zip</samp>),
+  with file name <samp>&lt;ID&gt;-lab-2.zip</samp> (e.g., <samp>SA19225789-lab-2.zip</samp>),
   and submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
-  The deadline is 23:59 of 24th November 2023 (Beijing time).
+  The deadline is 23:59 of November 24th, 2023 (Beijing time).
   Any late submission will <b>NOT</b> be accepted.
 </p>
 
@@ -96,19 +79,19 @@
 <p>in which, some key points deserve further explanations:</p>
 
 <ul>
-    <li><tt>And(*args)</tt>     
+    <li><samp>And(*args)</samp>     
       Create a Z3 and-expression;<br>
-    <li><tt>Or(*args)</tt> Create a Z3 or-expression;</li>
-    <li><tt>Not(a)</tt> Create a Z3 not expression;</li>
-    <li><tt>Implies(a, b)</tt> Create a Z3 implies expression;</li>
+    <li><samp>Or(*args)</samp> Create a Z3 or-expression;</li>
+    <li><samp>Not(a)</samp> Create a Z3 not expression;</li>
+    <li><samp>Implies(a, b)</samp> Create a Z3 implies expression;</li>
 </ul>
 
 <p>
-  In this section, we'll learn to use these Expression: <tt>And</tt>,
-  <tt>Or</tt>, <tt>Not</tt>, <tt>Implies</tt>.
+  In this section, we'll learn to use these Expression: <samp>And</samp>,
+  <samp>Or</samp>, <samp>Not</samp>, <samp>Implies</samp>.
 </p>
 
-<h2><tt>And</tt>, <tt>Or</tt>, <tt>Not</tt>, <tt>Implies</tt></h2>
+<h2><samp>And</samp>, <samp>Or</samp>, <samp>Not</samp>, <samp>Implies</samp></h2>
 <p>
   Let's start with an example of And(*args).
 </p>
@@ -120,8 +103,8 @@
 </pre>
 
 <p>
-  Firstly, we need to declare <tt>P Q R</tt> as Bool type; <br>
-  then, <tt>And(P, Q, R)</tt> means proposition : <tt>P /\ Q /\ R</tt>
+  Firstly, we need to declare <samp>P Q R</samp> as Bool type; <br>
+  then, <samp>And(P, Q, R)</samp> means proposition : <samp>P /\ Q /\ R</samp>
 </p>
 
 <p>
@@ -135,8 +118,8 @@
 </pre>
 
 <p>
-  Firstly, we need to declare <tt>P Q R</tt> as Bool type; <br>
-  then, <tt>Or(P, Q, R)</tt> means proposition : <tt>P \/ Q \/ R</tt>
+  Firstly, we need to declare <samp>P Q R</samp> as Bool type; <br>
+  then, <samp>Or(P, Q, R)</samp> means proposition : <samp>P \/ Q \/ R</samp>
 </p>
 
 <p>
@@ -151,8 +134,8 @@
 </pre>
 
 <p>
-  Firstly, we need to declare <tt>P</tt> as Bool type; <br>
-  then, <tt>Not(P)</tt> means proposition : <tt>¬P</tt>
+  Firstly, we need to declare <samp>P</samp> as Bool type; <br>
+  then, <samp>Not(P)</samp> means proposition : <samp>¬P</samp>
 </p>
 
 <p>
@@ -167,8 +150,8 @@
 </pre>
 
 <p>
-  Firstly, we need to declare <tt>P Q</tt> as Bool type; <br>
-  then, <tt>Implies(P, Q)</tt> means proposition : <tt>P -> Q</tt>
+  Firstly, we need to declare <samp>P Q</samp> as Bool type; <br>
+  then, <samp>Implies(P, Q)</samp> means proposition : <samp>P -> Q</samp>
 </p>
 
 <p>
@@ -237,16 +220,16 @@
 <p>in which, some key points deserve further explanations:</p>
 
 <ul>
-    <li><tt>ForAll(vs, body)</tt> Create a Z3 forall formula;<br>
-    <li><tt>Exists(vs, body)</tt> Create a Z3 exists formula.</li>
+    <li><samp>ForAll(vs, body)</samp> Create a Z3 forall formula;<br>
+    <li><samp>Exists(vs, body)</samp> Create a Z3 exists formula.</li>
 </ul>
 
 <p>
-  In this section, we'll learn to use these Expression: <tt>ForAll</tt>,
-  <tt>Exists</tt>.
+  In this section, we'll learn to use these Expression: <samp>ForAll</samp>,
+  <samp>Exists</samp>.
 </p>
 
-<h2><tt>ForAll</tt>, <tt>Exists</tt></h2>
+<h2><samp>ForAll</samp>, <samp>Exists</samp></h2>
 <p>
   Let's start with an example of ForAll(vs, body).
 </p>
@@ -268,10 +251,10 @@
   <br>
   Here, IntSort() represents integer sort, BoolSort() represents 
   Boolean sort;<br>
-  Then a Int variable named 'x' was declared;<br>
+  Then an Int variable named 'x' was declared;<br>
   Then a function (or predicate) P was declared, with an input of 
   integer type (isort) and an output of Boolean type (bsort)<br>
-  Finally, we declare the proposition : <tt>ForAll(x, P(x))</tt> means proposition : <tt> ∀x.P(x)</tt>
+  Finally, we declare the proposition : <samp>ForAll(x, P(x))</samp> means proposition : <samp> ∀x.P(x)</samp>
 </p>
 
 <p>
@@ -293,7 +276,7 @@
 
 <p>
   Obviously, we declare the proposition :
-  <tt>Exists(x, P(x))</tt> means proposition : <tt> ∃x.P(x)</tt>
+  <samp>Exists(x, P(x))</samp> means proposition : <samp> ∃x.P(x)</samp>
 </p>
 
 <p>
