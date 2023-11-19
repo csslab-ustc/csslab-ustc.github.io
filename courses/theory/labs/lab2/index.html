@@ -194,6 +194,7 @@
   $$ (P \to Q) \to (\neg Q \to \neg P ) $$
 </div>
 
+<hr/>
 
 <h2>Part B: Predicate Logic Proposition</h2>
 <p>
@@ -236,14 +237,13 @@
 
 <b>Example 5:</b>
 <pre>
-  >>> isort = IntSort()
-  >>> bsort = BoolSort()
+  isort = IntSort()
+  bsort = BoolSort()
   
-  >>> x = Int('x')
-  >>> P = Function('P', isort, bsort)
-  >>> ForAll(x, P(x))
+  x = Int('x')
+  P = Function('P', isort, bsort)
   ForAll(x, P(x))
-  
+  ForAll(x, P(x))
 </pre>
 
 <p>  
@@ -264,14 +264,13 @@
 
 <b>Example 6:</b>
 <pre>
-  >>> isort = IntSort()
-  >>> bsort = BoolSort()
+  isort = IntSort()
+  bsort = BoolSort()
   
-  >>> x = Int('x')
-  >>> P = Function('P', isort, bsort)
-  >>> Exists(x, P(x))
+  x = Int('x')
+  P = Function('P', isort, bsort)
   Exists(x, P(x))
-  
+  Exists(x, P(x))
 </pre>
 
 <p>
@@ -333,9 +332,10 @@
 </div>
 
 
-<h2>Part C: Challenge</h2>
+<h2>Part C: Deduction System</h2>
 <p>
-  In this section, we need to define some rules to prove the logical theorem.
+    In this section, we need to define some rules to prove the
+    logical theorem.
 </p>
 
 <div class="challenge">
@@ -349,7 +349,8 @@
     ----------------(odd_ss)
         odd n + 2
   </pre>
-  Please prove that integers 9, 25, and 99 are odd numbers.
+  Please encode these rules using Z3, then prove that integers
+    9, 25, and 99 are odd numbers.
 </div>
 
 
@@ -357,9 +358,8 @@
 <hr>
 <p>
   After finished the lab, don't forget zip you code files
-  <b>(exclude .venv and other temporary folder)</b> 
-  with file name <samp>&lt;ID&gt;-lab1.zip</samp> (e.g.,
-  <samp>SA19225789-lab1.zip</samp>), and submit it to
+  with file name <samp>&lt;ID&gt;-lab-2.zip</samp> (e.g.,
+  <samp>SA19225789-lab-2.zip</samp>), and submit it to
   <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
 </p>
 <p>
