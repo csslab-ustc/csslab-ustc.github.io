@@ -1,0 +1,326 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Lab 4: Theory of EUF</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body>
+<h1>Lab 4: Theory of EUF</h1>
+<hr />
+
+<h2>Overview</h2>
+<p>
+    In the class, we discussed the theory of equalities and
+    <a href="https://en.wikipedia.org/wiki/Uninterpreted_function">
+        uninterpreted functions</a>, essentially, the only
+    important property of uninterpreted functions is the congruence
+    property, which states that two functions are equal if and
+    only if two functions are the same, and their corresponding arguments are
+    also equal. In this assignment, you'll be familiarizing yourself
+    with the basic implementation of equality and uninterpreted
+    functions in Z3; and you'll also build a translation validator
+    for a very simpler optimizing compiler using the theory
+    of equality and uninterpreted functions. In the following of
+    this assignment, we'll name theory of equality and uninterpreted
+    functions as EUF.
+</p>
+<p>
+    This assignment is divided into two parts, each of which contains
+    both some tutorials and problems. The first part is some basic
+    SMT problems for EUF; and the second part is about building a
+    translation validator for a simple optimizing compiler.
+    Some problems are tagged with <samp>Exercise</samp>, which you should solve.
+    And several problems are tagged with <samp>Challenge</samp>, which are optional.
+    Download <a href="lab4-code.zip">this code template</a> to start with.
+</p>
+
+<p>
+    Before starting with this assignment, make sure you've finished
+    <a href="../lab1/index.html">Software Setup</a> in the
+    assignment 1, and
+    have Z3 and Python properly installed on your computer. For any
+    problems, please feel free to contact us for help.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished the lab, zip you code files with file
+    name <samp>&lt;ID&gt;-lab-4.zip</samp> (e.g., <samp>SA19225789-lab-4.zip</samp>),
+    and submit it to
+    <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+    The deadline is 11:59PM of 2nd December 2023 (Beijing time).
+    Any late submission will <b>NOT</b> be accepted.
+</p>
+<hr />
+
+<h2>Part A: Basic EUF theory</h2>
+<p>
+    In this part, let us start to learn how to solve basic SMT
+    problems in EUF theory with Z3.
+    To declare an uninterpreted function and term, you can declare
+    a new sort, and terms and functions on that sort:
+</p>
+
+<pre>
+    S = DeclareSort('S')
+    e = Const('e', S)
+    f = Function('f', S, S)
+    g = Function('g', S, S, S)
+</pre>
+<p>
+    the above code declared a new abstract sort <samp>S</samp>, and a
+    term <samp>e</samp> on <samp>S</samp>, and a function <samp>f</samp> with
+    signature <samp>S->S</samp>, that is, function <samp>f</samp> accepts
+    argument of type <samp>S</samp>, and returns value of type <samp>S</samp>.
+    And function <samp>g</samp> is very much like the function <samp>f</samp>, except
+    for function <samp>g</samp> accepts two arguments, both of them are
+    type <samp>S</samp>.
+</p>
+
+<p>
+    Given the above declarations, we can ask Z3 to solve EUF constraints,
+    as in:
+</p>
+<pre>
+    solve(e != e)
+    solve(e == f(e))
+    solve(e == f(g(e, e))
+</pre>
+
+<div class="question">
+    <b>Exercise 1</b>: Find <tt>z3_euf.py</tt> file and run it. 
+    Explain the output to yourself. Add any other constraints, and
+    explain the output.
+</div>
+
+<p>
+    The most important rule to connect terms is the congruence rule:
+</p>
+<pre>
+            s1=t1      ...      sn=tn
+    ------------------------------------------- (Congruence)
+         f(s1, ..., sn) = f(t1, ..., tn)
+</pre>
+
+<p>
+    Theory of EUF if often used to prove the equivalence of different
+    implementation of the same algorithms. In the class, we discuss
+    such an example to calculate the integer powers. In the following
+    exercise, you'll be implementing the equivalence of the two
+    algorithm.
+</p>
+
+<div class="question">
+    <b>Exercise 2</b>: Finish the code in the <tt>equiv.py</tt> file, 
+    to prove the equivalence of the two algorithms.
+</div>
+
+<hr>
+<h2>Part B: Translation validation</h2>
+
+<p>
+    In the class, we discussed translation validation, in this
+    part, you'll implement a translation validator for an optimizing
+    compiler for a small language.
+</p>
+
+<p>
+    A compiler is a software translate a program in a source language
+    into the equivalent program in some target language. An optimizing
+    compiler will optimize the program during the translation, in order
+    to improve the code, for instance, to improve execution efficiency
+    or to reduce code size, etc.
+</p>
+<p>
+    Nevertheless, a compiler is one of the most important pieces
+    of the software stack, which we must guarantee the high confidence
+    of its correctness. For this purpose, we can engineer a
+    verified compiler, like the <a href="http://compcert.inria.fr">CompCert</a>,
+    in which every phase of a compiler is proved to be correct.
+    Though this approach offers a very high confidence of correctness,
+    the engineering effort is very high, due to the fact that all the
+    correctness proofs must be carried out manually.
+</p>
+<p>
+    In contrast, a translation validation approach does not try to
+    the correctness of the translation, but to validate the output
+    from <em>each</em> compiler run is equivalent with the input
+    program. This can be summarized in the following figure:
+</p>
+<pre>
+    input(source language) ---> compiler translation ---> output(target language)
+      |                                                       |
+      ------------------------> translation validator <--------
+</pre>
+<p>
+    It's not hard to see, this is weaker than the fully verified approach, because
+    we don't prove that the compiler is free of bugs, but just verify
+    the output of each compiler run. Though this is a lightweight approach, the
+    key advantage of this approach is this can be fully automated.
+</p>
+<p>
+    The source language we want to compile is called <samp>Calc</samp>, which
+    is a shorthand for <samp>Calc</samp> calculator language. The context free
+    grammar for this language is given by:
+</p>
+<pre>
+    bop ::= + | - | * | /
+    E   ::= x | E bop E
+    S   ::= x=E
+    F   ::= f(x1, …, xn){S;* return E;}
+</pre>
+<p>
+    the non-terminal <samp>bop</samp> stands for a binary operator,
+    we have a bunch of syntactic forms: the addition, subtraction,
+    multiplication, and division.
+</p>
+<p>
+    the non-terminal <samp>E</samp> stands for an expression, we have a bunch
+    of syntactic forms: a basic variable <samp>x</samp>, binary operation
+    of two expressions.
+</p>
+<p>
+    The non-terminal <samp>S</samp> stands for a statement, there is only
+    one syntactic form: the assigment.
+</p>
+<p>
+    A function <samp>F</samp> has a sequence of arguments: <samp>x1, ..., xn</samp>, and
+    its function body consists of a sequence of statement <samp>S</samp>,
+    followed by a return statement, and the return statement always
+    returns a variable <samp>x</samp>.
+</p>
+<p>
+    The first step is to encode the syntax in Python, this is included
+    in the <samp>calc.py</samp> file.
+</p>
+<div class="question">
+    <b>Exercise 3</b>: Find and read through the <tt>calc.py</tt> and <tt>counter.py</tt> file,
+    and make sure you understand the data structure <samp>Expr</samp>, <samp>Stmt</samp>
+    and <samp>Function</samp>. You don't need to write any code.
+</div>
+
+<p>
+    As we discussed in the class, in order to reason about programs in
+    this language, we should convert programs in this language into
+    static single assignment form, or
+    <a href="https://en.wikipedia.org/wiki/Static_single_assignment_form">SSA form</a>.
+    SSA conversion, generally speaking, is a little
+    tricky to do, but for the purpose of this language <samp>Calc</samp>, the conversion
+    is not very complicated, as <samp>Calc</samp> does not contain control-flow
+    constructs. The key algorithm is to generate a new variable name
+    for each variable that gets assigned to, and rewrite expressions to
+    refer to the newly created variable names.
+</p>
+
+<div class="question">
+    <b>Exercise 4</b>: Continue on the <samp>calc.py</samp> file, and
+    make sure you understand the functions <samp>to_ssa_func()</samp>,
+    <samp>to_ssa_stmt()</samp> and <samp>to_ssa_expr()</samp>.
+    You don't need to write any code.
+</div>
+
+<p>
+    Once we have the SSA form, we can get Z3 constraints on that form.
+</p>
+<div class="question">
+    <b>Exercise 5</b>: Continue on the <samp>calc.py</samp> file, and
+    make sure you understand the functions <samp>gen_cons_func()</samp>,
+    <samp>gen_cons_stmt()</samp> and <samp>gen_cons_expr()</samp>.
+    You don't need to write any code.
+</div>
+
+<p>
+    Now let's continue to discuss the target language. The language
+    we defined is called <samp>Tac</samp>, which is a shorthand for
+    <a href="https://en.wikipedia.org/wiki/Three-address_code">three address code</a>,
+    this is one of the popular compiler
+    <a href="https://en.wikipedia.org/wiki/Intermediate_representation">intermediate languages</a>.
+    The context free grammar for Tac is presented below:
+</p>
+<pre>
+    S ::= x=y | x=y+z | x=y-z | x=y*z | x=y/z
+    F ::= f(x1, ..., xn){S;* return x;}
+</pre>
+<p>
+    there are several forms for a statement <samp>S</samp>: the variable assignment, the addition,
+    the subtraction, the multiplication, and the division. As the grammar shows: one
+    essential feature of Tac is that all computation (expressions) are atomic.
+</p>
+<div class="question">
+    <b>Exercise 6</b>: Download and read through the <a href=src/tac.py>tac.py</a>,
+    and make sure you understand the data structures <samp>Stmt</samp> and <samp>Function</samp>
+    for defining the syntax of <samp>Tac</samp>. Please finish
+    the magic method <samp>__str__</samp> in <samp>Stmt</samp> and <samp>Function</samp>.
+    After finishing this part of code, don't forget to test your implementation.
+</div>
+
+<div class="question">
+    <b>Exercise 7</b>: Continue on the <samp>tac.py</samp> file, and
+    finish the SSA conversion function <samp>to_ssa_stmt()</samp>. 
+    Test your implementation when finished.
+</div>
+
+<div class="question">
+    <b>Exercise 8</b>: Continue on the <samp>tac.py</samp> file, and
+    finish the Z3 constraint generation functions <samp>gen_cons_func()</samp> and
+    <samp>gen_cons_stmt()</samp>. Test your implementation when finished.
+</div>
+
+<p>
+    Having both the source language <samp>Calc</samp> and the target language
+    <samp>Tac</samp>, we can now implement the compiler from the source to
+    the target. The compiler implementation is in the file <samp>compiler.py</samp>,
+    there are roughly three functions:
+</p>
+<ul>
+    <li><samp>compile_func(): </samp> to compile a function;</li>
+    <li><samp>compile_stmt(): </samp> to compile a statement;</li>
+    <li><samp>compile_expr(): </samp> to compile an expression;</li>
+</ul>
+
+
+<div class="question">
+    <b>Exercise 9</b>: Finish the compiler implementation by filling in the missing code
+    in <samp>compile_expr()</samp> in the source file <tt>compiler.py</tt>.
+    Test your implementation when finished.
+</div>
+
+<p>
+    Now, we have finished the implementation of the compiler, we can
+    implement the translation validator for the compiler. Essentially, a
+    translation validator will check the equivalence of the constraints
+    generated from the source program and the target program generated
+    by the compiler.
+</p>
+
+<div class="question">
+    <b>Exercise 10</b>: Finish the translation validator in <samp>compiler.py</samp> by
+    filling in the missing code in the function <samp>translation_validation()</samp>.
+    Test your implementation when finished.
+</div>
+
+<div class="challenge">
+    <i>Challenge</i>: Scaling the translation validation techniques to
+    real production optimizing compilers. You can first extend the source
+    and target languages, by supporting more language features; then you
+    will extend your compiler. Although the principal is essentially
+    the same, the compiler will get complicated for supporting more
+    language features. You can take a look at
+    <a href="http://people.eecs.berkeley.edu/~necula/Papers/tv_pldi00.pdf">this paper</a>
+    to get some ideas. (Note that in different translation validators,
+    the notion of program equivalence may be different.)
+</div>
+
+<br>
+<hr>
+<p>
+    This completes this lab. Remember to zip you homework with file
+    name <samp>&lt;ID&gt;-lab-4.zip</samp> (e.g., <samp>SA19225111-lab-4.zip</samp>), and
+    submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+</p>
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
