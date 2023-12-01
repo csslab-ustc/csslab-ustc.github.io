@@ -14,62 +14,66 @@
 
 <h2>Overview</h2>
 <p>
-    In the class, we discussed the theory of linear arithmetic (shortened as LA
-    in the following) and
+    In the class, we discussed the theory of linear arithmetic (shortened
+    as LA in the following) and
     <a href="https://en.wikipedia.org/wiki/Linear_programming">
-        linear programming
-    </a>
-    (shortened as LP in the following). Arithmetical constraints are ubiquitous
+        linear programming</a>
+    (shortened as LP in the following). Arithmetical constraints are
+    ubiquitous
     in every aspect of formal reasoning and (hard)
     problem-solving, and both LA and LP are very powerful tools to establish
     these models and to solve the problems.
 </p>
 <p>
-    From the computer science point of view, most LA and LP problems can be solved
-    by special-purpose software or libraries, one such example is the IBM's very popular
-    <a href="https://en.wikipedia.org/wiki/CPLEX">CPLEX</a>. However, most modern
-    solvers/provers also have good enough support for both LA and LP theories, by
+    From the computer science point of view, most LA and LP problems can
+    be solved
+    by special-purpose software or libraries (e.g., the
+    IBM's very popular
+    <a href="https://en.wikipedia.org/wiki/CPLEX">CPLEX</a>).
+    However, most modern general-purpose
+    solvers/provers also have good enough support for both LA and
+    LP, by
     incorporating well-tuned decision procedures for LA/LP over the
-    integers, rationals or real domains. Take Z3 as an example, it has
+    integers, rationals, or real domains. Take Z3 as an example, it has
     <a href="http://theory.stanford.edu/~nikolaj/programmingz3.html#sec-arithmetic">decent
         support</a> for both LA and LP.
 </p>
 <p>
-    In this assignment, you'll be familiarizing yourself with the background theories
-    of LA/LP, with the important applications of LA/LP to real-world (hard) problem
-    (by using Z3), and with the underpinning algorithms of modern provers/solvers
+    In this lab, you will be familiarizing yourself with the background
+    theories
+    of LA/LP, with the important applications of LA/LP to real-world
+    (hard) problem
+    (by using Z3), and with the underpinning algorithms of modern
+    provers/solvers
     to solve these problems.
 </p>
 <p>
-    This assignment is divided into three parts, each of which contains
+    This lab is divided into three parts, each of which contains
     both some tutorials and problems. The first part introduces the basic
     background and knowledge of LA/LP theory; the second part discusses
     the applications of LA/LP theory, by solving some (NP-Complete hard)
     problems; and the third part covers the algorithm implementation
-    including the Fourier-Motzkin variable elimination, Simplex.
+    including the Fourier-Motzkin variable elimination, and Simplex.
     Some problems are tagged with <b>Exercise</b>, which you should solve.
     And several problems are tagged with <i>Challenge</i>, which are optional.
     Download <a href="lab5-code.zip">this code template</a> to start with.
-</p>
-<p>
-    Before starting with this assignment, make sure you've finished Software Setup
-    in the assignment 1, and have both Z3 and Python (3.12+ recommended) properly installed
-    on your computer (or laptop). For any problems, please feel free to contact us for help.
 </p>
 
 <h3>Hand-in Procedure</h3>
 <p>
     When you finished the lab, zip you code files with file
-    name <samp>studentid-lab-5.zip</samp> (e.g., <samp>SA19225789-lab-5.zip</samp>),
-    and submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
-    The deadline is 11:59PM of 7st December 2023 (Beijing time).
+    name <samp>&lt;ID&gt;-lab-5.zip</samp> (e.g.,
+    <samp>SA19225789-lab-5.zip</samp>),
+    and submit it to <a href="https://bb.ustc.edu.cn/">USTC
+    Online Teaching Platform</a>.
+    The deadline is 11:59PM of December 14th, 2023 (Beijing time).
     Any late submission will <b>NOT</b> be accepted.
 </p>
 <hr />
 
 <h2>Part A: Basic Linear Arithmetic Theory</h2>
 <p>
-    In this section, we'll discuss the basic LA/LP theories,
+    In this section, we will discuss the basic LA/LP theories,
     by using the solver Z3.
 </p>
 
@@ -86,8 +90,9 @@ Recall from the lecture, the syntax for LA is:
 </pre>
 
 <p>
-    The solver Z3 has complete support for this syntax, and Z3 can solve a group of
-    equalities/inequalities very efficiently. Suppose
+    The solver Z3 has complete support for this syntax, and can solve these
+    equalities/inequalities efficiently.
+    For example, suppose
     we can have two numbers \(x, y\in \) ℝ, and the following constraints:
     \begin{cases}
     x + y = 0.8 \\
@@ -98,10 +103,12 @@ Then we can declare two Z3 variables and build the solver in Z3 as:
 <pre>
     x, y = Reals('x y')
     solver = Solver()
-    solver.add([x + y = 0.8, x - y = 0.2])
+    solver.add([x + y == 0.8, x - y == 0.2])
     res = solver.check()
     if res == sat:
         print(solver.model())
+    else:
+        print("no solution")
 </pre>
 <p>
     and Z3 will output the model it finds, if the above constraints
@@ -785,8 +792,8 @@ Then we can declare two Z3 variables and build the solver in Z3 as:
 
 <div class="question">
     <b>Exercise 18</b>: Read the code in the <samp>linear_regression.py</samp>
-    Python file, you need to install the <samp>matplotlib</samp>, <tt>numpy</tt> and<tt> 
-    scikit-learn</tt> package to run this code. You can install them via PyCharm as we've done
+    Python file, you need to install the <samp>matplotlib</samp>, <samp>numpy</samp> and<samp>
+    scikit-learn</samp> package to run this code. You can install them via PyCharm as we've done
     in <a href="../lab1/index.html">Software Setup</a> of the assignment 1.
     After setting the environments, complete the <samp>lr_training()</samp> method
     to do the linear regression using Z3.
@@ -1143,12 +1150,16 @@ possibilities for the variable:
 <br>
 <hr>
 This completes this lab. Remember to zip you code with
-file name <samp>studentid-lab-5.zip</samp> (e.g., SA19225789-lab-5.zip),
+file name <samp>&lt;ID&gt;-lab-5.zip</samp> (e.g., SA19225789-lab-5.zip),
 and submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
 
 <p>
     Happy hacking!
 </p>
+
+<br>
+<br>
+
 </body>
 
 </html>
