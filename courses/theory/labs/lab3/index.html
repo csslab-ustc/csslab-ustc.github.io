@@ -1,0 +1,362 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type"  content="text/html; charset=utf-8">
+    <title>Lab 3: SAT</title>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+<body>
+<h1>Lab 3: SAT</h1>
+<hr />
+
+<h2>Overview</h2>
+<p>
+    In logic or computer science, the
+    <a href="https://en.wikipedia.org/wiki/Boolean_satisfiability_problem">
+    Boolean Satisfiability Problem</a> (abbreviated
+    as SAT in this assignment) is to determine whether a given propositional
+    logic formulae is true, and to further determine the model which makes
+    the formulae true.
+    The program or tool to answer the SAT problem is called an SAT solver.
+    In this assignment, we'll learn how a SAT solver works and how to
+    encode propositions and check its satisfiability by such SAT solvers. And
+    as applications, we
+    will also learn how to model practical problems by satisfiability, and
+    thus solve them with the aid of SAT solvers.
+</p>
+<p>
+    There are <a href="https://en.wikipedia.org/wiki/Satisfiability_modulo_theories">
+    many SAT/SMT solvers</a>
+    available, each with
+    its pros and cons. The solver we'll be using in this assignment is
+    the <a href="https://en.wikipedia.org/wiki/Z3_Theorem_Prover">
+    Z3 theorem solver/prover</a>,
+    developed by Microsoft Research. There is no special reason for
+    us to choose Z3, any other SAT solvers will also be OK, but
+    Z3's Python APIs will be very convenient.
+</p>
+<p>
+    This lab is divided into four parts, each of which contains
+    both some tutorials and exercises. The first part is the SAT encoding of
+    the basic propositions; the second part covers validity checking; part three
+    covers the DPLL algorithm implementation; and the fourth part covers
+    some SAT applications.
+    Some problems are tagged with <samp>Exercise</samp>, which you should solve.
+    And several problems are tagged with <i>Challenge</i>, which are optional.
+    Download <a href="lab3-code.zip">this code template</a> to start with.
+    For any problems, feel free to ask the TAs for help.
+</p>
+
+<p>
+    Before starting with this assignment, make sure you've finished
+    <a href="../lab1/index.html">Software Setup</a> in the
+    lab 1, and
+    have Z3 and Python properly installed on your computer.
+    For any installation problems, please feel free to contact us for help.
+    As we'll be using Z3's Python-based API; you may find it useful to
+    refer to the <a href="https://ericpony.github.io/z3py-tutorial/guide-examples.htm">
+    z3py tutorial</a> and the documentation for
+    <a href="https://z3prover.github.io/api/html/namespacez3py.html">Z3's Python API</a>.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished the lab, zip you code files (exclude .venv and other temporary folder) 
+    with file name <samp>&lt;ID&gt;-lab-3.zip</samp> (e.g., <samp>SA19225789-lab-3.zip</samp>),
+    and submit it to <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+</p>
+
+
+<hr />
+
+<h2>Part A: Use Z3 as solver</h2>
+<p>
+    In the <a href="../lab2/index.html">lab 2</a>, we've learned how to
+    declare propositions in z3py and prove their validity. But in most cases,
+     Z3 is used as a solver. In this section, we'll learn how to solve propositions
+     by using Z3py.
+</p>
+
+<h3>Usage of <tt>solve():</tt></h3>
+<p>
+    <b>Example A-1:</b> The simplest usage for Z3 is to feed the
+    proposition to Z3 directly, to check the satisfiability, this can be
+    done by calling the <samp>solve()</samp> function,
+    the <samp>solve()</samp> function will create an instance of solver,
+    check the satisfiability of the proposition,
+    and output a model if that proposition is satisfiable, the code looks like:
+</p>
+<pre>
+    F = Or(P, Q)
+    solve(F)
+</pre>
+<p>
+    For the above call,  Z3 will output something like this:
+</p>
+<pre>
+    [P=True, Q=False]
+</pre>
+<p>
+    which is a model with assignments to proposition
+    <samp>P</samp> and  <samp>Q</samp> that
+    makes the proposition  <samp>F</samp> satisfiable. Obviously, this is just
+    one of several possible models.
+</p>
+
+<p>
+    <b>Example A-2:</b> Not all propositions are satisfiable, consider this
+    proposition:
+</p>
+<pre>
+    F = And(P, Not(P))
+    solve(F)
+</pre>
+
+<p>
+    Z3 will output:
+</p>
+<pre>
+    no solution
+</pre>
+<P>
+    which indicates that the proposition <samp>F</samp> is not satisfiable,
+    that is, the proposition F cannot be true for any possible values of
+    <samp>P</samp>.
+</p>
+
+<h3>Obtain More Possible Solutions:</h3>
+<p>
+    Consider again <samp>example A-1</samp> in the previous:
+</p>
+<pre>
+    F = Or(P, Q)
+    solve(F)
+</pre>
+<p>
+    By default, Z3 only outputs the first row in the truth table:
+<p>
+<pre>
+    <b>P</b>    <b>Q</b>    <b>P\/Q</b>
+    -----------------
+    t    t     t
+    t    f     t
+    f    t     t
+    f    f     f
+</pre>
+
+<p>
+    After all, we're asking Z3 about the satisfiability of the
+    proposition, so one row of evidence is enough.
+    What if we want Z3 to output all the assignment of propositions
+    that make the proposition satisfiable, not just the first one?
+    For the above example, we want the all first 3 rows.
+    Here is the trick: when we get an answer, we negate the
+    answer, make a conjunction with the original proposition,
+    then check the satisfiability again. For the above example:
+</p>
+<pre>
+    F = Or(P, Q)
+    solve(F)
+    F = And(F, Not(And(P, Not(Q))))
+    solve(F)
+    F = And(F, Not(And(Not(P), Q)))
+    solve(F)
+    F = And(F, Not(And(P, Q)))
+    solve(F)
+</pre>
+<p> The output display all 3 possible solutions:</p>
+<pre>
+    [P = True, Q = False]
+    [P = False, Q = True]
+    [P = True, Q = True]
+    no solution
+</pre>
+
+<div class="question">
+    <b>Exercise 1</b>: Find file <tt>z3_solver.py</tt> in the code templates and 
+    finish the exercises in it.
+</div>
+
+<hr />
+<h2>Part B: SAT And Validity</h2>
+
+<p>
+    In Exercise 1, we've learned how to use Z3 to obtain the solutions that
+    make a given proposition satisfiable. In this part, we continue to
+    discuss how to use Z3 to check the validity of propositions. Recall
+    in exercise 2, we once used solver to prove the validity of
+    propositions, so this is another strategy.
+</p>
+
+<p>
+    <b>Example B-1: </b>As we've discussed in previous lecture, the
+    relationship between the validity and satisfiability of a proposition
+    <samp>P</samp> is established by:
+</p>
+<pre>
+    valid(P) <==> unsat(~P)
+</pre>
+    Let consider our previous example:
+<pre>
+    F = Or(P, Q)
+    solve(Not(F))
+</pre>
+
+<p>
+    Z3 will output the following solution:
+</p>
+    <pre>
+    [P = False, Q = False]
+</pre>
+<p>
+    the fact that <samp>~F</samp> is satisfiable means that the proposition <samp>F</samp>
+    is not valid. By this, it should be very clear how to use
+    solvers like Z3 to prove the validity of a proposition.
+</p>
+
+<p>
+    <b>Example B-2: </b> Now we try to prove the
+    double negation law (<samp>~~P -> P</samp>) is valid:
+</p>
+
+<pre>
+    F = Implies(Not(Not(P)), P)
+    solve(Not(F))
+</pre>
+
+<div class="question">
+    <b>Exercise 2</b>: Find file <tt>z3_sat.py</tt> in the code templates and 
+    finish the exercises in it.
+</div>
+
+<hr>
+<h2>Part C: The DPLL algorithm</h2>
+<p>
+    In the lecture, we've discussed the DPLL algorithm. In this part of the
+    assignment, you are required to implement the DPLL algorithm. Roughly
+    speaking, to implement this algorithm, there are several technical
+    steps: first, we should represent the proposition syntax by some
+    abstract syntax; second, we should implement all the functions:
+    <ul>
+    <li><samp>ie(P)</samp>: to eliminate the implications in the proposition <samp>P</samp>;</li>   
+    <li><samp>nnf(P)</samp>: to convert the proposition <samp>P</samp> into negation normal form;</li>
+    <li><samp>cnf(P)</samp>: to convert the proposition <samp>P</samp> into conjunction normal form;</li>
+    <li><samp>dpll(P)</samp>: to calculate the satisfiability <samp>P</samp> of the proposition <samp>P</samp>;</li>
+</ul>
+
+<div class="question">
+    <b>Exercise 3</b>: Fill the missing code in the <samp>to_z3()</samp>,<samp>ie()</samp>,
+    <samp>nnf()</samp>, <samp>conf()</samp> function in the <tt>dpll.py</tt> file. 
+    Don't forget to test your code using unit tests.
+</div>
+
+<div class="challenge">
+    <b>Challenge</b>: Implement the DPLL algorithm, you can start with the <samp>dpll()</samp>
+    function in the <tt>dpll.py</tt> file. Test your implementation by using
+    unit tests.
+</div>
+
+<p>
+After finishing this algorithm to experiment how large propositions your
+algorithm can solve. For instance, you can generate some very large
+propositions using <a href="src/monster.py">this generator</a> and feed
+the generated propositions to your solver.
+</p>
+
+<p>
+How to make you DPLL more efficient, one idea to make your solver
+concurrent. To be specific, for the splitting step, to the two
+cases, instead of using two sequential calls, we can create two
+threads/processes to do concurrent calls.
+</p>
+
+<div class="challenge">
+    <i>Challenge:</i> Implement the concurrent DPLL algorithm.
+</div>
+
+<hr>
+<h2>Part D: Applications</h2>
+<p>
+    In the previous part we've discussed how to obtain solutions and prove the
+    validity for propositions, and implemented the DPLL algorithm. In this part,
+    we will try to use Z3 to solve some practical problems.
+</p>
+<p>
+    Usually when engineers design circuit layouts, they need do some
+    verifications to make sure those layouts will not only output a
+    permanent electrical signal since it's useless. We want to guarantee
+    that the layouts can output different signals based on the inputs.
+</p>
+<img src="figures/circuit_layout.jpg" style="width: 640px; height: auto" class="center" alt="Circuit Layout">
+<p>
+    As the graph above shows, there are three kinds of logic gates used in
+    design circuit layout, And, Or, Not. And there four inputs in the graph,
+    A, B, C and D.
+</p>
+<div class="question">
+    <b>Exercise 4</b>: Convert the above into logical
+        propositions and then use Z3 to find the solutions.
+        Please complete the corresponding part in <tt>circuit.py</tt>.
+    </p>
+</div>
+
+<div class="question">
+    <b>Exercise 5</b>: Seat Arrangement: Alice, Bob, Carol will take 3 seats.
+    But there are some constraints:
+    <ul>
+        <li>Alice can not sit near to Carol;</li>
+        <li>Bob can not sit right to Alice.</li>
+    </ul>
+    We would like to answer:
+    <ul>
+        <li>Is there any possible arrangement?</li>
+        <li>How many possible different arrangement in total?</li>
+    </ul>
+    <img src="figures/seat_arrangement.jpg" style="width: 520px; height: auto" class="center" alt="Seat Arrangement">
+    <p>
+        Hint: you should not only consider the constraints above, there
+        are some implicit constraints, like:
+        <ul>
+    <li>one person can only take just one seat;</li>
+    <li>one seat can only be taken by one person;</li>
+    </ul>
+   Encode the problem using Z3, and solve it. Please complete the
+   corresponding part in <tt>seat_arrange.py</tt>.
+</div>
+
+<div class="challenge">
+    <i>Challenge:</i> n-Queens puzzle: now let's consider the famous n-queens
+    puzzle. The following figure shows a solution to the sample 4-Queen puzzle.
+    <img src="figures/four_queen.jpg" style="margin: auto;display:block;" alt="Seat Arrangement">
+    The constraints to the n-queen puzzle are:
+    <ul>
+        <li>each row has just 1 queen;</li>
+        <li>each column has just 1 queen;</li>
+        <li>each diagonal has at most 1 queen;</li>
+        <li>each anti-diagonal has at most 1 queen;</li>
+    </ul>
+    Write a program to solve the n-queen puzzle using Z3, you can start
+    with the template code <tt> queen.py </tt>. After you finish
+    the code, try to answer the following problems:
+    <ul>
+        <li>How long does your program take to solve 8-queen?</li>
+        <li>How long does your program take to solve 100-queens?</li>
+        <li>What's the maximal of N your program can solve?</li>
+    </ul>
+</div>
+
+<br>
+<hr>
+This completes this lab. Remember to zip you homework with file
+name <samp>&lt;ID&gt;-lab-3.zip</samp> (e.g., <samp>SA19225789-lab-3 .zip</samp>), and
+submit it to <a href="http://yjs.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
