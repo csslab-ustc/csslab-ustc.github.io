@@ -1,0 +1,305 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 5: Register Allocation</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 5: Register Allocation</h1>
+<hr/>
+
+<h2>Overview</h2>
+<p>
+    In this lab, you will design and implement a register allocator
+    for your <code>Tiger</code> compiler, to allocate variables
+    to physical registers.
+</p>
+<p>
+    This lab consists of two parts: first, in part A, you
+    will design and implement a baseline allocation which allocates
+    to stack frames.
+    In part B, you will implement linear scan register
+    allocator.
+</p>
+
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source we offered you for lab 5:
+</p>
+<pre>
+    $ <kbd>git commit -am 'my solution to lab4'</kbd>
+    $ <kbd>git checkout -b lab5 origin/lab5</kbd>
+</pre>
+<p>
+    these commands will first commit your changes to the lab4
+    branch of your local Git repository, and then create a
+    local lab5 branch and check out the remote lab5 branch
+    into the new local lab5 branch.
+</p>
+<p>
+    Again, you will need to merge your code from lab4 into the
+    new lab5 branch:
+<pre>
+    $ <kbd>git merge lab4</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commiting to
+    the local lab5 branch:
+</p>
+
+<pre>
+    $ <kbd>git commit -am 'lab5 init'</kbd>
+</pre>
+<p>
+    You should first import the new lab5 code into
+    your Eclipse editor, and make sure the code compiles. There
+    are a bunch of new files that you
+    should browse through:
+</p>
+<pre>
+    regalloc/*:    register allocators
+</pre>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished this lab, zip you code and submit to the
+    <a href="https://bb.ustc.edu.cn">online teaching system</a>.
+</p>
+
+<hr/>
+<h2>Part A: A Baseline Allocator</h2>
+<p>
+    We start by building a baseline register allocator, to allocate
+    all variables to stack frames instead of physical registers.
+    While this allocator generates inefficient code with
+    many memory load/stores, this approach is easier
+    to implement and serves as the baseline in most production
+    compilers (i.e., the <code>-O0</code> optimization level).
+</p>
+
+<h3>Temp Maps</h3>
+<p>
+    As we are allocating variables to stack slots in a stack
+    frame, it is essential to keep track of where the variable
+    has been allocated to. We use a data structure TempMap to
+    record the stack frame offset for a given variable.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the code in <code>regalloc/TempMap.java</code>, to
+    understand the data structure.
+    It should be noted that while this data structure
+    allows two options for allocation: <code>InReg</code>
+    and <code>InStack</code>, we only use <code>InReg</code>
+    in this part of the lab.
+</div>
+
+<h3>Function Frames</h3>
+<p>
+    The frame data structure keeps track of
+    how many slots have been allocated for a given function.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Read the frame data structure in <code>regalloc/Frame.java</code>,
+    to understand the implementation of a frame.
+    You do not need to write code for this exercise.
+</div>
+
+<h3>Stack Allocation</h3>
+<p>
+    With the these data structures, we can allocate variables to
+    physical registers.
+    The overall roadmap is:
+    1) allocating stack slots for
+    all arguments and local variables in a given function;
+    2) rewriting each instruction by adding necessary load/stores
+    of the
+    variables from/to the stack frame; and
+    3) adding necessary function prologue and epilogue to
+    adjust the function frame when entering and exiting the
+    function during execution.
+</p>
+<p>
+    The step 2 deserves more explanation. The instruction
+    rewriting is syntax-directed by adding loads before the
+    instruction and stores after it.
+    Take a binary operation instruction as an example:
+</p>
+<pre><code>x = y + z; // uses = [y, z], defs = [x]</code></pre>
+<p>
+    it will be translated to:
+</p>
+<pre><code>r1 = M[y];
+r2 = M[z];
+r3 = r1 + r2;
+M[x] = r3;</code></pre>
+<p>
+    which used 3 scratch registers <code>r1</code> to
+    <code>r3</code>.
+</p>
+
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Finish the code in <code>RegAllocStack.java</code>,
+    to allocate variables to physical registers.
+    You may also need to extend or modify
+    the pretty printer in <code>regalloc/PpAssem.java</code>.
+</div>
+
+<h2>A Runtime</h2>
+<p>
+    To generate complete executables, we need link the Tiger-produced
+    assembly against a runtime.
+</p>
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Read the code in <code>src/runtime/runtime.c</code>
+    for the of the runtime.
+    Extend this code to add other runtime functions
+    that your Tiger-produced assembly can invoke.
+</div>
+
+<p>
+    To this point, your Tiger compiler can compile <em>any</em>
+    MiniJava programs.
+    Do not forget to test your Tiger compiler before
+    continuing.
+</p>
+
+<!-- part b: linear scan -->
+<hr/>
+<h2>Part B: Linear Scan Allocator</h2>
+<p>
+    In this part, you will design and implement a linear scan
+    register allocator, as described in
+    <a href="https://dl.acm.org/doi/pdf/10.1145/330249.330250">the paper</a>.
+</p>
+
+<h3>Liveness Analysis</h3>
+<p>
+    You will first write a
+    <a href="https://en.wikipedia.org/wiki/Liveness_analysis">liveness analysis</a>
+    to calculate, for each instruction
+    and transfer in a function, the live-in and live-out variable sets.
+</p>
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Write a liveness analysis for Tiger.
+    We do not offer any code for this, so you are free to
+    propose any data structures and algorithms to
+    calculate the liveness information.
+    To keep things simple, you can just write
+    the analysis on a single instruction granularity, to use
+    the following dataflow equation:
+    <pre><code>live_in[s]  = uses[s] &cup;(live_out[s] - defs[s])
+live_out[s] = &cup;(live_in[t]) // for any t&in succ[s];</code></pre>
+    with all live_in[] and live_out initialized to empty set &emptyset;.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Most dataflow analysis should follow an order of
+    the flow of data. For liveness analysis, the caculation
+    should be backward from the last instruction in a
+    function to the first one.
+    Implement this strategy to speed up your analysis.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    To speed up the liveness analysis, you may
+    calculate liveness information on a block
+    instead of on an instruction granularity.
+    That is, you can use the following dataflow equation:
+    <pre><code>live_in[b]  = uses[b] &cup;(live_out[b] - defs[b])
+live_out[b] = &cup;(live_in[t]) // for any t&in succ[b];</code></pre>
+    for each block <code>b</code>, where the uses[] and defs[]
+    for a block is calculated by a one-pass backward
+    iteration of all statements in this block.
+    Implement this strategy to speed up the analysis.
+</div>
+
+<h3>Topo-sort Order and Live Intervals</h3>
+<p>
+    The topo-sort order linearizes the control-flow
+    graph, so that each basic block (and instructions
+    in those blocks) will have a unique linear number
+    with total order.
+</p>
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Implement topo-sort order of basic blocks
+    by linearizing them.
+</div>
+<p>
+    Given a specific topo-sort, we can calculate, for each
+    variable, its live interval. Intuitively, a variable
+    is "always" live in its interval, hence requiring a
+    physical register to hold its value.
+</p>
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    Calculate the live interval for each variable in a given
+    program.
+</div>
+<p>
+    All live intervals should be increasingly ordered
+    according to its left coordinate.
+</p>
+
+<h3>Allocation</h3>
+<p>
+    Variables can be allocated to registers by a linear scan
+    of all live intervals.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Allocating variables to physical registers by implementing
+    the linear scan algorithm.
+</div>
+
+<h3>Spilling</h3>
+<p>
+    Variables that cannot be allocated to registers should be
+    spilled to stack frames. Extra load/stores should be added
+    for the spilled variable.
+</p>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement spilling, so that your Tiger compiler can
+    compile programs with arbitrary numbers
+    of variables.
+</div>
+
+<p>
+    To this point, your Tiger compiler should compile <em>any</em>
+    MiniJava programs by allocating variables to registers.
+    Do not forget to test your Tiger compiler and fix all bugs.
+</p>
+
+<hr/>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+

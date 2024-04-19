@@ -1,0 +1,717 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 1: Lexer and Parser</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+
+<body>
+
+<h1>Lab 1: Lexer and Parser</h1>
+
+<hr/>
+<h2>Overview</h2>
+<p>
+    In this course, you will design and implement a
+    compiler <em>Tiger</em>, for a non-trivial subset of
+    the Java programming language MiniJava, as described in the
+    appendix of the Tiger book.
+    You will use Java as the implementation
+    language (so you are following the
+    <a href="https://en.wikipedia.org/wiki/Bootstrapping_(compilers)">
+        chicken and egg tradition</a> in compiler design community).
+    By the end of this course, you will not only learn
+    the theory and practice of compilers, but also gain a deeper
+    understanding about Java.
+</p>
+<p>
+    There are 7 labs and a final project planned:
+</p>
+<ul>
+    <li>Lab 1: lexer and parser.
+        Your will
+        design and implement a front-end (i.e., a lexer and a parser) for Tiger.
+    </li>
+    <li>Lab 2: abstract syntax trees and type checker.
+        You will design and implement an
+        abstract syntax tree and build a type checker for it.
+    </li>
+    <li>Lab 3: control-flow graph.
+        You will create a control-flow graph intermediate
+        representation, and translate an abstract syntax tree
+        to this representation.
+    </li>
+    <li>Lab 4: instruction selection.
+        You will generate x64 assembly by implementing an instruction
+        selector.
+    </li>
+    <li>Lab 5: register allocation.
+        You will implement a register allocator, to allocate
+        variables to physical registers.
+    </li>
+    <li>Lab 6: garbage collection.
+        You will design and implement a garbage collector, and
+        link it to your Tiger compiler.
+    </li>
+    <li>Lab 7: static single-assignment form.
+        You will design and implement a static single-assignment form,
+        and perform compiler optimizations on it.
+    </li>
+</ul>
+<p>
+    Finally, there is a final project, in
+    which you are required to propose your own ideas and to do some
+    nontrivial projects.
+</p>
+<p>
+    This is the lab 1. In this lab, you will implement a
+    frond-end, i.e., a lexer and a parser, for Tiger.
+</p>
+
+<h3>Software Setup</h3>
+<p>
+    In this lab, you will use Java as your implementation language,
+    please first check
+    <a href="../../references.html" target="_blank">the reference page</a>
+    to install necessary software, if you have not installed the
+    Java platform.
+    Make sure to install the latest
+    Java compiler and runtime (<em>version 22</em>), other versions
+    of Java do NOT work as the Tiger compiler makes use of some
+    latest Java feature in version 22 (e.g., pattern matching or
+    string templates).
+    You can use any Java IDEs (e.g., IntelliJ, or VS code).
+</p>
+
+<h3>Version control and Git</h3>
+<p>
+    In each lab, we will supply skeleton code for you to start with
+    and modify. These files are controlled and distributed using the Git
+    version control system. So, to access these files, you will first
+    need a Git client installed on your machine. On Linux or Mac, it is
+    easy to install a Git client:
+</p>
+<ul>
+    <li>Linux:
+        <pre>$ <kbd>sudo apt install git</kbd></pre>
+    </li>
+    <li>Mac:
+        <pre>$ <kbd>brew install git</kbd></pre>
+    </li>
+</ul>
+<p>
+    On Windows, there are many
+    Git clients available, among which
+    <a href="https://git-scm.com/download/win">msysgit</a>
+    is a very popular one, you can
+    install and try it if you are using Windows.
+</p>
+<p>
+    For those who have no prior experience of using Git, do not
+    forget to refer to the
+    <a href="https://www.kernel.org/pub/software/scm/git/docs/">official manual</a>
+    when in doubt.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    This year, we have put the skeleton code repository on
+    GitHub (hence this courseware is open-source).
+    To check out the code repository for lab 1 to your machine, you should
+    run the following commands:
+</p>
+<pre>
+    $ <kbd>git clone https://github.com/bjhua/tiger.git</kbd>
+</pre>
+<p>
+    which will create a new folder <code>tiger</code> in
+    which reside all the source files just checked out for the
+    <em>lab 1</em> branch (the default branch).
+</p>
+<p>
+    Git is a distributed version control system, allowing one to work with
+    the local version of repository on your machine. For
+    instance, if you have finished the exercise 5 in lab 1,
+    you can commit your changes by:
+<pre>
+    $ <kbd>git commit -am 'my solution to lab 1, exercise 5'</kbd>
+</pre>
+<p>
+    which will commit the changes to your <em>local</em> repository.
+</p>
+<p>
+    Now import the project into your favorite Java IDE and browse the
+    source code:
+</p>
+<pre>
+    src/Tiger.java:   the "Main" class serving as compiler entry
+    src/lexer/*:      the lexer
+    src/parser/*:     the parser
+    src/control/*:    to control the behavior of the compiler
+    src/util/*:       utility classes
+    src/slp/*:        the SLP interpreter and compiler
+    test/*:           MiniJava programs as testcases (so do not compile them as compiler sources)
+</pre>
+<p>
+    Now, build this project on your machine. When the
+    building process finished, a new <code>bin</code> folder
+    would be created. Note that the name of the output folder
+    depends on your specific IDE configurations.
+    For example, the folder may be named <code>out</code> or
+    something else. But we will always name it <code>bin</code>
+    in the following and subsequent labs.
+</p>
+<p>
+    If there are no building errors during the building process,
+    you can run the <code>Tiger</code> compiler:
+</p>
+<pre>
+    $ <kbd>java --enable-preview -cp bin Tiger -help</kbd>
+</pre>
+<p>
+    which will output something like:
+</p>
+<pre class="output">
+The Tiger compiler. Copyright (C) 2013-, SSE of USTC.
+Usage: java Tiger [options] &lt;filename&gt;
+
+Available options:
+    -dump {token}   dump tokens from lexical analysis
+    -help           show this help information
+</pre>
+
+<h3>Lab Requirement</h3>
+<p>
+    There are two kinds of exercises: normal exercises and
+    challenge ones. Normal exercises are all required,
+    whereas all challenge exercises are optional.
+    Challenge exercises may not
+    be that hard, but may involve substantial design
+    efforts or code hacking.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished your lab, zip you solutions and submit to the
+    <a href="https://bb.ustc.edu.cn/">USTC online teaching system</a>.
+</p>
+
+
+<hr/>
+<h2>Part A: SLP and Its Interpreter and Compiler</h2>
+<p>
+    In this part of the lab, you will do some programming exercises
+    to warm you up. To be specific, you will write an interpreter
+    and a compiler for a small programming language SLP, which stands
+    for
+    <u>S</u>traight-<u>L</u>ine <u>P</u>rogramming language.
+    In other words, the SLP language has no control-flow constructs.
+    The syntax
+    for SLP is given in chapter 1 of the Tiger book. You should
+    refer to the Tiger book for the syntax details.
+</p>
+<p>
+    This part of the lab serves as an introduction to environments
+    (symbol tables mapping variable names to information about
+    the variables); to abstract syntax trees (data structures representing
+    the syntactic structure of programs); to recursion over tree data
+    structures which is useful in many parts of a compiler;
+    and to a functional programming style without assignment
+    statements.
+</p>
+
+<h3>SLP Abstract Syntax Trees</h3>
+<p>
+    SLP contains just two syntactic forms: statements
+    and expressions.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the SLP syntax in the chapter 1 of the Tiger book, make
+    sure you understand how an SLP program is formed.
+    As a
+    specific example, explain to yourself why the following program
+    is legal according to SLP syntax:
+    <pre class="code">
+        a := 5+3;
+        b := (print(a, a-1), 10*a);
+        print(b)</pre>
+    What is this program's output?
+</div>
+
+<p>
+    The key idea of a compiler is to encode the language
+    syntax with tree-like data structures. We will delve into this
+    topic in lab 2. For the purpose of this lab, we have offered
+    you some Java classes encoding the SLP syntax.
+    To be specific, Java (since version 14) has introduced a nice
+    feature called
+    <a href="https://openjdk.org/jeps/395">record</a>
+    to encode an aggregated
+    data structure, which is amenable for compiler implementation.
+    Technically speaking, a Java record is similar to
+    <a href="https://en.wikipedia.org/wiki/Algebraic_data_type">algebraic datatypes</a>
+    from functional programming.
+</p>
+<p>
+    To put the above discussion into perspective, let us consider
+    the following sample grammar:
+</p>
+<pre>
+    T ::= B1 | B2 | ... | Bn
+</pre>
+<p>
+    to encode this grammar using Java record, we can declare a sealed
+    interface for
+    the left non-terminal <code class="name">T</code>, and n records
+    <code class="name">B1</code> to
+    <code>Bn</code> for the n right-hands,
+    respectively, all implementing the interface <code>T</code>:
+</p>
+<pre><code class="language-java">
+    interface sealed T permits B1, B2, ..., Bn {}
+    record B1(...) implements T{...}
+    record B2(...) implements T{...}
+    ...
+    record Bn(...) implements T{...}
+</code></pre>
+
+<p>
+    Such data structures are normally called abstract
+    syntax trees, which we will discuss in depth in lab 2.
+</p>
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Read the class definitions in <code>src/slp/Slp.java</code>, make
+    sure you understand how these classes define the
+    SLP syntax. As a
+    concrete example, make sure you understand how
+    the object <code>sample1</code>
+    in the source file <code>src/slp/SamplesPrograms.java</code> encodes the
+    SLP program in exercise 1.
+    You do not need to write any code for this exercise.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    For this SLP program:
+    <pre class="code">
+        a := 1;
+        b := 0;
+        print(a/b)</pre>
+    Use the data structures for SLP, to define a new program
+    <code>sample2</code>
+    in the source file <code>src/slp/SamplesPrograms.java</code>.
+</div>
+
+<h3>Pretty Printer</h3>
+<p>
+    In compiler design, we often need to dump the
+    internal data structures to inspect the status
+    of these structures. Such inspections can not only
+    aid debugging the compiler, but also guarantee the implementation
+    correctness.
+    A well-established technique finish this task is called
+    <em><a href="https://en.wikipedia.org/wiki/Prettyprint">pretty printing</a></em>,
+    which is also a classical algorithmic implementation topic.
+</p>
+<p>
+    The implementation of pretty printing, as well as implementation
+    of similar operations
+    on compiler's data structures (e.g., abstract syntax trees),
+    is highly dependent on the implementation
+    languages. To be specific, for the Java language as we used in this course,
+    the standard way to accomplish this task is to use a special
+    design pattern called
+    <a href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor pattern</a>.
+    You should refer to the chapter 4 of the Tiger
+    book for an excellent introduction to the visitor
+    pattern and especially it usages in compilers.
+    And you may also refer to books on
+    <a href="https://en.wikipedia.org/wiki/Design_Patterns">design pattern</a>
+    to understand how visitor pattern works in general.
+    Furthermore, it should also be noted that design patterns are
+    important for other object-oriented language (e.g., C++, or Python),
+    besides Java.
+</p>
+<p>
+    While design patterns are well-understood and established techniques
+    to implement operations on data structures in an object-oriented
+    style, we will use
+    <a href="https://openjdk.org/jeps/406">pattern matching</a>,
+    another novel feature from Java (since version 17),
+    to implement these operations in a functional programming style,
+    which is much easier to write and understand than visitor patterns.
+</p>
+<p>
+    Consider the aforementioned sample grammar, we can define
+    an operation <code>op</code> on the type <code>T</code>
+    as the following node demonstrated:
+</p>
+<pre><code class="language-java">
+        void op(T x){
+            switch(x){
+                case B1(...) -> {...}
+                case B2(...) -> {...}
+                ...
+                case Bn(...) -> {...}
+            }
+        }</code></pre>
+<p>
+    this code is essentially a case analysis, which
+    inspects all possible shapes of the type <code>T</code>
+    and perform actions based on the shape, respectively.
+</p>
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Read the code in <code>src/slp/PrettyPrint.java</code>, make
+    sure you understand how this code implement the pretty
+    printing through
+    pattern matching.
+    Then run the code <code>src/slp/Main.java</code>:
+    <pre>
+        $ <kbd>java --enable-preview -cp bin slp.Main</kbd></pre>
+    to pretty print the sample programs.
+    The output looks like:
+    <pre class="output">
+        a = 5+3;
+        b = (print(a, a-1, ), 10*a);
+        print(b, )</pre>
+    As you may notice, there is a "bug" in the implementation of
+    printing the <code>print</code> statement: it will always
+    print a redundant <code>,</code> at the end of the argument list.
+    For example, it will print
+    <code>print(a, b, )</code> for a print statement with two
+    arguments, instead of <code>print(a, b)</code>.
+    Fix this bug.
+</div>
+
+<h3>Maximum Argument Numbers</h3>
+<p>
+    A program may contain zero, or more <code>print</code>
+    statements, each of which taking one or more arguments (that is,
+    the <code>print</code> function is overloaded).
+    For instance, the
+    above SLP program in exercise 1 has two <code>print</code>
+    statements: the
+    former one has 2 arguments whereas the latter one has just 1.
+    We define the maximum argument numbers of program as
+    the maximum number of arguments among all <code>print</code> statements.
+    For example, the maximum argument number for the above program
+    is 2.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Finish the code in <code>src/slp/MaxArgument.java</code>,
+    to calculate the maximum
+    number of arguments with a
+    given program.
+    Do not forget to test your code when finished, and
+    fix any bugs before continuing.
+</div>
+
+<h3>An Interpreter</h3>
+<p>
+    In this part, you will write an interpreter for SLP.
+    An interpreter runs a given program
+    online, that is, it analyzes the program and mimic the
+    execution behaviour of the program.
+    As SLP
+    has an assignment statement <code>x:=e</code>, so
+    the interpreter must have an abstract memory, which keeps
+    track of the current value of a variable <code>x</code>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Finish the Java code in<code>src/slp/Interpreter.java</code>
+    that "interprets" a program in SLP.
+    You may need to modify the types of the corresponding methods.
+    Do not forget to test your code when finished, and
+    fix any bugs before continuing.
+    For example, if we run the above sample SLP program in exercise 1,
+    <pre>
+        $ <kbd>java --enable-preview -cp bin slp.Main</kbd></pre>
+    which should output:
+    <pre class="output">
+        8 7
+        80</pre>
+    note that the number <code>7</code> is followed by a
+    newline character.
+</div>
+
+
+<h3>A Compiler from SLP to x64</h3>
+<p>
+    In this part, you will be building a compiler for SLP targeting
+    x64. Do not worry, if you are not familiar with x64, as
+    we will not make use too much complex features of it.
+    And also we will discuss x64 in details in lab 5.
+    You may want to refer to some
+    <a href="https://web.stanford.edu/class/cs107/resources/x86-64-reference.pdf">
+        instruction set manual</a>
+    to familiarize yourself with x64.
+    You may also want to take a look at the
+    <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">x64
+        calling conventions</a>, to understand how a function
+    call happens.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    First read the code
+    in <code>src/slp/Compiler.java</code>,
+    to understand how an SLP
+    program is compiled to x64 assembly.
+    Your job is to extend the compiler to support the subtraction
+    <code>-</code> and the division <code>/</code>.
+    Do not forget to test your compiler using the test cases in
+    <code>src/slp/SampleProgram.java</code>, as well as your own
+    test cases.
+</div>
+
+
+<!-- part B -->
+<hr/>
+<h2>Part B: The Lexer</h2>
+<p>
+    A lexer reads as input the program source files and outputs
+    a series of tokens recognized. In this part of the lab,
+    you will design and implement a lexer for Tiger.
+</p>
+<p>
+    The first step to design and
+    implement the lexer is to design good data structures
+    to represent the input and output, respectively,
+    which is, nevertheless to say,
+    implementation language dependent.
+    In Java, we can represent the
+    input by some kind of (buffered) input
+    stream established from the program source text file, and can
+    represent recognized
+    token by specific data structure.
+    The data structure defining token can be found in
+    the class <code>src/lexer/Token.java</code>. This
+    data structure consists of the following key fields:
+<ul>
+    <li><code>kind</code>: the kind of the token, which is an
+        enumerable type
+        as defined by <code>enum Kind</code>;
+    </li>
+    <li><code>lexeme</code>: extra information that the
+        token may carry, if any; and
+    </li>
+    <li><code>rowNum, colNum</code>: the positions of the token in the
+        source program (this
+        information is crucial in later phase of the compiler, such as
+        error diagnosing and profiling).
+        For simplicity, we just
+        use row and column numbers to represent current
+        token's position.
+    </li>
+</ul>
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    You should read the MiniJava specification carefully, and
+    determine what other tokens should be added by
+    extending the <code>enum Kind</code> type.
+</div>
+
+<p>
+    To implement the lexer algorithm, we have two options: the
+    handwritten approach and the automatic
+    lexer generator approach. Both are very popular in
+    compiler implementations. In this lab, we will use a handwritten
+    approach to implement the lexer for Tiger, which is also
+    used by production compilers such as GCC or LLVM.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 9.</span>
+    The method <code>nextToken0()</code> in the file
+    <code>lexer/Lexer.java</code> recognize tokens.
+    Read the MiniJava specification and supply
+    the missing code for the method.
+</div>
+
+<p>
+    To this point, you have finished the lexer, and your Tiger
+    compiler should compile <em>all</em> the test programs in
+    the <code>/test</code> directory. Before you continue,
+    you should run your Tiger compiler on
+    these test cases and make sure your lexer works correctly.
+    For instance, to test your compiler on the input file
+    <code>/test/Factorial.java</code>):
+</p>
+<pre>
+    $ <kbd>java --enable-preview -cp bin Tiger ./test/Factorial.java -dump token</kbd>
+</pre>
+<p>
+    which will not only lex your test case but also will dump
+    the tokens recognized.
+    If your compiler fails on any test cases, check your code to
+    fix bugs and re-test your compiler. And you may want to
+    write more test cases to test your Tiger compiler besides
+    the test cases we offered.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 10.</span>
+    Your lexer must be fast enough to lex (reasonably) large Java
+    programs. To test how fast your lexer is, you should
+    use some relatively large Java test cases.
+    Download this
+    <a href="MonsterGen.java">monster generator</a>
+    and compile it:
+    <pre>
+  $ <kbd>javac MonsterGen.java</kbd>
+</pre>
+    then run it to produce a <code>Monster.java</code> code:
+    <pre>
+  $ <kbd>java MonsterGen 100000>Monster.java</kbd>
+</pre>
+    And run your lexer on <code>Monster.java</code> to determin how
+    long it will take to compile this program?
+    How long does Oracle's <code>javac</code> compiler take
+    compile it?
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    We have used a row number <code>rowNum</code> and a column
+    number <code>colNum</code> to represent the position of a token.
+    Though simple and easy to implement, such position information is
+    coarse-grained in that they only record where a
+    token starts, but not where it ends.
+    Propose a better data
+    structure to represent a position in a fine-grained manner
+    and implement your idea into the compiler.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    Modify your lexer to lex full Java, instead of MiniJava. After
+    you finish this, you can use your lexer to lex some
+    nontrivial Java projects, such as the
+    <a href="https://www.apache.org/dev/version-control.html">Apache's source
+        code</a>.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    Use an automatic lexer generator to build your Tiger lexer.
+    For example, you
+    may try the <a href="https://jflex.de/">JFlex</a>, a very
+    popular lexical analyzer generator. Is this approach better
+    than the handwritten approach we have used in this lab?
+</div>
+
+<!-- part C -->
+<hr/>
+<h2>Part C: The Parser</h2>
+<p>
+    You will implement a parser in this part of the lab.
+    A parser parses the input program, according
+    to the given language syntax, and determines
+    whether the target program is legal.
+    The parser generates data structures to be processed
+    by later phases, if the target program is legal.
+</p>
+<p>
+    Just as for the lexer, there are generally two approaches to
+    implement a parser: handwritten or using an automatic
+    parser generator. We will implement a handwritten recursive
+    descendent parser in this part, that is, all production rules become
+    a bunch of recursive functions with (approximately) one
+    function for one non-terminal.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 11.</span>
+    Finish the recursive decedent parser in the
+    file <code>parser/Parser.java</code>. We have offered most
+    code for you, you should supply the missing code for
+    those incomplete methods.
+</div>
+
+<p>
+    To this point, your parser should be able to parse all
+    MiniJava programs. Remember
+    to test your parser thoroughly using
+    the test cases in directory <code>/test</code> as well as your
+    own test cases. Fix any bugs before continuing.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 12.</span>
+    The current implementation of the error handling and
+    error recovery method <code>error()</code>
+    only reports an error message before exiting.
+    Modify this method to report more accurate error messages, such
+    as the file name, the line number, the column
+    number, some diagnostic
+    message, and the related source code. You may take a look
+    at the diagnostic messages generated by the
+    <a href="https://clang.llvm.org/diagnostics.html">Clang
+        compiler</a> to get some idea.
+    Finally, you may
+    try to implement error recover, that
+    is, to recover from errors so that all potential syntactic errors
+    can be detected.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    Implement your parser with automatic parser generators.
+    For instance, you may use
+    <a href="https://www2.cs.tum.edu/projects/cup/">CUP</a>, or
+    <a href="https://www.antlr.org/index.html">AntLR</a>, or
+    <a href="https://sablecc.org/">SableCC</a>, etc.
+    Again, this exercise may not be that difficult, but may require
+    considerable modifications to current code base and
+    programming efforts.
+</div>
+
+
+<hr>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to submit your solution to
+    the online teaching system.
+</p>
+
+<br>
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
