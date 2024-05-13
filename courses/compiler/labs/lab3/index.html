@@ -1,0 +1,548 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 3: Intermediate Representation</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 3: Intermediate Representation</h1>
+<hr>
+
+<h2>Overview</h2>
+<p>
+    In this lab, you will design and implement intermediate
+    representations for your <code>Tiger</code> compiler, and lower
+    down MiniJava programs by translating
+    the abstract syntax trees to the intermediate representation
+    you designed.
+</p>
+<p>
+    This lab consists of three parts: first, in part A, you
+    will design and implement a specific intermediate representation:
+    a <a href="https://en.wikipedia.org/wiki/Control_flow_graph">control-flow graph</a>
+    (CFG).
+    Second, in part B, you will eliminate the object-oriented features
+    in MiniJava by using a prefixing algorithm.
+    Finally, in part C, you will implement a translator to lower
+    down the abstract syntax tree to the control-flow graph.
+</p>
+
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source we offered you for lab 3:
+</p>
+<pre>
+    $ <kbd>git commit -am 'my solution to lab2'</kbd>
+    $ <kbd>git checkout -b lab3 origin/lab3</kbd>
+</pre>
+<p>
+    these commands will first commit your changes to the lab2
+    branch of your local Git repository, and then create a
+    local lab3 branch and check out the remote lab3 branch
+    into the new local lab3 branch.
+</p>
+<p>
+    Again, you will need to merge your code from lab2 into the
+    new lab3 branch:
+<pre>
+    $ <kbd>git merge lab2</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commiting to
+    the local lab3 branch:
+</p>
+
+<pre>
+    $ <kbd>git commit -am 'lab3 init'</kbd>
+</pre>
+<p>
+    You should first import the new Lab5 code into
+    your Eclipse editor, and make sure the code compiles. There
+    are a bunch of new files that you
+    should browse through:
+</p>
+<pre>
+    cfg/*:    control-flow graph data structures and operations
+</pre>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished this lab, zip you code and submit to the
+    <a href="https://bb.ustc.edu.cn">online teaching system</a>.
+</p>
+
+<hr/>
+<h1>Part A: Control-flow Graph</h1>
+<p>
+    A <a href="https://en.wikipedia.org/wiki/Control_flow_graph">
+    control-flow graph</a>
+    (CFG) is a graph-based program intermediate representation
+    with basic blocks as nodes and control
+    transfers between blocks as edges.
+    A control-flow graph
+    is a good intermediate representation as it makes every aspect
+    of program control- and data-flow properties explicit thus
+    easier to compute.
+    As a result, in modern compilers, CFGs serve as not only
+    carriers for compiler optimizations, but also backbones
+    for more advanced intermediate representations such as
+    static single-assignment forms (SSA).
+</p>
+
+<h3>Data Structures</h3>
+<p>
+    In this part of the lab, you will familiarize yourself
+    with data structures defining the control-flow
+    graph representation. In this lab, you will
+    need to extend these data structures to support other features
+    in MiniJava.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the code in <code>cfg/Cfg.java</code>, make sure you understand
+    the Java code defining CFG data structures we offered you.
+    To gain more ideas about its structure, you might compile the test
+    case we provide.
+    For example,
+    you can compile the test case <code>test/SumRec.java</code> to
+    inspect the generated CFG:
+    <pre>
+        $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
+          -trace cfg.Translate.translate</kbd></pre>
+    Your job is to extend the CFG
+    data structure to support all language
+    features of MiniJava. You can work iteratively, that is,
+    you can continue to the following
+    exercises, and go back to extend the CFG data structure when necessary.
+</div>
+
+<p>
+    It is often important to measure the sizes of
+    the generated CFG, which reflects the memory occupation.
+    For example, after you have implemented
+    a compiler optimization to shrink the target CFG,
+    you can evaluate the effectiveness of your
+    optimization by comparing the sizes before and after that
+    optimization.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Write a <code>size()</code> method for each syntactic
+    category in the file
+    <code>cfg/Cfg.java</code>, to measure the size of the CFG
+    in terms of the numbers of functions,
+    basic blocks, and statements. The output might
+    consist of a list of triples &lt;methodNam, nBlock, nStms&gt;.
+    For example, the following output
+    <pre class="output">
+        &lt;#methods, #blocks, #statements>
+        ---------------------------------
+        <"f1", 5,  300>
+        <"g",  30, 400>
+        ...
+        ---------------------------------
+        subtotal 140, 25000</pre>
+    specifies the method <code>f1</code> has
+    5 basic blocks and 300 statements, whereas the method
+    <code>g</code> has 30 basic blocks and 400 statements, and
+    so on.
+    In a summary, the program has 140 basic blocks
+    with 25,000 statements.
+</div>
+
+<h3>Graph Visualization</h3>
+<p>
+    It will be nice to
+    <a href="https://en.wikipedia.org/wiki/Graph_visualization">
+        visualize a control-flow graph</a>,
+    making subsequent graph analysis more intuitive.
+    Nevertheless, to draw a figure prettily
+    is a nontrivial task and may require too much programming
+    effort, especially for large and complex graphs.
+    Fortunately, there are many off-the-shelf graph drawing
+    utilities, so that we do not need
+    to reinvent the wheels.
+    Specifically, your Tiger compiler will make use
+    of the <a href="https://graphviz.org/">Graphviz</a>,
+    a very popular graph visualization software, to
+    visualize the control-flow graphs generated by
+    your Tiger compiler.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Download
+    <a href="https://graphviz.org/Download.php">graphviz</a>
+    and install it
+    on your machine. Do not forget to add it to your PATH.
+    To make sure you have installed graphviz correctly, you can
+    run the following command on your prompt:
+    <pre>
+        $ <kbd>dot --help</kbd></pre>
+    <pre class="output">
+        Usage: dot [-Vv?] [-(GNE)name=val] [-(KTlso)&lt;val>] &lt;dot files&gt;
+        (additional options for neato)    [-x] [-n&lt;v&gt;]
+        (additional options for fdp)      [-L(gO)] [-L(nUCT)&lt;val&gt;]
+        (additional options for config)  [-cv]
+        ...</pre>
+    Also, you can take a look at
+    <a href="https://graphviz.org/Documentation.php">its manual</a>,
+    if you are interested in.
+</div>
+
+<p>
+    The Tiger compiler has rudimentary support to
+    visualize a CFG, that is, it can draw a graph for each
+    function in a program, respectively.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Finish the code <code>dot()</code> in the file
+    <code>cfg/Cfg.java</code>, to visualize
+    each function. You can run the test case <code>test/SumRec.java</code>:
+    <pre>
+        $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
+          -dot cfg</kbd></pre>
+    to draw a sample CFG. Your task is to extend the <code>dot()</code>
+    to draw statements and transfers in each block besides block labels.
+</div>
+
+<p>
+    Do not forget to test your Tiger compiler extensively
+    before continuing. Especially, make sure your Tiger compiler
+    can compile all testcases under the directory <code>./test/</code>.
+</p>
+
+
+<!-- part B -->
+<hr/>
+<h2>Part B: Class Elimination</h2>
+<p>
+    The class elimination pass implements object-oriented features
+    in MiniJava by lowering down them to low-level constructs.
+    Specifically, this pass finishes three sub-tasks:
+    1) it eliminates
+    classes by translating them to C-style structures;
+    2) it closes each (non-static) method by introducing
+    an explicit <code>this</code> as the first parameter; and
+    3) it turns each method invocation into a virtual function call.
+    In the following, we will discuss the first two steps and leave
+    the last step to the next section (part C).
+</p>
+
+<h3>The Prefixing Algorithm</h3>
+<p>
+    The prefixing algorithm builds an inheritance tree,
+    and eliminates class inheritance by a level-order
+    tree walking.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Finish the method
+    <code>buildInheritTree0()</code> to build an inherit
+    tree, with each tree node containing a class.
+    When finished, you might visualize the tree to test
+    your implementation.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Finish the method
+    <code>prefixOneClass()</code> to implement the
+    prefixing algorithm.
+</div>
+
+<p>
+    To this, a MiniJava class will be translated into
+    two components: a structure (like <code>struct</code> in C),
+    a virtual function table holding a list of function pointers to
+    all the constituting methods in that class.
+    Test your Tiger compiler and fix any bugs before continuing.
+</p>
+
+<h3>Closing Method</h3>
+
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    Extend your implementation of the method
+    <code>prefixOneClass()</code>, to close each method by introducing
+    an extra <code>this</code> argument.
+    Pay special attention to its type. For simplicity, you can
+    generate an empty CFG function for each AST method serving as
+    place-holders to be filled in subsequently.
+</div>
+
+
+<!-- part C -->
+<hr/>
+<h2>Part C: CFG Generation</h2>
+<p>
+    The CFG generation phase generates a CFG representation
+    for the given abstract syntax tree. The generation uses a
+    recursive-decedent algorithm.
+</p>
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Finish the methods
+    <code>transMethod()</code>, <code>transStm()</code>, and
+    <code>transExp()</code>, to translate a given method, statement, and
+    expression to its corresponding CFG representation, respectively.
+</div>
+
+<p>
+    Do not forget to test your Tiger compiler using
+    the test cases in <code>test/</code> as well as your own
+    ones.
+    Fix any bugs before continuing.
+</p>
+
+
+<hr/>
+<h2>Part D: CFG-based Optimizations</h2>
+<p>
+    Compiler optimizations are program transformations making
+    the target programs better. The criterion for "better" depends
+    on the optimization goals including but not limited to
+    smaller code size, more efficiency, lower power consumptions.
+    Generally
+    speaking, a compiler optimization consists of two phases:
+    <a href="https://en.wikipedia.org/wiki/Program_analysis">program
+        analysis</a> and program rewriting. The program analysis phase
+    analyzes the target program being optimized to calculate useful
+    static information to approximate the program's dynamic
+    behavior. And program rewriting phase
+    rewrites the program being optimized, using the static
+    information calculated from the first phase.
+</p>
+<p>
+    In this part of the lab, you will familiarize yourself
+    with compiler optimizations by writing several classical program
+    analysis (e.g., liveness analysis, reaching definitions, available
+    expressions), and optimizations (e.g., constant propagation,
+    copy propagation, dead code elimination). Hence, you will not
+    only gain deeper understanding about
+</p>
+
+<p>
+    You will write most
+    data-flow analysis algorithms with the following general
+    template:
+</p>
+<pre class="code">
+data_flow_analysis()
+    calculate the <em>gen</em> and <em>kill</em> sets for each statement and transfer;
+    calculate the <em>in</em> and <em>out</em> sets for each statement and transfer.   // fix-point
+</pre>
+<p>
+    For specific data-flow algorithms you will write next,
+    the above template differs in
+    1) how <code>gen</code> and <em>kill</em> sets
+    are defined, 2) how <code>in</code> and <code>out</code>
+    sets are calculated, 3) in what order the iteration
+    should be conducted; and 4) when to stop.
+    Hence, you will need to
+    modify this algorithm template to finish the specific analysis.
+</p>
+<h3>Liveness Analysis</h3>
+<p>
+    A
+    <a href="https://en.wikipedia.org/wiki/Liveness_analysis">liveness analysis</a>
+    calculates, for each statement
+    and transfer in a function, the live-in and live-out variable sets.
+    In liveness analysis, you should calculate
+    <code>in</code> and <code>live_out</code> for the <code>in</code>
+    and <code>out</code> separately; and the fix-point code should
+    calculate the <code>in</code> and <code>out</code> sets for
+    each basic block in a reverse topo-sort order.
+    But for other data-flow analysis, these details may be different.
+</p>
+<div class="required">
+    <span class="header">Exercise 9.</span>
+    Finish the liveness analysis code in the source file
+    <code>cfg/Liveness.java</code> by implementing the
+    aforementioned algorithm.
+</div>
+
+<h3>Dead-code Elimination</h3>
+<p>
+    An assignment statement <code>x = v</code> is dead,
+    if the variable <code>x</code> does not live out this
+    statement. Hence, this statement can be safely
+    removed.
+</p>
+<div class="required">
+    <span class="header">Exercise 10.</span>
+    Finish the dead code elimination in
+    <code>cfg/DeadCode.java</code> by implementing the
+    aforementioned algorithm. You should avoid the pitfalls
+    discussed in the Tiger book by not removing
+    <em>live</em> statements. Also note that removing one dead code may
+    have cascading effects to make
+    other code dead, so make sure that your dead-code elimination
+    optimization can eliminate <em>all</em> dead code.
+</div>
+
+<h3>Reaching Definitions</h3>
+<p>
+    Intuitively, a reaching
+    definition analyzes which definition can reach a given use.
+</p>
+<div class="required">
+    <span class="header">Exercise 11.</span>
+    Implement the reaching definition analysis
+    <code>cfg/ReachDef.java</code>, as described
+    in Table 17.2 of the Tiger book.
+    This
+    algorithm is similar to the liveness analysis algorithm, except for
+    it performs the analysis in a forward manner.
+</div>
+
+<h3>Constant Propagation</h3>
+<p>
+    A constant propagation propagates a constant definition
+    to it uses. For example, for any statement <code>s</code>
+    of the form <code>x = y op z</code>, where the variable
+    <code>y</code> is defined in
+    by a statement t like <code>y = c</code> where <code>c</code>
+    is a constant. And
+    suppose the definition t is the unique definition that reaches
+    the statement s. Then we can replace, in
+    the statement s, the variable <code>y</code> by
+    the constant <code>c</code>.
+</p>
+<div class="required">
+    <span class="header">Exercise 12.</span>
+    Finish the constant propagation code in the file
+    <code>cfg/ConstProp.java</code>. Note that to this point, the
+    Tiger compiler will perform all these analysis and optimizations
+    in a linear order, however, this is not the desired order
+    for optimizations. So, you may want to modify the
+    <code>cfg/Optimize.java</code> code to use a
+    fancy order.
+</div>
+
+<h3>Copy Propagation</h3>
+<p>
+    Copy propagation is like constant propagation.
+    Suppose, for any statement <code>s</code> of the form <code>x = y</code>
+    or <code>x = y op z</code>, where <code>y</code> is defined in
+    some statement t like <code>y = m</code> with a variable <code>m</code>. And
+    suppose the definition t is the unique definition that reaches
+    the statement s. Then you can replace the variable <code>y</code>, in
+    the statement s, with the variable <code>m</code> from the statement t.
+</p>
+<div class="required">
+    <span class="header">Exercise 13.</span>
+    Finish the constant propagation code in the file
+    <code>cfg/CopyProp.java</code>.
+</div>
+
+<h3>Available Expressions</h3>
+<p>
+    Consider the statement <code>x = y op z</code>, if the expression
+    <code>y op z</code> has been computed before this statement, then
+    the expression <code>y op z</code> can reuse the computed result.
+    Hence, you can compute whether the expression <code>y op z</code>
+    is available here.
+</p>
+<div class="required">
+    <span class="header">Exercise 14.</span>
+    Finish the available expression analysis in the file
+    <code>cfg/AvailExp.java</code>.
+</div>
+
+<h3>Common Sub-Expression Elimination (CSE)</h3>
+<p>
+    For the statement <code>x = y op z</code>, if the expression
+    <code>y op z</code> is available. We can substitute the
+    expression <code>y op z</code> with the most recent definition
+    using <code>y op z</code>. You may refer to the Tiger book
+    section 17.3 for this algorithm.
+</p>
+<div class="required">
+    <span class="header">Exercise 15.</span>
+    Implement common sub-expression elimination in <code>cfg/Cse.java</code>.
+</div>
+
+<!--
+<h3>Speeding-up Analysis</h3>
+<ul>
+<li>topo-sort
+<li>set representation
+</ul>
+
+<h3>Data-flow Equations</h3>
+<p>
+    Liveness analysis has many important applications in compilers
+    besides optimizations. In this part
+    of the lab, you will implement another important application
+    of liveness analysis: precise garbage collection.
+</p>
+<p>
+    In order to perform a much precise garbage collection, we can
+    introduce the concept of <em>safe points</em>: positions
+    which are safe to emit GC stack frames. Because the MiniJava
+    language you
+    are compiling is single-threaded, so the safe points are
+    function invocations (including constructor invocations). The basic
+    idea is to emit different GC stack frames before each function
+    invocation, and each GC stack frame only contains the live
+    references at that point (that is: the live in set of that
+    function invocation). To better understand this, consider the
+    code fragment above, you can generate two different GC stack
+    frame for the two method invocations, like this:
+</p>
+<pre>
+  A f (){
+    A x, y;
+    // generate the first frame (empty):  {}
+    x = new A();
+    // generate the second frame: {y}
+    y = new A();
+    return y;
+  }
+</pre>
+<p>
+    As you can see, the reference <code>x</code> will not appear
+    in any GC frame at all.
+</p>
+<div class="required">
+    <span class="header">Exercise 16.</span>
+    Port your Gimple garbage collector to control-flow graph to do
+    precise garbage collection. You should calculate the live
+    in set for each method invocation and generate GC frame
+    based on that.
+</div>
+<div class="required">
+    <span class="header">Exercise 17.</span>
+    In the above code, the variable <code>x</code> is never used. So
+    can we do dead code elimination to remove the assignment statement
+    to <code>x</code>?
+</div>
+-->
+
+
+<hr/>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+
