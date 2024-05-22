@@ -1,0 +1,263 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 4: Instruction Selection</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 4: Instruction Selection</h1>
+
+<hr/>
+<h2>Overview</h2>
+<p>
+    In this lab, you will design and implement an instruction
+    selector for your <code>Tiger</code> compiler, to translate
+    MiniJava programs to x64 assembly.
+</p>
+<p>
+    This lab consists of three parts: first, in part A, you
+    will design and implement data structures for the x64
+    assembly language serving as the target for instruction
+    selection.
+    Second, in part B, you will design and implement a simple
+    object model for MiniJava and determine field offsets,
+    method offsets, and class sizes, among others.
+    Finally, in part C, you will implement a maximum munch
+    algorithm to lower down the CFG to the x64 assembly.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source we offered you for lab 4:
+</p>
+<pre>
+    $ <kbd>git commit -am 'my solution to lab3'</kbd>
+    $ <kbd>git checkout -b lab4 origin/lab4</kbd>
+</pre>
+<p>
+    these commands will first commit your changes to the lab3
+    branch of your local Git repository, and then create a
+    local lab4 branch and check out the remote lab4 branch
+    into the new local lab4 branch.
+</p>
+<p>
+    Again, you will need to merge your code from lab3 into the
+    new lab4 branch:
+<pre>
+    $ <kbd>git merge lab3</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commiting to
+    the local lab4 branch:
+</p>
+
+<pre>
+    $ <kbd>git commit -am 'lab4 init'</kbd>
+</pre>
+<p>
+    You should first import the new lab4 code into
+    your favorite IDE. There
+    are a bunch of new files that you
+    should browse through:
+</p>
+<pre>
+    codegen/*:    data structures and operations for x64
+</pre>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished this lab, zip you code and submit to the
+    <a href="https://bb.ustc.edu.cn">online teaching system</a>.
+</p>
+
+<hr/>
+<h2>Part A: X64 Assembly</h2>
+<p>
+    Intel x64 is a widely used CSIC instruction set architecture
+    (ISA) we will generate code for in this lab.
+    In this part of the lab, you will first design
+    data structures and operations for x64.
+</p>
+
+<h3>Data Structures</h3>
+<p>
+    While the x64 is a complex ISA, we will, in this lab, only use
+    a small subset of it which is enough
+    to compile MiniJava. You may want to refer to
+    <a href="https://cs.brown.edu/courses/cs033/docs/guides/x64_cheatsheet.pdf">
+        some manual</a> for this subset,
+    if you are not familiar with this ISA.
+</p>
+<p>
+    The data structures defining x64 is essentially
+    an assembly-level control-flow graph (as we have
+    discussed in the previous lab). The most interesting
+    part is how we represent assembly instructions.
+</p>
+<p>
+    At this phase, an assembly instruction may still
+    contain variables (we call them pseudo-registers),
+    which will be allocated to physical
+    registers by a register allocator (as will be discussed
+    in the next lab). For example, an addition
+    instruction may look like:
+</p>
+<pre><code>addq %y, %x</code></pre>
+<p>
+    where both <code>%x</code> and <code>%y</code> are
+    variables yet to be allocated to registers.
+    Hence, an assembly instruction in this phase
+    looks like a function mapping variables to
+    a concrete assembly instruction string in which
+    pseudo-registers substituted by physical registers.
+    For example, if we can determine this mapping:
+</p>
+<pre class="code">
+    %x -> %rax
+    %y -> %rbx
+</pre>
+<p>
+    Then the aforementioned instruction can be converted into:
+</p>
+<pre><code>addq %rbx, %rax</code></pre>
+<p>
+    With this key insight, we can encode an assembly instruction
+    using a higher-order function, with the varying components
+    as arguments. To be specific,
+    we will use a &lambda; taking the variables as parameters
+    to concatenate the final assembly string.
+    Consider the above example, its &lambda; encoding
+    may look like:
+</p>
+<pre><code>&lambda;([%x, %y]).(addq %y, %x)</code>
+</pre>
+<p>
+    Furthermore, to distinguish variable uses and defs,
+    we put two arguments for a &lambda;, one for the
+    variable uses and the other one for the defs.
+    With this elaboration, the above instruction can be
+    encoded by a two-argument &lambda;:
+</p>
+<pre><code>&lambda;([%x, %y], [%x]).(addq %y, %x)</code>
+</pre>
+<p>
+    where <code>[%x, %y]</code> are uses, and <code>[%y]</code>
+    is def.
+</p>
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the code in <code>codegen/X64.java</code>, to
+    understand data structures defining x64.
+    Feel free to extend these data structures and operations
+    when necessary.
+</div>
+
+<!-- part B -->
+<hr/>
+<h2>Part B: Object Layout</h2>
+<p>
+    In this part of the lab, you will implement
+    an object layout algorithm to determine the layout
+    of each object. To be specific, this algorithm performs
+    two tasks. First, for a class, it will
+    determine the size of that class as well as its virtual
+    method table.
+    Second, for an object,
+    the algorithm will determine the layout of its virtual method table
+    pointer as well as the offset for each of its field.
+</p>
+
+<p>
+    In subsequent labs, you will extend this object layout to support
+    other OO features, such as garbage collections (or monitors in
+    full Java).
+</p>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Read the code in the file <code>codegen/Layout.java</code>
+    to understand the layout algorithm.
+    Extend this algorithm to calculate offsets for each field in
+    a class, respectively.
+    For simplicity, you should treat the size of an MiniJava
+    integer as 8, which is the same as a reference (pointer).
+</div>
+
+<!-- part C -->
+<hr/>
+<h2>Part C: Instruction Selection</h2>
+<p>
+    In this part of the lab, you will implement
+    an instruction selector based on the maximum munch
+    algorithm to lower down the CFG to x64 assembly.
+</p>
+
+<h3>Maximum Munch Algorithm</h3>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Fill in the code in the file <code>codegen/Munch.java</code>,
+    to select x64 instructions for remaining features in the CFG.
+    After finishing this exercise, you Tiger compiler should
+    generate X64 assembly for all MiniJava programs, do not
+    forget to test your compiler before continuing.
+</div>
+
+<h3>Calling Convention</h3>
+<p>
+    A calling convention specifies how arguments are passed from
+    a caller to a callee and how return values are passed
+    from a callee to a caller.
+    Tiger's current implementation for the x64 calling
+    convention in incomplete, it only supports at most 6 arguments.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Extend Tiger's calling convention implementation
+    to support arguments more than 6, so that your Tiger
+    compiler can compile programs with arbitrary number
+    of arguments.
+</div>
+
+<hr/>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
