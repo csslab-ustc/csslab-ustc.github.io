@@ -1,0 +1,1186 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Lab 6: Theories for Data Structures</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js">
+    </script>
+</head>
+
+<body>
+<p>
+<h1>Lab 6: Theories for Data Structures</h1>
+<hr/>
+
+<h2>Overview</h2>
+<p>
+    In the class, we've discussed several important theories to
+    reason about data structures:
+    <a href="https://en.wikipedia.org/wiki/Bit_array">bit vectors</a>,
+    <a href="https://en.wikipedia.org/wiki/Array_data_structure">arrays</a>,
+    <a href="https://en.wikipedia.org/wiki/Pointer_(computer_programming)">
+        pointers</a>. etc., which are widely used in practical
+    reasoning and verifications.
+</p>
+<p>
+    In this assignment, you'll be familiarizing yourself with
+    these theories, with the reasoning of practical data
+    structures, using Z3's support for these theories. To be
+    specific, this assignment is divided into three parts, each
+    of which contains both some tutorials and problems. The first
+    part is about the theory of bit vectors; the second part covers
+    theory of arrays; and the third part covers the theory about
+    pointers. Some problems are tagged with <b>Exercise</b>, which
+    you should solve. And several problems are tagged with
+    <i>Challenge</i>, which are optional.
+    Download <a href="lab6-code.zip">this code templates</a> to start with.
+</p>
+
+<p>
+    Before getting started with this assignment, make sure
+    you've finished <a href="../lab1/index.html">Software Setup</a>
+    in the assignment 1, and have Z3 and Python (3.12+ recommended)
+    properly installed on your computer. For any problems, please feel
+    free to contact us for help.
+</p>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished the lab, zip you code files with file
+    name <samp>&lt;ID&gt;-lab-6.zip</samp> (e.g., SA19225789-lab-6.zip), and
+    submit it to
+    <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform</a>.
+    Any late submission will NOT be accepted.
+</p>
+<hr/>
+
+<h2>Part A: Bit vectors</h2>
+<p>
+    A bit vector is a very compact data structure with every
+    bit 0 or 1, in a fixed constant width \(l\):
+    $$
+    b_{l-1}, \ldots, b_0
+    $$
+    where \(b_0\) is the least-significant bit, and \(b_{l-1}\)
+    is the most significant bit.
+</p>
+<p>
+    Bit vectors support a large group of operations, as we will
+    discuss in the following. So from the data structure point
+    of view, a bit vector is a concrete data type (CDT).
+</p>
+
+<h3>Basic properties</h3>
+
+<p>
+    To build the models and reason the properties of bit vectors, Z3
+    has built-in support for bit vectors, for instance, the
+    following code:
+</p>
+<pre>
+    x, y = BitVecs('x y', 2)
+    solve(x+y==9)
+</pre>
+<p>
+    declares two variable bit vectors <samp>x</samp> and <samp>y</samp> with
+    fixed-width \(2\), then asks Z3 whether the equality
+    <samp>x+y==9</samp> can be satisfiable.
+    And Z3 will generate the result.
+</p>
+<div class="question">
+    <b>Exercise 1: </b>Run this code for this exercise we give in
+    the <samp>bit_vectors.py</samp> Python file, what output do you get?
+    Is the number "9" representable using just 2 bits? And explain
+    to yourself how the modulo semantics work here. You don't
+    need to write any code here.
+</div>
+
+<p>
+    Z3 has a very rich set of operations for bit vectors,
+    you can refer to the
+    <a href="https://z3prover.github.io/api/html/classz3py_1_1_bit_vec_ref.html">
+        official APIs</a>.
+    For your convenience, here is a table containing most operations:
+</p>
+<table border="1" style="text-align: center">
+    <tr>
+        <td>
+            Operations
+        </td>
+        <td>
+            Signed
+        </td>
+        <td>
+            Unsigned
+        </td>
+        <td>
+            Sample code
+        </td>
+    </tr>
+    <!-- arithmetic operations -->
+    <tr>
+        <td>
+            Addition:
+        </td>
+        <td>
+            +
+        </td>
+        <td>
+            +
+        </td>
+        <td>
+            x + y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Subtraction:
+        </td>
+        <td>
+            -
+        </td>
+        <td>
+            -
+        </td>
+        <td>
+            x - y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Multiplication:
+        </td>
+        <td>
+            *
+        </td>
+        <td>
+            *
+        </td>
+        <td>
+            x * y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Division:
+        </td>
+        <td>
+            /
+        </td>
+        <td>
+            UDiv
+        </td>
+        <td>
+            x/y, UDiv(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bitwise-and:
+        </td>
+        <td>
+            &
+        </td>
+        <td>
+            &
+        </td>
+        <td>
+            x&y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bitwise-or:
+        </td>
+        <td>
+            |
+        </td>
+        <td>
+            |
+        </td>
+        <td>
+            x|y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bitwise-xor:
+        </td>
+        <td>
+            ^
+        </td>
+        <td>
+            ^
+        </td>
+        <td>
+            x^y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bitwise-not:
+        </td>
+        <td>
+            ~
+        </td>
+        <td>
+            ~
+        </td>
+        <td>
+            ~x
+        </td>
+    </tr>
+    <tr>
+        <td>
+            EQ:
+        </td>
+        <td>
+            ==
+        </td>
+        <td>
+            ==
+        </td>
+        <td>
+            x==y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            NE:
+        </td>
+        <td>
+            !=
+        </td>
+        <td>
+            !=
+        </td>
+        <td>
+            x!=y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            GE:
+        </td>
+        <td>
+            >=
+        </td>
+        <td>
+            UGE
+        </td>
+        <td>
+            x>=y, UGE(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            GT:
+        </td>
+        <td>
+            >
+        </td>
+        <td>
+            UGT
+        </td>
+        <td>
+            x>y, UGT(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            LE:
+        </td>
+        <td>
+            <=
+        </td>
+        <td>
+            ULE
+        </td>
+        <td>
+            x<=y, ULE(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            LT:
+        </td>
+        <td>
+            <
+        </td>
+        <td>
+            ULT
+        </td>
+        <td>
+            x < y, ULT(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Left Shift:
+        </td>
+        <td>
+            <<
+        </td>
+        <td>
+            <<
+        </td>
+        <td>
+            x << y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Arithmetic Right Shift:
+        </td>
+        <td>
+            >>
+        </td>
+        <td>
+            >>
+        </td>
+        <td>
+            x >> y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Logical Right Shift:
+        </td>
+        <td>
+            LShR
+        </td>
+        <td>
+            LShR
+        </td>
+        <td>
+            LShR(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Mod:
+        </td>
+        <td>
+            %
+        </td>
+        <td>
+            %
+        </td>
+        <td>
+            x%y
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Remainder:
+        </td>
+        <td>
+            SRem
+        </td>
+        <td>
+            URem
+        </td>
+        <td>
+            SRem(x, y),URem(x, y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Position:
+        </td>
+        <td>
+            +
+        </td>
+        <td>
+            +
+        </td>
+        <td>
+            +x
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Negation:
+        </td>
+        <td>
+            -
+        </td>
+        <td>
+            -
+        </td>
+        <td>
+            -x
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector
+            Concatenation:
+        </td>
+        <td>
+            Concat
+        </td>
+        <td>
+            Concat
+        </td>
+        <td>
+            Concat(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector
+            Extraction:
+        </td>
+        <td>
+            Extract
+        </td>
+        <td>
+            Extract
+        </td>
+        <td>
+            Extract(x,y,z)/Extract(StringVal,x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Rotate to the Left:
+        </td>
+        <td>
+            RotateLeft
+        </td>
+        <td>
+            RotateLeft
+        </td>
+        <td>
+            RotateLeft(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Rotate to the right:
+        </td>
+        <td>
+            RotateRight
+        </td>
+        <td>
+            RotateRight
+        </td>
+        <td>
+            RotateRight(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Extra sign-bits:
+        </td>
+        <td>
+            SignExt
+        </td>
+        <td>
+            SignExt
+        </td>
+        <td>
+            SignExt(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Extra zero-bits:
+        </td>
+        <td>
+            ZeroExt
+        </td>
+        <td>
+            ZeroExt        </td>
+        <td>
+            ZeroExt(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            RepeatBitVec:
+        </td>
+        <td>
+            RepeatBitVec
+        </td>
+        <td>
+            RepeatBitVec        </td>
+        <td>
+            RepeatBitVec(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Reduction-and:
+        </td>
+        <td>
+            BVRedAnd
+        </td>
+        <td>
+            BVRedAnd        </td>
+        <td>
+            BVRedAnd(x)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Reduction-or:
+        </td>
+        <td>
+            BVRedOr
+        </td>
+        <td>
+            BVRedOr        </td>
+        <td>
+            BVRedOr(x)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector addition does not overflow:
+        </td>
+        <td>
+            BVAddNoOverflow
+        </td>
+        <td>
+            BVAddNoOverflow        </td>
+        <td>
+            BVAddNoOverflow(x,y,signed)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector addition does not underflow:
+        </td>
+        <td>
+            BVAddNoUnderflow
+        </td>
+        <td>
+            BVAddNoUnderflow        </td>
+        <td>
+            BVAddNoUnderflow(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector multiplication does not overflow:
+        </td>
+        <td>
+            BVMulNoOverflow
+        </td>
+        <td>
+            BVMulNoOverflow
+        </td>
+        <td>
+            BVMulNoOverflow(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector signed multiplication does not underflow:
+        </td>
+        <td>
+            BVMulNoUnderflow
+        </td>
+        <td>
+            BVMulNoUnderflow
+        </td>
+        <td>
+            BVMulNoUnderflow(x,y,signed)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector signed division does not overflow:
+        </td>
+        <td>
+            BVSDivNoOverflow
+        </td>
+        <td>
+            BVSDivNoOverflow        </td>
+        <td>
+            BVMulNoUnderflow(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector unary negation does not overflow:
+        </td>
+        <td>
+            BVSNegNoOverflow
+        </td>
+        <td>
+            BVSNegNoOverflow        </td>
+        <td>
+            BVSNegNoOverflow(x)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector subtraction does not overflow:
+        </td>
+        <td>
+            BVSubNoOverflow
+        </td>
+        <td>
+            BVSubNoOverflow        </td>
+        <td>
+            BVSubNoOverflow(x,y)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Bit-vector subtraction does not underflow:
+        </td>
+        <td>
+            BVSubNoUnderflow
+        </td>
+        <td>
+            BVSubNoUnderflow        </td>
+        <td>
+            BVSubNoUnderflow(x,y,signed)
+        </td>
+    </tr>
+</table>
+<p>
+    In the following, you'll often need to refer to
+    this table when necessary.
+</p>
+<div class="question">
+    <b>Exercise 2: </b>In this exercise, you will write a function
+    <samp>count_one_in_bit_vector()</samp> to count the amount of 1
+    in the bit vector. You can start with the code
+    <samp>bit_vectors.py</samp> we provide you.
+</div>
+
+<h3>Integer overflows</h3>
+<p>
+    As bit vectors have only fixed width, so they have
+    very different properties from the normal mathematical
+    integers (with arbitrary width), hence, it's very
+    tricky to reason about bit vectors.
+</p>
+
+<p>
+    Recall that in the class, we discussed a buggy
+    version of the binary search algorithm reported
+    by <a href="https://ai.googleblog.com/2006/06/extra-extra-read-all-about-it-nearly.html">
+    Joshua Bloch</a>. The bug is demonstrated by the
+    following Java code:
+</p>
+<pre>
+    // To search the value "target", in the input array "arr".
+    // Return the index when searching succeeded, or return -1 when failed.
+    // This is the implementation in an early version of the "java.util.Arrays"
+    int binarySearch(int[] arr, int target){
+        int low = 0;
+        int high = arr.length - 1;
+
+        while(low <= high){
+            int middle = (low + high)/2;
+
+            if(arr[middle] == target)
+                return middle;
+
+            if(arr[middle] > target)
+                high = middle - 1;
+            else
+                low = middle + 1;
+        }
+        return -1;
+    }
+</pre>
+<div class="question">
+    <b>Exercise 3:</b> In this exercise, you're required to find
+    the bug about the integer overflow in the Java code
+    showing above and using z3's bit-vector to reproduce the bug.
+    You can start with the code <samp>bit_vectors.py</samp> we
+    provide you. To compute the correct result of integer average,
+    we've given a correct function <samp>int_average_correct()</samp>
+    and a checking function <samp>check_average()</samp>, to check whether
+    or not a given input function "f" that your provide is correct.
+</div>
+<div class="question">
+    <b>Exercise 4:</b> Read the code
+    <pre>
+        check_average(int_average_v1, True)
+    </pre>
+    to check whether the function <samp>int_average_v1()</samp>
+    we give in the <samp>bit_vectors.py</samp> Python file is correct.
+    Does Z3 complain? Why or why not?
+</div>
+<p>
+    Given a Java source code which accepts two parameters, that
+    is provided by z3 after running the function <samp>check_average()</samp>:
+</p>
+<pre>
+    public class IntAverage {
+        public static void main(String[] args) {
+            String x = args[0];
+            String y = args[1];
+
+            int_average(Integer.parseInt(x), Integer.parseInt(y));
+        }
+
+        private static int int_average(int x, int y) {
+            int z = (x + y) / 2;
+            assert z >= 0 : "Generating a integer overflow bug!";
+            return z;
+        }
+    }
+</pre>
+
+<div class="question">
+    <b>Exercise 5:</b> We build the Java source code into a Jar
+    and provide a python function <samp>invoke_java_int_average</samp>
+    in the <samp>bit_vectors.py</samp> to automatically get the z3's
+    output and invoke this Jar. Run the code, and what's your
+    observation? What conclusion you can draw from this code.
+</div>
+<p>
+    Joshua J. Bloch proposed the following solution to solve integer
+    overflow problem：
+</p>
+<pre>
+    def int_average_v2(x, y):
+        return x + (y-x)/2
+</pre>
+<div class="question">
+    <b>Exercise 6:</b> Read the code in the <samp>bit_vectors.py</samp>,
+    and to check whether the above function is correct.
+    Does Z3 complain? Why or why not?
+</div>
+<p>
+    Joshua J. Bloch proposed a second solution to solve integer
+    overflow problem:
+    $$
+    (x+y) \ggg 1 \tag{A1}\label{A1}
+    $$
+</p>
+<div class="question">
+    <b>Exercise 7:</b> Complete the function <samp>int_average_v3()</samp>
+    which implement formula \(\eqref{A1}\) in the <samp>bit_vectors.py</samp> file,
+    (note that \(\ggg\) means logical right shift).
+</div>
+<p>
+    In the function <samp>int_average_v3()</samp>, we only provide bit
+    vectors which are all non-negation, and what will happen,
+    if we provided negation bit vectors.
+</p>
+<div class="question">
+    <b>Exercise 8:</b> Read the code in the <samp>bit_vectors.py</samp>,
+    and to check whether the function <samp>int_average_v3()</samp>
+    is correct. Does Z3 complain? Why or why not?
+</div>
+<p>
+    How to write a correct function, which takes as input
+    two bit vectors <samp>x</samp> and <samp>y</samp>, to compute the
+    average of two arbitrary integers (negative or non-negative)?
+</p>
+<div class="question">
+    <b>Exercise 9</b>: In this exercise,
+    you're required to write a function <samp>int_average(x, y)</samp>,
+    which takes as input two bit vectors <samp>x</samp> and <samp>y</samp>,
+    to compute the average of two arbitrary integers
+    (negative or non-negative). You can start with
+    the code <samp>bit_vectors.py</samp> we provide you. Note that
+    we have given you, in that code, a correct implementation
+    of the integer average, you can read it for some idea, but
+    you must write you own code, and don't copy the version
+    we provide.
+    <br>
+    <br>
+    Hint 1: this exercise is harder than you may imagine, you may want to
+    search online for the correct implementation of average on fix-width
+    integers. For instance, you can refer to the
+    <a href="../../ref/hacker-delight.pdf">Hacker's Delight book</a> (page 9, section
+    2.5) by Henry S. Warren (this is a very good book containing many
+    delighting programming tricks).
+</div>
+
+<p>
+    Integer overflows are a notorious source of bugs and are very difficult to
+    debug. Read the following C code:
+</p>
+<pre>
+    int myfunction(int *array, int len){
+        int *arr, i;
+
+        arr = malloc(len * sizeof(int));    /* [1] */
+        if(arr == NULL){
+            return -1;
+        }
+
+        for(i = 0; i < len; i++){              /* [2] */
+            arr[i] = array[i];
+        }
+
+        return arr;
+    }
+</pre>
+<p>
+There is an Integer overflow bug at [1], which will cause buffer overflow at [2].
+</p>
+
+<div class="question">
+    <b>Exercise 10</b>: Explain to yourself why there exists an
+    integer overflow bug at [1], and why it triggers a buffer
+    overflow at [2]. Then read the <samp>multi_overflow()</samp> method in
+    <samp>bit_vectors.py</samp> Python file,
+    to understand how we can use Z3 to justify the existence of
+    overflows. You don't need to write any code in this exercise.
+</div>
+
+As we have shown, Z3 is powerful enough to detect such integer overflows. The idea is to
+model this program using Z3, and asks Z3 whether some tricky constraints
+can be satisfied.
+
+<div class="question">
+    <b>Exercise 11</b>: Read the code in <samp>bit_vectors.py</samp>,
+    complete the <samp>multi_with_overflow()</samp> which has the capability
+    to detect overflows.
+</div>
+
+<p>
+    In the class, we discussed the famous
+    <a href="https://en.wikipedia.org/wiki/Fermat%27s_Last_Theorem">
+    Fermat's Last Theorem</a>, which states
+    the equation:
+    $$
+    x^n + y^n = z^n
+    $$
+    has no integer solution for <samp>n>=3</samp>. With aid of computers, for any given <samp>n</samp>, we
+    can enumerate all possible values for <samp>x</samp>, <samp>y</samp>
+    and <samp>z</samp>, and to check whether the equation helds. Although due to the limited computing
+    resources of modern computer, we can not verify this equation for any <samp>n</samp>, however, we
+    can at least verify the equation for large enough <samp>x</samp>, <samp>y</samp>
+    and <samp>z</samp>. And this at least give us more evidence that this theorem does not have
+    solution. (Of course, if we do find a solution, then we have proved Fermat's Last
+    Theorem does not hold at all.)
+</p>
+
+<div class="question">
+    <b>Exercise 12</b>: Read the code in <samp>bit_vectors.py</samp>, and finish the constraint
+    generation function <samp>fermat(x, y, z, n)</samp> for any n. For n==3, how long does your
+    program run to obtain the result?
+</div>
+
+<div class="challenge">
+    <i>Challenge</i>: So far, we use Z3py's API to solve problem related to
+    bit vector theory. In this part of the assignment, we'll implement the
+    bit-blasting algorithm, as described in the class.
+    First, let's define the basic data structures to represent
+    bit vector syntax:
+    <pre>
+    E ::= c | x | E&E | E|E | ~E
+    R ::= E=E | E!=E
+    P ::= R | P/\P
+    </pre>
+    Read the <samp>bit_blast.py</samp> Python file, complete the missing code
+    to implement the bit-blasting algorithm.
+</div>
+
+<hr>
+<h2>Part B: Arrays</h2>
+<p>
+    Z3 has a very rich set of operations for arrays, you can
+    refer to the
+    <a href="https://z3prover.github.io/api/html/namespacez3py.html">
+    official APIs</a>.
+    For your convenience,
+    here is a table containing most operations:
+</p>
+<table border="1" style="text-align: center">
+    <tr>
+        <td>
+            Definition
+        </td>
+        <td>
+            Operations
+        </td>
+        <td>
+            Sample code
+        </td>
+    </tr>
+    <!-- arithmetic operations -->
+    <tr>
+        <td>
+            Store a value into array:
+        </td>
+        <td>
+            Store
+        </td>
+        <td>
+            Store(Array, index , value)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Get a value from array:
+        </td>
+        <td>
+            Select
+        </td>
+        <td>
+            Select(Array, index)
+        </td>
+    </tr>
+</table>
+<p>
+    In the following, you'll often need to refer to
+    this table when necessary.
+</p>
+<p>
+    In order to formulate a programme of a mathematical theory for computation,
+    McCarthy proposed a basic theory of arrays as characterized by the
+    select-store axioms. The expression
+    $$
+    Select(A, i) \tag{B1}\label{B1}
+    $$
+    returns the value stored
+    at position \(i\) of the array \(A\); and the expression
+    $$
+    Store(A, i, v) \tag{B2}\label{B2}
+    $$
+    returns a new array identical to the original array \(A\), except for
+    on position \(i\) it contains the value \(v\). In
+    Z3Py, we can write expression \(\eqref{B1}\) as <samp>Select(Array, index)</samp> or
+    <samp>Array[i]</samp>, and  write  expression \(\eqref{B2}\) as
+    <samp>Store(Array, index, value)</samp>.
+</p>
+
+<p>
+    Now look at the following code:
+</p>
+<pre>
+    # Use I as an alias for IntSort()
+    I = IntSort()
+    # A is an array from integer to integer
+    A = Array('A', I, I)
+    x = Int('x')
+    print(A[x])
+    print(Select(A, x))
+    print(Store(A, x, 10))
+    print(simplify(Select(Store(A, 2, x+1), 2)))
+</pre>
+
+<div class="question">
+    <b>Exercise 13</b>: Read the code above and run the <samp>array_test()</samp>
+    method it in <samp>array.py</samp>, try to get familiarize yourself with
+    the basic usage of Array in Z3. For more details, you may want to
+    refer to the official
+    <a href="https://z3prover.github.io/api/html/classz3py_1_1_array_ref.html">
+        ArrayRef
+    </a>
+    documents.
+</div>
+
+<p>
+    In class, we've discussed the formula:
+    $$
+    Store(A, i, x)[i] \ge x \tag{B3}\label{B3}
+    $$
+    In order to validate it, we can make use of the array support
+    in Z3 directly.
+</p>
+
+<div class="question">
+    <b>Exercise 14</b>: Complete the missing code of <samp>array_proof()</samp> method
+    in the <samp>array.py</samp> Python file, make it can prove formulae \(\eqref{B3}\)
+</div>
+
+<p>
+    In class, we also discussed the array property, which poses some
+    restrictions on the possible shape of index, etc. One implication
+    of the array property is that some array formulae are undecidable. For
+    instance, the formulae like the following
+    $$
+    Store(A, i*i - i*i, x)[0] \ge x \tag{B4}\label{B4}
+    $$
+    is undecidable, as it contain non-linear arithmetic. In general,
+    for such formulae, Z3 may not solve it and will return the result
+    <samp>unknown</samp>.
+</p>
+
+<div class="question">
+    <b>Exercise 15</b>: Read the <samp>array_non_linear_proof()</samp> method in
+    <samp>array.py</samp> Python file. Try to convert formulae \(\eqref{B4}\) into
+    a Z3 constraint and investigate the output. Is the result <samp>unknown</samp>?
+    Explain your observation.
+</div>
+<p>
+    In the class, we've discussed that the array interfaces can be
+    implemented by reducing these interfaces to functions.
+    To understand this, you'll implement a small array module
+    by using anonymous function: lambdas, in Python.
+</p>
+<div class="question">
+    <b>Exercise 16</b>: Read the <samp>lambda_array()</samp> method in
+    <samp>array.py</samp> Python file. The <samp>lambda_array()</samp> method
+    implemented an array interface using lambda (function) by 3 APIs:
+    <ol>
+        <li><samp>array_new()</samp>: create a new array</li>
+        <li><samp>array_select()</samp>: array reading</li>
+        <li><samp>array_store()</samp>: array writing</li>
+    </ol>
+    complete the missing code in <samp>array_store()</samp> method.
+</div>
+
+
+<div class="challenge">
+    <i>Challenge</i>: So far, we use Z3py's API to solve problem related to
+    array theory. In this part of the assignment, we'll implement the
+    array elimination algorithm, as described in the class.
+    First, let's define the basic data structures to represent
+    the array syntax:
+    <pre>
+    E ::= c | x | select(E, E) | update(E, E, E)
+    R ::= E = E | E != E
+    P ::= R | P/\P
+    </pre>
+    Read the <samp>array_elim.py</samp> Python file, complete the missing code
+    to implement the array elimination algorithm.
+</div>
+
+
+<hr>
+<h2>Part C: Pointers</h2>
+<p>
+    Z3 hasn't built-in support for pointer structure. In this part, we'll design
+    and implement a translator which converts pointer logic into EUF and
+    array problem. After translation, we can use Z3 to solve the target formulae.
+</p>
+
+<p>
+    Before implementing the translator, we need to design the structure of pointer
+    logic first. Recall the syntax of pointers we mentioned in the lecture is:
+</p>
+<pre>
+    T ::= x | T + E | &x | &*T | *T | NULL
+    E ::= x | n | E + E | E - E | *T
+    R ::= T = T | T < T | E = E | E < E
+    P ::= R
+        | ~R
+        | P ∧ P
+</pre>
+<div class="question">
+    <b>Exercise 17:</b> Read the code in <samp>pointer.py</samp>, try to
+    understand how to represent the above syntax using Python. And
+    finished <samp>count_stars()</samp> method which count amount of star symbols (*)
+    in our pointer logic. Test your implementation by the unit test provided.
+</div>
+
+<p>
+    Next step is the translating procedure, The basic idea is to eliminate
+    pointers
+    by encoding their semantics using the store <samp>S</samp> and the heap <samp>H</samp>.
+    We'll be using the semantics of pointers discussed in the lecture to do the
+    elimination.
+    Here are the rules to eliminate a pointer \(T\):
+    $$
+    \begin{align*}
+    [\![x]\!]   &= H(S(x)) \\
+    [\![T + E]\!] &= [\![T]\!] + [\![E]\!] \\
+    [\![\&x]\!] &= S(x) \\
+    [\![\&*T]\!] &= [\![T]\!] \\
+    [\![*T]\!] &= H([\![T]\!]) \\
+    [\![{\tt NULL}]\!] &= 0
+    \end{align*}
+    $$
+    Here are the rules to eliminate an expression \(E\):
+    $$
+    \begin{align*}
+    [\![n]\!]   &= n \\
+    [\![x]\!]   &= H(S(x)) \\
+    [\![E + E]\!] &= [\![E]\!] + [\![E]\!] \\
+    [\![E - E]\!] &= [\![E]\!] - [\![E]\!] \\
+    [\![*T]\!] &= H([\![T]\!])
+    \end{align*}
+    $$
+    
+    Here are the rules to eliminate a relation \(R\):
+    $$
+    \begin{align*}
+    [\![E = E]\!] &= [\![E]\!] = [\![E]\!] \\
+    [\![E < E]\!] &= [\![E]\!] < [\![E]\!] \\
+    [\![T=T]\!] &= [\![T]\!] = [\![T]\!] \\
+    [\![T < T]\!] &= [\![T]\!] < [\![T]\!]
+    \end{align*}
+    $$
+    
+    And finally, here are the rules to eliminate a proposition \(P\):
+    $$
+    \begin{align*}
+    [\![P \land Q]\!] &= [\![P]\!] \land [\![Q]\!] \\
+    [\![\neg R]\!] &= \neg [\![R]\!]
+    \end{align*}
+    $$
+</p>
+<p>
+    For instance, the formulae:
+    $$
+        ((p = \&a) \land (a = 1)) \to (*p = 1)
+    $$
+    will be translated into the following EUF (with application ->, but
+    does not matter):
+    $$
+        (H(S(p)) = S(a)) \land (H(S(a)) = 1) \to (H(H(S(p))) = 1),
+    $$
+    where the \(H\) and \(S\) are uninterrupted functions.
+    The uninterrupted functions are decided by the memory model we use.
+    In exercise 8, we assume that the heap <samp>H</samp> only contains the
+    <samp>Integer</samp> type, and the address is also of <samp>Integer</samp> type.
+    So, the uninterrupted functions \(H\) and \(S\) can be defined in z3:
+</p>
+<pre>
+    S = Function("S", IntSort(), IntSort())
+    H = Function("H", IntSort(), IntSort())
+</pre>
+
+<div class="question">
+    <b>Exercise 18:</b> Based on the semantics of pointers logic above,
+    finish the <samp>to_z3()</samp> methods in the
+    file <samp>pointer.py</samp> to generate Z3 constraints.
+    Test your implementation by the unit test provided.
+</div>
+
+<p>
+    To simplify the problem, our implementation assumes that the heap
+    <samp>H</samp> only
+    contains <samp>Integer</samp> type, and we represent memory address
+    using <samp>Integer</samp> type, though simple and enough to model
+    many practical problem, this model is a little bit coarse.
+    To model practical memory more accurately, we can design
+    a fine-grained
+    memory model, thus we can reason more fancy properties of the memory.
+</p>
+
+<div class="challenge">
+    <i>Challenge: </i> Try to implement pointer logic which variables can
+    take difference
+    types. We can partition the heap <samp>H</samp> into at least three
+    regions: address's heap,
+    real number's heap, integer number's heap, with each partition storing
+    variables of different types. You can start with the code in <samp>pointer.py</samp>,
+    or you can write your own code from scratch.
+</div>
+
+
+<br>
+<hr>
+<p>
+    This completes this lab. Remember to zip you homework with file
+    name <samp>&lt;ID&gt;-lab-6.zip</samp> (e.g., <samp>SA19225789-lab-6.zip</samp>),
+    and submit it to
+    <a href="https://bb.ustc.edu.cn/">USTC Online Teaching Platform
+    </a>.
+</p>
+<p>
+    Happy hacking!
+</p>
+</body>
+
+</html>
