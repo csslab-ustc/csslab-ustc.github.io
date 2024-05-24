@@ -104,28 +104,26 @@
     in the next lab). For example, an addition
     instruction may look like:
 </p>
-<pre><code>addq %y, %x</code></pre>
+<pre><code>addq %y, %x   // %x = %x + %y</code></pre>
 <p>
     where both <code>%x</code> and <code>%y</code> are
     variables yet to be allocated to registers.
     Hence, an assembly instruction in this phase
-    looks like a function mapping variables to
+    can be treated as a function mapping variables to
     a concrete assembly instruction string in which
     pseudo-registers substituted by physical registers.
-    For example, if we can determine this mapping:
+    For example, if we can determine this allocation:
 </p>
-<pre class="code">
-    %x -> %rax
-    %y -> %rbx
-</pre>
+<pre><code>[%x -> %rax, %y -> %rbx]</code></pre>
 <p>
     Then the aforementioned instruction can be converted into:
 </p>
 <pre><code>addq %rbx, %rax</code></pre>
 <p>
     With this key insight, we can encode an assembly instruction
-    using a higher-order function, with the varying components
-    as arguments. To be specific,
+    using a higher-order function taking varying components
+    (i.e., variables)
+    as arguments. Specifically,
     we will use a &lambda; taking the variables as parameters
     to concatenate the final assembly string.
     Consider the above example, its &lambda; encoding
@@ -138,12 +136,12 @@
     we put two arguments for a &lambda;, one for the
     variable uses and the other one for the defs.
     With this elaboration, the above instruction can be
-    encoded by a two-argument &lambda;:
+    encoded by the following two-argument &lambda;:
 </p>
 <pre><code>&lambda;([%x, %y], [%x]).(addq %y, %x)</code>
 </pre>
 <p>
-    where <code>[%x, %y]</code> are uses, and <code>[%y]</code>
+    where <code>[%x, %y]</code> are uses, and <code>[%x]</code>
     is def.
 </p>
 <div class="required">
@@ -160,13 +158,14 @@
 <p>
     In this part of the lab, you will implement
     an object layout algorithm to determine the layout
-    of each object. To be specific, this algorithm performs
-    two tasks. First, for a class, it will
-    determine the size of that class as well as its virtual
-    method table.
+    of each object, consisting of
+    two sub-algorithms. First, for a class, your algorithm will
+    determine the total size of that class as well as the layout
+    of its virtual method table.
     Second, for an object,
-    the algorithm will determine the layout of its virtual method table
-    pointer as well as the offset for each of its field.
+    the algorithm will determine the layout of its containing
+    fields, including implicit fields such as the virtual method table
+    pointer.
 </p>
 
 <p>
@@ -177,12 +176,12 @@
 
 <div class="required">
     <span class="header">Exercise 2.</span>
-    Read the code in the file <code>codegen/Layout.java</code>
-    to understand the layout algorithm.
-    Extend this algorithm to calculate offsets for each field in
-    a class, respectively.
-    For simplicity, you should treat the size of an MiniJava
-    integer as 8, which is the same as a reference (pointer).
+    Finish the code in the file <code>codegen/Layout.java</code>
+    to calculate the size of a class as well as offsets
+    for each field in a class, respectively.
+    For simplicity, you can treat the size of an MiniJava
+    integer (i.e., type <code>int</code>) as 8,
+    which is the same as a reference (pointer).
 </div>
 
 <!-- part C -->
@@ -199,19 +198,21 @@
 <div class="required">
     <span class="header">Exercise 3.</span>
     Fill in the code in the file <code>codegen/Munch.java</code>,
-    to select x64 instructions for remaining features in the CFG.
-    After finishing this exercise, you Tiger compiler should
-    generate X64 assembly for all MiniJava programs, do not
-    forget to test your compiler before continuing.
+    to select x64 instructions for statements in the CFG.
 </div>
 
 <h3>Calling Convention</h3>
 <p>
-    A calling convention specifies how arguments are passed from
-    a caller to a callee and how return values are passed
-    from a callee to a caller.
-    Tiger's current implementation for the x64 calling
-    convention in incomplete, it only supports at most 6 arguments.
+    A calling convention specifies how arguments and returned
+    values are passed between a callee and a caller.
+    Before implementing the calling convention for X64,
+    You should first get familiarized yourself with
+    <a href="https://gitlab.com/x86-psABIs/x86-64-ABI/-/jobs/artifacts/master/raw/x86-64-ABI/abi.pdf?job=build">
+        the X64 ABI</a> (Section 3.2).
+    As MiniJava only has 64-bits integers and references, so
+    make sure to answer these questions: 1) how arguments
+    are passed from the caller to the callee? 2) how returned
+    values are passed from the callee to the caller
 </p>
 
 <div class="required">
@@ -221,6 +222,47 @@
     compiler can compile programs with arbitrary number
     of arguments.
 </div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    The <a href="https://en.wikipedia.org/wiki/Red_zone_(computing)">red-zone</a>
+    is a special area on the stack frame.
+    Propose your strategy to exploit the red-zone, to
+    improve efficiency of the generated code.
+    Implement your idea into your Tiger compiler.
+</div>
+
+<h3>Prologue and Epilogue</h3>
+<p>
+    A <a href="https://en.wikipedia.org/wiki/Function_prologue_and_epilogue">
+    function prologue</a> is a fragment of assembly code
+    at the beginning of
+    a function, which prepare the call stack and registers for
+    use within the function. Similarly, a function epilogue
+    appears at the end of the function, and restores the stack
+    and registers to the state they were in before the function
+    was called.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Implement function prologue and epilogue for Tiger.
+    You can treat the size of the function frame as 0
+    (which will be determined by the register allocator
+    in the next lab).
+    To keep things simple, you can save all callee-saved
+    registers in the prologue and restore them in the epilogue,
+    regardless of whether the variable is used in the callee.
+    Furthermore, your Tiger compiler can always use <code>%rbp</code>
+    as the stack frame base pointer.
+</div>
+
+<p>
+    To this point, you Tiger compiler should
+    generate X64 assembly for all MiniJava programs.
+    Do not forget to test your compiler before continuing.
+</p>
+
 
 <hr/>
 <h2>Hand-in</h2>
