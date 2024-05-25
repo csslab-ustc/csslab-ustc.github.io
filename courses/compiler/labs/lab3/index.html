@@ -19,14 +19,17 @@
     you designed.
 </p>
 <p>
-    This lab consists of three parts: first, in part A, you
+    This lab consists of four parts.
+    In part A, you
     will design and implement a specific intermediate representation:
     a <a href="https://en.wikipedia.org/wiki/Control_flow_graph">control-flow graph</a>
     (CFG).
-    Second, in part B, you will eliminate the object-oriented features
+    In part B, you will eliminate the object-oriented features
     in MiniJava by using a prefixing algorithm.
-    Finally, in part C, you will implement a translator to lower
+    In part C, you will implement a translator to lower
     down the abstract syntax tree to the control-flow graph.
+    Finally, in part D, your will design and implement several
+    classical program analysis and optimizations for CFG.
 </p>
 
 
@@ -59,8 +62,8 @@
     $ <kbd>git commit -am 'lab3 init'</kbd>
 </pre>
 <p>
-    You should first import the new Lab5 code into
-    your Eclipse editor, and make sure the code compiles. There
+    You should first import the new Lab3 code into
+    your editor, and make sure the code compiles. There
     are a bunch of new files that you
     should browse through:
 </p>
@@ -94,32 +97,31 @@
 
 <h3>Data Structures</h3>
 <p>
-    In this part of the lab, you will familiarize yourself
-    with data structures defining the control-flow
-    graph representation. In this lab, you will
-    need to extend these data structures to support other features
-    in MiniJava.
+    In this part of the lab, you will first design
+    data structures defining the control-flow
+    graph.
 </p>
 
 <div class="required">
     <span class="header">Exercise 1.</span>
     Read the code in <code>cfg/Cfg.java</code>, make sure you understand
     the Java code defining CFG data structures we offered you.
-    To gain more ideas about its structure, you might compile the test
-    case we provide.
-    For example,
-    you can compile the test case <code>test/SumRec.java</code> to
-    inspect the generated CFG:
-    <pre>
-        $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
-          -trace cfg.Translate.translate</kbd></pre>
     Your job is to extend the CFG
     data structure to support all language
     features of MiniJava. You can work iteratively, that is,
-    you can continue to the following
+    you can continue to the subsequent
     exercises, and go back to extend the CFG data structure when necessary.
 </div>
+<p>
+    To inspect the generated data structure, you might compile the test
+    case we provide. For example,
+    you can compile the test case <code>test/SumRec.java</code> to
+    inspect the generated CFG:
+</p>
 
+<pre>
+    $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
+    -trace cfg.Translate.doitProgram</kbd></pre>
 <p>
     It is often important to measure the sizes of
     the generated CFG, which reflects the memory occupation.
@@ -139,14 +141,13 @@
     basic blocks, and statements. The output might
     consist of a list of triples &lt;methodNam, nBlock, nStms&gt;.
     For example, the following output
-    <pre class="output">
-        &lt;#methods, #blocks, #statements>
-        ---------------------------------
-        <"f1", 5,  300>
-        <"g",  30, 400>
-        ...
-        ---------------------------------
-        subtotal 140, 25000</pre>
+    <pre class="output">&lt;#methods, #blocks, #statements>
+---------------------------------
+<"f1", 5,  300>
+<"g",  30, 400>
+...
+---------------------------------
+subtotal 140, 25000</pre>
     specifies the method <code>f1</code> has
     5 basic blocks and 300 statements, whereas the method
     <code>g</code> has 30 basic blocks and 400 statements, and
@@ -182,14 +183,12 @@
     on your machine. Do not forget to add it to your PATH.
     To make sure you have installed graphviz correctly, you can
     run the following command on your prompt:
-    <pre>
-        $ <kbd>dot --help</kbd></pre>
-    <pre class="output">
-        Usage: dot [-Vv?] [-(GNE)name=val] [-(KTlso)&lt;val>] &lt;dot files&gt;
-        (additional options for neato)    [-x] [-n&lt;v&gt;]
-        (additional options for fdp)      [-L(gO)] [-L(nUCT)&lt;val&gt;]
-        (additional options for config)  [-cv]
-        ...</pre>
+    <pre>$ <kbd>dot --help</kbd></pre>
+    <pre class="output">Usage: dot [-Vv?] [-(GNE)name=val] [-(KTlso)&lt;val>] &lt;dot files&gt;
+(additional options for neato)    [-x] [-n&lt;v&gt;]
+(additional options for fdp)      [-L(gO)] [-L(nUCT)&lt;val&gt;]
+(additional options for config)  [-cv]
+...</pre>
     Also, you can take a look at
     <a href="https://graphviz.org/Documentation.php">its manual</a>,
     if you are interested in.
@@ -206,9 +205,7 @@
     Finish the code <code>dot()</code> in the file
     <code>cfg/Cfg.java</code>, to visualize
     each function. You can run the test case <code>test/SumRec.java</code>:
-    <pre>
-        $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
-          -dot cfg</kbd></pre>
+    <pre>$ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java -dot cfg</kbd></pre>
     to draw a sample CFG. Your task is to extend the <code>dot()</code>
     to draw statements and transfers in each block besides block labels.
 </div>
@@ -285,14 +282,15 @@
 <h2>Part C: CFG Generation</h2>
 <p>
     The CFG generation phase generates a CFG representation
-    for the given abstract syntax tree. The generation uses a
+    for the given abstract syntax tree. The generation makes
+    use of a
     recursive-decedent algorithm.
 </p>
 <div class="required">
     <span class="header">Exercise 8.</span>
     Finish the methods
-    <code>transMethod()</code>, <code>transStm()</code>, and
-    <code>transExp()</code>, to translate a given method, statement, and
+    <code>doitMethod()</code>, <code>doitStm()</code>, and
+    <code>doitExp()</code>, to translate a given method, statement, and
     expression to its corresponding CFG representation, respectively.
 </div>
 
@@ -303,31 +301,16 @@
     Fix any bugs before continuing.
 </p>
 
-
+<!-- part D -->
 <hr/>
-<h2>Part D: CFG-based Optimizations</h2>
-<p>
-    Compiler optimizations are program transformations making
-    the target programs better. The criterion for "better" depends
-    on the optimization goals including but not limited to
-    smaller code size, more efficiency, lower power consumptions.
-    Generally
-    speaking, a compiler optimization consists of two phases:
-    <a href="https://en.wikipedia.org/wiki/Program_analysis">program
-        analysis</a> and program rewriting. The program analysis phase
-    analyzes the target program being optimized to calculate useful
-    static information to approximate the program's dynamic
-    behavior. And program rewriting phase
-    rewrites the program being optimized, using the static
-    information calculated from the first phase.
-</p>
+<h2>Part D: CFG-based Program Analysis and Optimizations</h2>
 <p>
     In this part of the lab, you will familiarize yourself
-    with compiler optimizations by writing several classical program
+    with program analysis and compiler optimizations by
+    writing several classical program
     analysis (e.g., liveness analysis, reaching definitions, available
     expressions), and optimizations (e.g., constant propagation,
-    copy propagation, dead code elimination). Hence, you will not
-    only gain deeper understanding about
+    copy propagation, dead code elimination).
 </p>
 
 <p>
@@ -363,11 +346,25 @@ data_flow_analysis()
     each basic block in a reverse topo-sort order.
     But for other data-flow analysis, these details may be different.
 </p>
+
 <div class="required">
     <span class="header">Exercise 9.</span>
     Finish the liveness analysis code in the source file
     <code>cfg/Liveness.java</code> by implementing the
     aforementioned algorithm.
+</div>
+
+<p>
+    A particularly interesting application of liveness
+    analysis is to detect uninitialized variables.
+    An uninitialized variable is used before assigned a value,
+    which always indicate some kind of programming errors.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 10.</span>
+    Design and implement an algorithm to detect uninitialized
+    variables, by leveraging the results of liveness analysis.
 </div>
 
 <h3>Dead-code Elimination</h3>
@@ -378,7 +375,7 @@ data_flow_analysis()
     removed.
 </p>
 <div class="required">
-    <span class="header">Exercise 10.</span>
+    <span class="header">Exercise 11.</span>
     Finish the dead code elimination in
     <code>cfg/DeadCode.java</code> by implementing the
     aforementioned algorithm. You should avoid the pitfalls
@@ -395,7 +392,7 @@ data_flow_analysis()
     definition analyzes which definition can reach a given use.
 </p>
 <div class="required">
-    <span class="header">Exercise 11.</span>
+    <span class="header">Exercise 12.</span>
     Implement the reaching definition analysis
     <code>cfg/ReachDef.java</code>, as described
     in Table 17.2 of the Tiger book.
@@ -418,7 +415,7 @@ data_flow_analysis()
     the constant <code>c</code>.
 </p>
 <div class="required">
-    <span class="header">Exercise 12.</span>
+    <span class="header">Exercise 13.</span>
     Finish the constant propagation code in the file
     <code>cfg/ConstProp.java</code>. Note that to this point, the
     Tiger compiler will perform all these analysis and optimizations
@@ -439,7 +436,7 @@ data_flow_analysis()
     the statement s, with the variable <code>m</code> from the statement t.
 </p>
 <div class="required">
-    <span class="header">Exercise 13.</span>
+    <span class="header">Exercise 14.</span>
     Finish the constant propagation code in the file
     <code>cfg/CopyProp.java</code>.
 </div>
@@ -453,7 +450,7 @@ data_flow_analysis()
     is available here.
 </p>
 <div class="required">
-    <span class="header">Exercise 14.</span>
+    <span class="header">Exercise 15.</span>
     Finish the available expression analysis in the file
     <code>cfg/AvailExp.java</code>.
 </div>
@@ -477,57 +474,7 @@ data_flow_analysis()
 <li>topo-sort
 <li>set representation
 </ul>
-
-<h3>Data-flow Equations</h3>
-<p>
-    Liveness analysis has many important applications in compilers
-    besides optimizations. In this part
-    of the lab, you will implement another important application
-    of liveness analysis: precise garbage collection.
-</p>
-<p>
-    In order to perform a much precise garbage collection, we can
-    introduce the concept of <em>safe points</em>: positions
-    which are safe to emit GC stack frames. Because the MiniJava
-    language you
-    are compiling is single-threaded, so the safe points are
-    function invocations (including constructor invocations). The basic
-    idea is to emit different GC stack frames before each function
-    invocation, and each GC stack frame only contains the live
-    references at that point (that is: the live in set of that
-    function invocation). To better understand this, consider the
-    code fragment above, you can generate two different GC stack
-    frame for the two method invocations, like this:
-</p>
-<pre>
-  A f (){
-    A x, y;
-    // generate the first frame (empty):  {}
-    x = new A();
-    // generate the second frame: {y}
-    y = new A();
-    return y;
-  }
-</pre>
-<p>
-    As you can see, the reference <code>x</code> will not appear
-    in any GC frame at all.
-</p>
-<div class="required">
-    <span class="header">Exercise 16.</span>
-    Port your Gimple garbage collector to control-flow graph to do
-    precise garbage collection. You should calculate the live
-    in set for each method invocation and generate GC frame
-    based on that.
-</div>
-<div class="required">
-    <span class="header">Exercise 17.</span>
-    In the above code, the variable <code>x</code> is never used. So
-    can we do dead code elimination to remove the assignment statement
-    to <code>x</code>?
-</div>
 -->
-
 
 <hr/>
 <h2>Hand-in</h2>
@@ -542,6 +489,28 @@ data_flow_analysis()
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
