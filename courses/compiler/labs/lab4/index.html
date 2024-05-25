@@ -232,30 +232,6 @@
     Implement your idea into your Tiger compiler.
 </div>
 
-<h3>Prologue and Epilogue</h3>
-<p>
-    A <a href="https://en.wikipedia.org/wiki/Function_prologue_and_epilogue">
-    function prologue</a> is a fragment of assembly code
-    at the beginning of
-    a function, which prepare the call stack and registers for
-    use within the function. Similarly, a function epilogue
-    appears at the end of the function, and restores the stack
-    and registers to the state they were in before the function
-    was called.
-</p>
-
-<div class="required">
-    <span class="header">Exercise 5.</span>
-    Implement function prologue and epilogue for Tiger.
-    You can treat the size of the function frame as 0
-    (which will be determined by the register allocator
-    in the next lab).
-    To keep things simple, you can save all callee-saved
-    registers in the prologue and restore them in the epilogue,
-    regardless of whether the variable is used in the callee.
-    Furthermore, your Tiger compiler can always use <code>%rbp</code>
-    as the stack frame base pointer.
-</div>
 
 <p>
     To this point, you Tiger compiler should
