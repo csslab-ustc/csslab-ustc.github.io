@@ -38,12 +38,12 @@ Invokeinterface Considered Harmless
   }
   
   this problem involves search "foo" in the object "a", however,
-  for any class implements "I", the offset of "foo" maybe different,
+  for any class implements "I", the offset of "foo" may be different,
   so this searching is inefficient
   [draw a figure of method searching here]
   
 * Interface table (section 4.1)
-  the first idea is to cook an interface object here
+  the first idea is to attach an interface object here
   [draw a figure of interface object here]
   
   thus, by attaching an interface table (itable), interface
