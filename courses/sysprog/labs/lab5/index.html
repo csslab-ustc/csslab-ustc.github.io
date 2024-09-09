@@ -52,11 +52,11 @@
 
 <hr />
 
-<h2>Part A: RPC</h2>
+<h2>Part A: Remote Procedure Calls (RPC)</h2>
 
 <p>
-    Remote procedure call is a communications protocol that 
-    allows a program to call a program or service on another 
+    Remote procedure calls are communications protocols
+    allowing a program to call a program or service on another
     computer on a network. It allows us to execute a function 
     on one machine and the function actually runs on another 
     machine and returns the result. This mechanism is particularly 
@@ -66,7 +66,7 @@
 
 <h3>1. Software Setup</h3>
 <p>
-    gorpc is an RPC framework written in Go language, providing
+    <samp>gorpc</samp> is an RPC framework written in Go language, providing
     a simple API that makes it easy to integrate RPC functionality
     into Go projects. gorpc utilizes efficient serialization and
     deserialization methods, as well as optimized network communication
@@ -74,11 +74,11 @@
     gorpc supports a variety of transport protocols and serialization formats.
 </p>
 <p>
-    To use GoPRPC, you first need to install the Go language 
+    To use GoRPC, you first need to install the Go language
     in your environment:
     <pre>
-    css-lab@tiger:~$ <kbd>sudo apt-get install golang</kbd>
-    css-lab@tiger:~$<kbd>go version</kbd>
+    css-lab@tiger:~$ <kbd>sudo apt install golang</kbd>
+    css-lab@tiger:~$ <kbd>go version</kbd>
     go version go1.18.1 linux/amd64
     </pre>
     If you see the above information, the installation is successful.

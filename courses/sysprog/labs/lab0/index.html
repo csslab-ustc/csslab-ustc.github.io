@@ -31,7 +31,7 @@
     name <samp>student ID-lab-&lt;n&gt;.zip</samp>
     (e.g., <samp>SA19225789-lab-0.zip</samp>)
     and submit it to the
-    <a href="http://yjs.ustc.edu.cn/">Postgraduate Information Platform</a>.
+    <a href="https://bb.ustc.edu.cn/">online teaching platform</a>.
 </p>
 
 <p>
@@ -41,8 +41,10 @@
 <hr>
 <h2>Part A: Installing Linux</h2>
 <p>
-    All labs in this course must be finished using a
-    Linux system, and we will be using Ubuntu for our lab.
+    We will be using Linux for our lab.
+    In particular, we will use a specific
+    distribution, Ubuntu, as our platform,
+    while other Linux distributions might also be feasible.
     In this part, you should install Linux first, if you have not.
 </p>
 
@@ -98,10 +100,10 @@ pause
 </p>
 
 
-<h3>2: Mac (x86) or Linux</h3>
+<h3>2: Mac or Linux</h3>
 <p>
     Download and install <a href="https://multipass.run/install">
-    Multipass</a> with the following steps:
+    Multipass</a> then follow the following steps:
 </p>
 <p>
     1. Install multipass using brew:
@@ -118,16 +120,18 @@ pause
 </pre>
 <p>
     Play attention to the <samp>Name</samp> and <samp>IPv4</samp> values
-    for the newly created Ubuntu. You'll need them to connect to the
-    virtual machine using VSCode.
+    for the newly created Ubuntu. You will need them to refer to
+    them when connecting to the
+    virtual machine with your IDE such as VS Code.
 </p>
+
 <p>3. Access Ubuntu:</p>
 <pre>
     $ <kbd>multipass shell css-lab</kbd>
 </pre>
 
 <p>
-    4. For accessing the container, you need to add the Mac's
+    4. To access the container, you need to add the Mac's
     public key to the virtual machine first. On your Mac,
     use the following command to retrieve the public key:
 </p>
@@ -155,7 +159,8 @@ pause
 </p>
 
 <p>
-    To remotely connect using VSCode, enter:
+    To remotely connect using VSCode, enter (suppose the VM's
+    IP is <code>192.168.64.2</code>):
 </p>
 
 <pre>
@@ -164,11 +169,6 @@ pause
 After this step, you should successfully connect to the VM and use it.
 
 <br/>
-
-<h3>3: Mac (M1/M2/M3)</h3>
-<p>
-    You may want to try <a href="https://mac.getutm.app/">UTM</a>.
-</p>
 
 <hr/>
 <h2>Part B: Install Software</h2>
@@ -210,14 +210,14 @@ which will list candidates OS images that you can install:
 
 
 <h3>
-    2. Install GCC
+    2. Install C compilers
 </h3>
 <p>
-    GCC is a free compiler from the GNU project, and has been
-    adopted as a standard
-    compiler by most Unix-like operating systems
-    (such as Linux, BSD, etc.). For more
-    detailed information
+    We will be using GCC as our C compiler in this course.
+    GCC is a free compiler from the GNU project, and is a
+    standard C
+    compiler on most Unix-like operating systems
+    (such as Linux, or BSD). For more detailed information
     about GCC, you can refer to its
     <a href="https://gcc.gnu.org/onlinedocs/">official
         documentation</a>.
@@ -242,7 +242,7 @@ which will list candidates OS images that you can install:
 <p>
     Next, prepare the following <samp>hello.c</samp> program:
 </p>
-<pre>
+<pre class="code">
     #include &lt;stdio.h&gt;
     void print(){
         printf("hello, world!\n");
@@ -265,10 +265,13 @@ Run the generated executable:
     hello, world!
 </pre>
 
+
+
 <h3>
-    3. Install GDB
+    3. Install Debuggers
 </h3>
 <p>
+    We will be using GDB as our debugger in this course.
     GDB is a widely-used debugger on UNIX and UNIX-like systems. Using GDB,
     you can debug your programs to inspect
     program and data such as variables, registers,
@@ -300,11 +303,13 @@ Run the generated executable:
 <pre>
     css-lab@tiger:~$ <kbd>gdb hello.out</kbd>
 </pre>
-which will start the gdb.
 <p>
-    We can set up a break point using the <kbd>b</kbd> command.
-    For example, the following command will set up a break point on
-    the function <samp>print()</samp>:
+    which will start gdb to debug the executable <samp>hello.out</samp>.
+</p>
+
+<p>
+    Next, we can debug the target program with specific debugging
+    commands from gdb:
 </p>
 <pre>
     (gdb) <kbd>b print</kbd>
@@ -322,17 +327,18 @@ which will start the gdb.
 </pre>
 
 <p>
-    Next, the GDB command <kbd>r</kbd> will execute program being debugged,
-    and will hit the break points:
-</p>
-<p>
-    The command <kbd>c</kbd> will resume the program.
-    Finally, the command<kbd>q</kbd> will exit GDB.
+    Specifically, we can set up a break point using the <kbd>b</kbd>
+    command (here, on the function <samp>print()</samp>).
+    Next, we can start the target program using the <kbd>r</kbd> command.
+    When the aforementioned breakpoint is hit, we can resume its
+    execution using the <kbd>c</kbd> command.
+    Finally, we can use the <kbd>q</kbd> command to exit GDB.
 </p>
 
 
-<h3>4. make</h3>
+<h3>4. Install Building Tools</h3>
 <p>
+    We will be using Make as our builing tools in this course.
     Make is a cross-platform building tool.
     For more detailed information of make, you can refer to
     its <a href="https://cmake.org/documentation/">
@@ -349,10 +355,11 @@ Make sure your installation of make is successful before continuing:
     css-lab@tiger:~$ <kbd>make --version</kbd>
 </pre>
 
-<h3>5. Install VSCode</h3>
+<h3>5. Install Editors</h3>
 <p>
-    Visit the official website of <a href="https://code.visualstudio.com/">
-    VSCode</a>, download and install VS code. (The following
+    We will be using VSCode as our main code editor in this course.
+    Please visit <a href="https://code.visualstudio.com/">
+    its official website</a>, to download and install VS code. (The following
     figure depicts the installation for Windows, whereas the installation
     for other platforms are similar.)
     <br/><img src="figures/installvscode.png" width="691" alt="">
@@ -367,33 +374,26 @@ Make sure your installation of make is successful before continuing:
 </pre>
 <br/><img src="figures/code.png" width="691" alt="">
 
-<h3>6. CLion</h3>
 <p>
-    CLion is another cross-platform IDE (Integrated
-    development environment) designed for C/C++.
-    It contains many intelligent features (e.g., error prompts,
-    code completion, automatic generation of make
-    files),
-    which improve developer productivity.
-</p>
-
-<p>
-    Download and install Clion first. As CLion is a commercial software,
-    you might go to the <a href="https://account.jetbrains.com/login">
-    official website of CLion</a> and use your USTC email to register
-    an account.
+    You might use CLion, another cross-platform IDE designed specifically
+    for C/C++ with many nice features, as your editor.
+    To do so, you might download and install <a href="https://account.jetbrains.com/login">
+    CLion</a>, then register an account using your USTC email as
+    CLion is a commercial software.
 </p>
 
 
 <br>
 <hr>
-This completes this lab. You do NOT need to submit anything for this lab.
+<p>
+    This completes this lab. You do NOT need to submit anything for this lab.
+</p>
 <!--
 Remember to zip your code with the file
 name <samp>student ID-lab-&lt;N&gt;.zip</samp>
 (e.g., <samp>SA19225789-lab-0.zip</samp>), and
-submit it to the <a href="http://yjs.ustc.edu.cn/">
-    Postgraduate Information Platform</a>.
+submit it to the <a href="https://bb.ustc.edu.cn/">
+    online teaching system</a>.
 -->
 
 <p>
@@ -407,3 +407,24 @@ submit it to the <a href="http://yjs.ustc.edu.cn/">
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
