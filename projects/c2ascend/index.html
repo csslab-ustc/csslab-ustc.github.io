@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>C2Ascend</title>
+</head>
+
+<link rel="stylesheet" type="text/css" href="../../bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="../../main.css">
+<body>
+
+<div class="main-container">
+    <!-- header -->
+    <div class="header">
+        <div class="header-container">
+            <div class="header-img">
+                <img src="../../logo.png" width="60px" alt="">
+            </div>
+            <div class="header-text">
+                <h1>Computer Systems & Security Group, USTC</h1>
+            </div>
+        </div>
+    </div>
+    
+    <div class="layout">
+        <div class="layout-menu-container">
+            <div class="layout-menu">
+                <div class="menu-item"><a href="../../index.html">Home</a>
+                </div>
+                <div class="menu-item"><a href="../../publications/index.html">Publications</a>
+                </div>
+                <div class="menu-item"><a href="../../projects/index.html">Projects</a>
+                </div>
+                <div class="menu-item"><a href="../../courses/index.html">Courses</a>
+                </div>
+                <div class="menu-item"><a href="../../members/index.html">Members</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- content -->
+        <div class="layout-content-container">
+            <div class="layout-content">
+                <p>
+                    作为昇腾自动驾驶领域算子前期调研的一部分工作，尝试了对几个算子进行实验性的移植
+                    （未经正确性验证、未根据达芬奇架构优化）。
+               </p>
+               <p>
+                    实验性移植的算子如下所示：
+               </p>
+               <p>
+                    1）ball_query
+               </p>
+               <p>
+                    源算子链接：<a href="https://github.com/zhangyp15/OccFormer/blob/main/mmdetection3d/mmdet3d/ops/ball_query/src/ball_query_cuda.cu">ball_query_cuda.cu</a>
+               </p>
+               <p>
+                    实验性移植代码：<a href="ball_query.cpp">ball_query.cpp</a>
+               </p>
+               <p>
+                    2）gather points
+               </p>
+               <p>
+                    源算子链接：<a href="https://github.com/zhangyp15/OccFormer/blob/main/mmdetection3d/mmdet3d/ops/gather_points/src/gather_points_cuda.cu">gather_points_cuda.cu</a>
+               </p>
+               <p>
+                    实验性移植代码：<a href="gather_points.cpp">gather_points.cpp</a>
+               </p>            
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
