@@ -25,16 +25,18 @@ public:
   __aicore__ inline void Init(GM_ADDR group_inds, GM_ADDR out_inds,
                               GM_ADDR ingroup_counter, int32_t N,
                               int32_t max_group_id) {
-    group_indsGm.SetGlobalBuffer((__gm__ half *)group_inds, BLOCK_LENGTH);
-    out_indsGm.SetGlobalBuffer((__gm__ half *)out_inds, BLOCK_LENGTH);
-    ingroup_counterGm.SetGlobalBuffer((__gm__ half *)ingroup_counter,
+    group_indsGm.SetGlobalBuffer((__gm__ uint32_t *)group_inds, BLOCK_LENGTH);
+    out_indsGm.SetGlobalBuffer((__gm__ uint32_t *)out_inds, BLOCK_LENGTH);
+    ingroup_counterGm.SetGlobalBuffer((__gm__ uint32_t *)ingroup_counter,
                                       max_group_id);
-    pipe.InitBuffer(inQueue_group_inds, BUFFER_NUM, TILE_LENGTH * sizeof(half));
+    pipe.InitBuffer(inQueue_group_inds, BUFFER_NUM,
+                    TILE_LENGTH * sizeof(uint32_t));
     pipe.InitBuffer(inQueue_ingroup_counter, BUFFER_NUM,
-                    max_group_id * sizeof(half));
-    pipe.InitBuffer(outQueue_out_inds, BUFFER_NUM, TILE_LENGTH * sizeof(half));
+                    max_group_id * sizeof(uint32_t));
+    pipe.InitBuffer(outQueue_out_inds, BUFFER_NUM,
+                    TILE_LENGTH * sizeof(uint32_t));
     pipe.InitBuffer(outQueue_ingroup_counter, BUFFER_NUM,
-                    max_group_id * sizeof(half));
+                    max_group_id * sizeof(uint32_t));
   }
   __aicore__ inline void Process() {
     int32_t loopCount = TILE_NUM * BUFFER_NUM;
@@ -47,10 +49,10 @@ public:
 
 private:
   __aicore__ inline void CopyIn(int32_t progress) {
-    AscendC::LocalTensor<half> group_indsLocal =
-        inQueue_group_inds.AllocTensor<half>();
-    AscendC::LocalTensor<half> ingroup_counterLocal =
-        inQueue_ingroup_counter.AllocTensor<half>();
+    AscendC::LocalTensor<uint32_t> group_indsLocal =
+        inQueue_group_inds.AllocTensor<uint32_t>();
+    AscendC::LocalTensor<uint32_t> ingroup_counterLocal =
+        inQueue_ingroup_counter.AllocTensor<uint32_t>();
     AscendC::DataCopy(group_indsLocal, group_indsGm[progress * TILE_LENGTH],
                       TILE_LENGTH);
     AscendC::DataCopy(ingroup_counterLocal, ingroup_counterGm, max_group_id);
@@ -58,37 +60,35 @@ private:
     inQueue_ingroup_counter.EnQue(ingroup_counterLocal);
   }
   __aicore__ inline void Compute(int32_t progress) {
-    AscendC::LocalTensor<half> group_indsLocal =
-        inQueue_group_inds.DeQue<half>();
-    AscendC::LocalTensor<half> ingroup_counterLocal =
-        inQueue_ingroup_counter.DeQue<half>();
-    for (uint32_t i = 0; i < TILE_LENGTH; i++) {
-      uint16_t num = group_indsLocal.GetValue(i);
-      AscendC::printf("out_indes: %d-%d\t", i, num);
-    }
-    AscendC::LocalTensor<half> out_indsLocal =
-        outQueue_out_inds.AllocTensor<half>();
-    AscendC::LocalTensor<half> ingroup_counter_outLocal =
-        outQueue_ingroup_counter.AllocTensor<half>();
+    AscendC::LocalTensor<uint32_t> group_indsLocal =
+        inQueue_group_inds.DeQue<uint32_t>();
+    AscendC::LocalTensor<uint32_t> ingroup_counterLocal =
+        inQueue_ingroup_counter.DeQue<uint32_t>();
+    AscendC::LocalTensor<uint32_t> out_indsLocal =
+        outQueue_out_inds.AllocTensor<uint32_t>();
+    AscendC::LocalTensor<uint32_t> ingroup_counter_outLocal =
+        outQueue_ingroup_counter.AllocTensor<uint32_t>();
 
     for (uint32_t i = 0; i < TILE_LENGTH; i++) {
-      uint16_t this_group_id = group_indsLocal.GetValue(i);
-      uint32_t this_group_id_new = static_cast<uint32_t>(this_group_id);
-      uint16_t cnt = ingroup_counterLocal.GetValue(0);
-      uint16_t cnt_new = (uint32_t)cnt + 1.0;
-      ingroup_counter_outLocal.SetValue(this_group_id, cnt_new);
-      out_indsLocal.SetValue(i, cnt);
+      uint32_t this_group_id = group_indsLocal.GetValue(i);
+      uint32_t cnt = ingroup_counterLocal.GetValue(this_group_id);
+      uint32_t cnt_new = cnt + 1;
+      ingroup_counterLocal.SetValue(this_group_id, cnt_new);
+      out_indsLocal.SetValue(i, cnt_new);
     }
 
-    outQueue_out_inds.EnQue<half>(out_indsLocal);
-    outQueue_ingroup_counter.EnQue<half>(ingroup_counter_outLocal);
+    AscendC::DataCopy(ingroup_counter_outLocal, ingroup_counterLocal,
+                      max_group_id);
+    outQueue_out_inds.EnQue<uint32_t>(out_indsLocal);
+    outQueue_ingroup_counter.EnQue<uint32_t>(ingroup_counter_outLocal);
     inQueue_group_inds.FreeTensor(group_indsLocal);
     inQueue_ingroup_counter.FreeTensor(ingroup_counterLocal);
   }
   __aicore__ inline void CopyOut(int32_t progress) {
-    AscendC::LocalTensor<half> out_indsLocal = outQueue_out_inds.DeQue<half>();
-    AscendC::LocalTensor<half> ingroup_counter_outLocal =
-        outQueue_ingroup_counter.DeQue<half>();
+    AscendC::LocalTensor<uint32_t> out_indsLocal =
+        outQueue_out_inds.DeQue<uint32_t>();
+    AscendC::LocalTensor<uint32_t> ingroup_counter_outLocal =
+        outQueue_ingroup_counter.DeQue<uint32_t>();
     AscendC::DataCopy(out_indsGm, out_indsLocal, TILE_LENGTH);
     AscendC::DataCopy(ingroup_counterGm, ingroup_counter_outLocal,
                       max_group_id);
@@ -102,9 +102,9 @@ private:
       inQueue_ingroup_counter;
   AscendC::TQue<AscendC::QuePosition::VECOUT, BUFFER_NUM> outQueue_out_inds,
       outQueue_ingroup_counter;
-  AscendC::GlobalTensor<half> group_indsGm;
-  AscendC::GlobalTensor<half> ingroup_counterGm;
-  AscendC::GlobalTensor<half> out_indsGm;
+  AscendC::GlobalTensor<uint32_t> group_indsGm;
+  AscendC::GlobalTensor<uint32_t> ingroup_counterGm;
+  AscendC::GlobalTensor<uint32_t> out_indsGm;
   int32_t max_group_id = 16;
 };
 
