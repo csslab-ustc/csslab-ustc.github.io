@@ -111,7 +111,7 @@ private:
 extern "C" __global__ __aicore__ void
 ingroup_inds_kernel(GM_ADDR group_inds, GM_ADDR out_inds,
                     GM_ADDR ingroup_counter, int32_t N, int32_t max_group_id) {
-  KernelAdd op;
+  KernelIngroupIndex op;
   op.Init(group_inds, out_inds, ingroup_counter, N, max_group_id);
   op.Process();
 }
