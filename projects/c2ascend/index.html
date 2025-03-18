@@ -44,8 +44,8 @@
                 <h3>昇腾自动驾驶领域算子开发-算子实现示例</h3>
                 <div class="split-line"></div>
                 <p>
-                    作为昇腾自动驾驶领域算子预研工作的一部分，尝试了对几个算子进行实验性的移植
-                    （暂未开展针对昇腾芯片的端到端功能验证及算子级优化等）。
+                    课题组在调研和预研昇腾自动驾驶领域算子的过程中，尝试了对几个算子进行实验性的移植
+                    （由于实验硬件平台受限等原因，暂未来得及开展昇腾芯片的端到端功能验证及算子级优化等工作）。
                </p>
                <p>
                     实验性移植的算子如下所示：
@@ -57,7 +57,7 @@
                     源算子链接：<a href="https://github.com/zhangyp15/OccFormer/blob/main/mmdetection3d/mmdet3d/ops/ball_query/src/ball_query_cuda.cu">ball_query_cuda.cu</a>
                </p>
                <p>
-                    移植代码：<a href="ball_query.cpp">ball_query.cpp</a>
+                    移植代码：<a href="ball_query_ascend.cpp">ball_query_ascend.cpp</a>
                </p>
                <p>
                     2）gather points
@@ -66,7 +66,7 @@
                     源算子链接：<a href="https://github.com/zhangyp15/OccFormer/blob/main/mmdetection3d/mmdet3d/ops/gather_points/src/gather_points_cuda.cu">gather_points_cuda.cu</a>
                </p>
                <p>
-                    移植代码：<a href="gather_points.cpp">gather_points.cpp</a>
+                    移植代码：<a href="gather_points_ascend.cpp">gather_points_ascend.cpp</a>
                </p>
                <p>
                     3）ingroup index
@@ -76,7 +76,7 @@
                     https://github.com/open-mmlab/mmdetection3d/blob/main/projects/DSVT/dsvt/ops/ingroup_inds/src/ingroup_inds_kernel.cu">ingroup_inds_kernel.cu</a>
                </p>
                <p>
-                    移植代码：<a href="ingroup_index.cpp">ingroup_index.cpp</a>
+                    移植代码：<a href="ingroup_inds_ascend.cpp">ingroup_inds_ascend.cpp</a>
                </p>                             
             </div>
         </div>
