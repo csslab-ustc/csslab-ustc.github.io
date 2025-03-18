@@ -15,7 +15,6 @@ constexpr int32_t USE_CORE_NUM = 8; // num of core used
 class KernalBallquery {
 public:
   __aicore__ inline KernalBallquery() {}
-
   __aicore__ inline void Init(int32_t n, int32_t m, int32_t nsample,
                               GM_ADDR newXyz, GM_ADDR xyz, GM_ADDR idx) {
     int32_t TOTAL_LENGTH = m;
@@ -31,7 +30,6 @@ public:
     pipe.InitBuffer(inQueueXyz, 1, n * 3 * sizeof(int32_t));
     pipe.InitBuffer(outQueueIdx, 1, nsample * sizeof(int32_t));
   }
-
   __aicore__ inline void Process(int32_t n, int32_t m, int32_t min_radius,
                                  int32_t max_radius, int32_t nsample) {
     int32_t loopCount = m / USE_CORE_NUM;
@@ -52,7 +50,6 @@ private:
     inQueueNewxyz.EnQue(newXyzLocal);
     inQueueXyz.EnQue(xyzLocal);
   }
-
   __aicore__ inline void Compute(int32_t progress, int32_t n,
                                  int32_t min_radius, int32_t max_radius,
                                  int32_t nsample) {
@@ -88,7 +85,6 @@ private:
     inQueueNewxyz.FreeTensor(newXyz);
     inQueueXyz.FreeTensor(xyz);
   }
-
   __aicore__ inline void CopyOut(int32_t progress, int32_t nsample) {
     AscendC::LocalTensor<int32_t> idx = outQueueIdx.DeQue<int32_t>();
     AscendC::DataCopy(idxGm[progress * nsample], idx, nsample);

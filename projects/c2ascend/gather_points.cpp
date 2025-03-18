@@ -12,7 +12,6 @@
 class KernelGatherPoints {
 public:
   __aicore__ inline KernelGatherPoints() {}
-
   __aicore__ inline void Init(int32_t b, int32_t c, int32_t n, int32_t m,
                               GM_ADDR points, GM_ADDR idx, GM_ADDR out) {
     // int32_t BLOCK_LENGTH = c * n;
@@ -25,7 +24,6 @@ public:
     pipe.InitBuffer(inQueueIdx, 1, b * m * sizeof(half));
     pipe.InitBuffer(outQueueOut, 1, b * c * m * sizeof(half));
   }
-
   __aicore__ inline void Process(int32_t b, int32_t c, int32_t n, int32_t m) {
     int32_t loopCount = b * c * m;
     for (int32_t i = 0; i < loopCount; i++) {
@@ -45,7 +43,6 @@ private:
     inQueuePoints.EnQue(pointsLocal);
     inQueueIdx.EnQue(idxLocal);
   }
-
   __aicore__ inline void Compute(int32_t progress, int32_t b, int32_t c,
                                  int32_t n, int32_t m) {
     AscendC::LocalTensor<half> pointsLocal = inQueuePoints.DeQue<half>();
@@ -62,7 +59,6 @@ private:
     inQueueX.FreeTensor(pointsLocal);
     inQueueY.FreeTensor(idxLocal);
   }
-
   __aicore__ inline void CopyOut(int32_t progress, int32_t b, int32_t c,
                                  int32_t n, int32_t m) {
     AscendC::LocalTensor<half> outLocal = outQueueOut.DeQue<half>();
