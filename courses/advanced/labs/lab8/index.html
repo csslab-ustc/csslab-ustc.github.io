@@ -1,0 +1,321 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 8: Virtual Machines</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 8: Virtual Machines</h1>
+<hr>
+
+<h2>Overview</h2>
+<p>
+    In this lab, your task is to build a code generator
+    targeting the Java bytecode (i.e., Java's standard
+    binary code format), to build a virtual machine
+    to interpret the result bytecode, then to implement
+    a just-in-time (JIT) compiler.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source for lab8 at:
+<pre>
+    $ <kbd>git commit -am 'my solution to lab7'</kbd>
+    $ <kbd>git checkout -b lab8 origin/lab8</kbd>
+</pre>
+<p>
+    the first command will commit your changes to lab7 branch
+    to the local
+    Git repository, and the second command will
+    create a new local lab8 branch and check out code
+    into this new branch from the remote lab8 branch.
+</p>
+
+<p>
+    Again, you will need to merge your code from lab7 into the
+    new local lab8 branch:
+<pre>
+    $ <kbd>git merge lab7</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commit to
+    the local lab8 branch:
+</p>
+<pre>
+    $ <kbd>git commit -am 'lab8 init'</kbd>
+</pre>
+<p>
+    You should first import the new lab8 code into your Eclipse and
+    browse through the source code, which contains these
+    new packages:
+</p>
+<pre>
+    bytecode/*: the Java bytecode
+    vm/*:       virtual machine
+</pre>
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished your lab, zip you code and submit to the
+    <a href="">online teaching system</a>.
+</p>
+
+<hr/>
+<h2>Part A: Java Bytecode</h2>
+<p>
+    In this part of the lab, your job is to design and implement a
+    code generator generating
+    <a href="https://en.wikipedia.org/wiki/Java_bytecode">Java bytecode</a>
+    targeting the
+    <a href="https://en.wikipedia.org/wiki/Java_virtual_machine">Java virtual
+        machine (JVM)</a>. Java bytecode
+    is designed by Sun (now Oracle) and is the standard
+    target code for Java. Though there are
+    <a href="https://en.wikipedia.org/wiki/List_of_Java_virtual_machines">many JVMs</a> available, the one
+    we will use in the lab is the
+    <a href="https://en.wikipedia.org/wiki/HotSpot">HotSpot</a> JVM developed by Oracle (so you
+    don't need to do further work of installation or configuration, as we have
+    been using HotSpot to compile
+    the Tiger compiler). However, there
+    is nothing special with HotSpot, you can use other JVMs as
+    long as they conform to the
+    <a href="https://docs.oracle.com/javase/specs/jvms/se7/html/">JVM specification</a>.
+</p>
+
+<h3>Abstract Syntax defining Java Bytecode</h3>
+<p>
+    In this part, we will design and implement
+    a bunch of data structures defining abstract syntax for
+    Java bytecode. However, we must address several
+    difficulties: first, the standard
+    <a href="https://en.wikipedia.org/wiki/Java_bytecode_instruction_listings">
+        Java bytecode instruction set</a>
+    contains many more instructions than actually needed to compile MiniJava.
+    For instance, we do not need
+    bytecode instructions for floating point operations as MiniJava does
+    not support float numbers.
+    Second, the official
+    <a href="https://docs.oracle.com/javase/specs/jvms/se22/html/">
+        Java bytecode specification</a>
+    only specifies binary formats for
+    bytecode instructions, which is good for JVM execution but
+    difficult for compilers to manipulate and generate code for.
+</p>
+<p>
+    To address the first difficulty, you must select, from the
+    Java bytecode instruction set, a subset that is enough to compile
+    the MiniJava.
+</p>
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Select a subset of Java bytecode to compile MiniJava.
+</div>
+<p>
+    To resolve the second difficulty, one can
+    choose a Java bytecode assembler which can assemble
+    instuctions in readable text form into binary forms which can be
+    executed by a JVM. This process is very much like that
+    a traditional assembler assembles assembly program
+    into binaries. With the bytecode assembler, your
+    Tiger compiler can generate text form Java bytecode instuctions and
+    leave the tedious work of assembling to the bytecode
+    assembler. Nevertheless, writing a bytecode assembler
+    from scractch is, though conceptually simple, tedious and
+    too much work. Fortunately, there are some mature thirdparty assembler
+    that you can use in your Tiger compiler. To be specific, the Java
+    bytecode assembler you'll
+    use in this lab is called Jasmin. There is no specific reason
+    why we choose Jasmin among many such assemblers. But Jasmin
+    has been the oldest Java bytecode assembler and has been used
+    widely in many projects. Jasmin has become the de-facto assembly format for Java bytecode.
+</p>
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Take a look at the <a href="https://jasmin.sourceforge.net/">
+    Jasmin homepage</a> and read the <a href="https://jasmin.sourceforge.net/guide.html">user
+    guide</a> to familarize yourself with how Jasmin works. As a test, you
+    should compile and run the
+    <a href="https://jasmin.sourceforge.net/about.html"><code>HelloWorld</code></a>
+    bytecode program. You can use the HotSpot JVM from Sun to run
+    the generated Java classes.
+</div>
+
+As we are using Jasmin assembler to assemble the Java bytecode, so
+it will be very convenient to design the Java bytecode abstract
+syntax tree data structures according to the Jasmin syntax.
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    The package <code>codegen.bytecode.*</code>
+    contains the data structures to represent Java
+    bytecode abstract syntax trees. You may want to refer
+    to the <a href="https://jasmin.sourceforge.net/xt.html">Jasmin XT</a>
+    syntax for this. The package <code>codegen.bytecode.stm.*</code>
+    contains the abstract syntax for Java bytecode instructions. You may want to
+    refer to the <a href="https://cs.au.dk/~mis/dOvs/jvmspec/ref-Java.html">Java
+    Virtual Machine online instruction reference</a>
+    for a detailed explanation of the syntax and semantics for each
+    instruction. It should be easy to know which class represents
+    which instruction, because they have the same name (for instance, the
+    <code>New.java</code> class represents the
+    <a href="https://cs.au.dk/~mis/dOvs/jvmspec/ref-new.html"><code>new</code></a>
+    instruction. Make sure you understand all the existing code base before
+    continuing. When in doubt, refer to the
+    <a href="https://docs.oracle.com/javase/specs/jvms/se7/html/index.html">official JVM
+        manual</a> (chapter 6).
+
+    A final word of reminder, the classes in the
+    <code>codegen.bytecode.stm.*</code> package we offered you
+    is NOT sufficient to
+    compile the MiniJava language. It's your task, in the
+    following, to figure out what other instructions are
+    necessary and how to implement them.
+</div>
+
+
+<h3>Generating Java Bytecode</h3>
+<p>
+    In this part, you'll write the Java bytecode generator for
+    Tiger. This generator is (once again) a visitor which
+    translates the
+    Java syntax tree into the Java bytecode syntax tree. For this
+    purpose, you should have a thorough understanding of
+    how a JVM works and especially how to compile
+    Java features to corresponding Java bytecode feature. The
+    <a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-3.html">chapter 3</a>
+    of the JVM specification documents the compiling techniques
+    from Java to Java bytecode, read this document if
+    you haven't.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 11.</span>
+    Finish the Java bytecode generator in the class
+    <code>codegen.bytecode.TranslateVisitor.java</code>. Feel free to modify
+    other parts of your Tiger compiler when necessary: the Java bytecode syntax
+    tree, the pretty
+    printer, the Java abstract syntax tree, the elabortor, and so on.
+</div>
+For the generated Java bytecode, use Jasmin to assemble it and
+then use a JVM to run it. You don't need to
+write runtime system or garbage collectors, for they come with the
+JVM (for free).
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    If your Java bytecode generator contains any bugs, it's often the case
+    that the generated bytecode will behave incorrectly in the following
+    ways:
+    <ul>
+        <li>the generated Java bytecode doesn't compile (rejected by the Jasmin assembler);
+        <li>the generated Java bytecode doesn't verify (rejected by any standards-compliant <a
+                href="https://asm.ow2.org/">class verifier</a>);
+        <li>the generated Java bytecode doesn't run (rejected by the JVM).
+    </ul>
+    For these cases, the
+    diagnostic messages will be helpful for you to locate where
+    the bugs are and what they are. However,
+    it is also helpful to have more debugging facilities, here are some
+    directions you can go:
+    <ul>
+        <li>Modify your Java bytecode generator to generate debuggable
+            Java bytecode. For instance, you can annotate the generated Java
+            bytecode with the source program being compiled. Here is one example:
+            for the Java expression
+            <code>1+2</code>, your
+            code generator may generate this code (expressions generated
+            as comments followed by the instructions generated for
+            it):
+            <pre>
+  ; 1 + 2
+  ldc 1
+  ldc 2
+  add
+</pre>
+        <li>Use Jasmin's built-in debugging facilitis: such as
+            the <code>-g</code> option and the <code>.line</code>
+            directive.
+        <li>Use some third party debuggin tools, such as
+            <a href="https://www.drgarbage.com/bytecode-visualizer.html">
+                bytecode-visualizer</a>.
+    </ul>
+    Implement some of the ideas into your Tiger compiler.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    There is a weird static constraint on the code size of a method, to quote
+    from the
+    <i><a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.9">
+        Java Virtual Machine Specification</a></i>, section 4.9.1:
+    <pre>
+     the value of code_length item must be less than 65536.
+</pre>
+    that is, the generated Java bytecode for any Java methods should
+    be less than 65536 bytes. This makes it difficult, if not impossible, to
+    compile a very large Java method (for instance, the Monster class
+    from Lab 1). Propose some techniques to make compilation of
+    large methods possible, and try to implement into your Tiger
+    compiler so that your Tiger compiler can compile any large
+    Java programs.
+</div>
+
+<hr/>
+<h2>Part B: Virtual Machine</h2>
+<p>
+    One will get real justification if one can generate code
+    for real raw machine. In this part of the lab, you will design
+    and implement another
+    code generator targeting the x86 instruction set architecture. We'll
+    give no code here, so it's your duty to write the code
+    from scratch.
+</p>
+
+
+<div class="challenge">
+    <span class="header">Challenge!</span>
+    Write a virtual machine...
+</div>
+
+
+<hr/>
+<h2>Part C: JIT Compilation</h2>
+
+<hr/>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+<br>
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,69 @@
+Interface
+=========
+
+Required reading: Efficient Implementation of Java Interfaces:
+Invokeinterface Considered Harmless
+
+
+* Background
+  In the 90's last century, with the popularity of Java, IBM 
+  starts a new project to study
+  Java compilation and state-of-the-art virtual machine 
+  technologies, this project was called "Jalapeno" that time.
+  
+  Later, this project is open-source and the compiler is renamed
+  to "Jikes", which can be found at: 
+    http://jikes.sourceforge.net/
+  
+  The virtual machine technology project is renamed to
+  "JikeRVM" and is available at:
+    http://jikesrvm.org/
+  
+* what's this paper about?
+  efficient implementation of Java interface
+
+* What's the problem with interface?
+  sample code:
+  interface I{
+    void foo();
+  }
+  
+  class A implements I {
+    void bar () {}
+    void foo () {}
+  }
+  
+  void f (I a){
+    a.foo ();      // how to call foo, if we pass it an object of class "A"?
+  }
+  
+  this problem involves search "foo" in the object "a", however,
+  for any class implements "I", the offset of "foo" may be different,
+  so this searching is inefficient
+  [draw a figure of method searching here]
+  
+* Interface table (section 4.1)
+  the first idea is to attach an interface object here
+  [draw a figure of interface object here]
+  
+  thus, by attaching an interface table (itable), interface
+  method dispatching is as fast as virtual function dispatching
+  
+  one must allocate one itable for every class "A" that implements some
+  interface "I"
+    so, the bad news is that the interface function table occupy extra space
+  
+* Selector indexed table
+  [draw a figure of selector indexed table]
+  must handle multiple interfaces efficiently
+  again, use the graph coloring algorithm for implementing multiple inheritance
+    however, the global graph coloring method does not apply to Java well
+      why?
+    
+* Interface method table (IMT)
+  key idea: attach a hash table in TIB, which maps every interface
+  method to its correct offset
+  just like the hash table for multiple inheritance
+
+  
+  

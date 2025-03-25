@@ -1,0 +1,448 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 1: Control-flow Graphs</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+
+<body>
+
+<h1>Lab 1: Control-flow Graphs</h1>
+
+<hr/>
+<h2>Overview</h2>
+<p>
+    In this course, you will implement a series of classical program analyses 
+    and optimizations on compiler intermediate representations (IRs) 
+    using the provided Abstract Syntax Tree (AST) and Control Flow Graph 
+    (CFG) data structures.
+    You will use Java as the implementation language.
+    By the end of this course, you will not only learn
+    the theory and practice of compilers, but also gain a deeper
+    understanding about Java.
+</p>
+<p>
+    There are 6 labs planned:
+</p>
+<ul>
+    <li>Lab 1: Control-flow Graphs.
+        You will design a translator to transfer AST to CFG, and implement 
+        several CFG operations and optimizations.
+    </li>
+    <li>Lab 2: Data-flow Analysis.
+        You will design and implement several classic data-flow analysis
+        (e.g. liveness analysis) based on CFG.
+    </li>
+    <li>Lab 3: Lattice.
+        You will refactor the data-flow analysis in Lab 2 
+        using the lattice-based monotonic framework. 
+    </li>
+    <li>Lab 4: Static Single-assignment Form.
+        You will design and implement a static single-assignment form,
+        and perform compiler optimizations on it.
+    </li>
+    <li>Lab 5: Interprocedural.
+        You will design and implement several classic interprocedural 
+        analyses and optimizations.
+    </li>
+    <li>Lab 6: Pointer.
+        You will design and implement a pointer analysis.
+    </li>
+</ul>
+<p>
+    This is the lab 1. In this lab, you will design a translator to transfer 
+    AST to CFG, and implement several CFG operations and optimizations.
+</p>
+
+<h3>Software Setup</h3>
+<p>
+    In this lab, you will use Java as your implementation language,
+    please first check
+    <a href="../../references.html" target="_blank">the reference page</a>
+    to install necessary software, if you have not installed the
+    Java platform.
+    Make sure to install the latest
+    Java compiler and runtime (<em>version 24</em>), other versions
+    of Java do NOT work as the Dragon compiler makes use of some
+    latest Java feature in version 24 (e.g., pattern matching or
+    string templates).
+    You can use any Java IDEs (e.g., IntelliJ, or VS code).
+</p>
+
+<h3>Version control and Git</h3>
+<p>
+    In each lab, we will supply skeleton code for you to start with
+    and modify. These files are controlled and distributed using the Git
+    version control system. So, to access these files, you will first
+    need a Git client installed on your machine. On Linux or Mac, it is
+    easy to install a Git client:
+</p>
+<ul>
+    <li>Linux:
+        <pre>$ <kbd>sudo apt install git</kbd></pre>
+    </li>
+    <li>Mac:
+        <pre>$ <kbd>brew install git</kbd></pre>
+    </li>
+</ul>
+<p>
+    On Windows, there are many
+    Git clients available, among which
+    <a href="https://git-scm.com/download/win">msysgit</a>
+    is a very popular one, you can
+    install and try it if you are using Windows.
+</p>
+<p>
+    For those who have no prior experience of using Git, do not
+    forget to refer to the
+    <a href="https://www.kernel.org/pub/software/scm/git/docs/">official manual</a>
+    when in doubt.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    This year, we have put the skeleton code repository on
+    GitHub (hence this courseware is open-source).
+    To check out the code repository for lab 1 to your machine, you should
+    run the following commands:
+</p>
+<pre>
+    $ <kbd>git clone https://github.com/csslab-ustc/dragon.git</kbd>
+</pre>
+<p>
+    which will create a new folder <code>dragon</code> in
+    which reside all the source files just checked out for the
+    <em>lab 1</em> branch (the default branch).
+</p>
+<p>
+    Git is a distributed version control system, allowing one to work with
+    the local version of repository on your machine. For
+    instance, if you have finished the exercise 5 in lab 1,
+    you can commit your changes by:
+<pre>
+    $ <kbd>git commit -am 'my solution to lab 1, exercise 5'</kbd>
+</pre>
+<p>
+    which will commit the changes to your <em>local</em> repository.
+</p>
+<p>
+    Now import the project into your favorite Java IDE and browse the
+    source code:
+</p>
+<pre>
+    src/ast/*:              the data structures of Abstract Syntax Tree
+    src/cfg/*:              the data structures of Control-flow Graph
+    src/frontend/*:         the lexer and parser
+    src/control/*:          to control the behavior of the compiler
+    src/main/Dragon.java:   the "Main" class serving as compiler entry
+    src/util/*:             utility classes
+    test/*:                 C programs as testcases (so do not compile them as compiler sources)
+</pre>
+<p>
+    Now, build this project on your machine. When the
+    building process finished, a new <code>bin</code> folder
+    would be created. Note that the name of the output folder
+    depends on your specific IDE configurations.
+    For example, the folder may be named <code>out</code> or
+    something else. But we will always name it <code>bin</code>
+    in the following and subsequent labs.
+</p>
+<!-- <p>
+    If there are no building errors during the building process,
+    you can run the <code>Dragon</code> compiler:
+</p>
+<pre>
+    $ <kbd>java --enable-preview -cp bin Dragon -help</kbd>
+</pre>
+<p>
+    which will output something like:
+</p>
+<pre class="output">
+The Dragon compiler. Copyright (C) 2013-, SSE of USTC.
+Usage: java Dragon [options] &lt;filename&gt;
+
+Available options:
+    -dump {token}   dump tokens from lexical analysis
+    -help           show this help information
+</pre> -->
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished your lab, zip you solutions and submit to the
+    <a href="https://bb.ustc.edu.cn/">USTC online teaching system</a>.
+</p>
+
+
+<hr/>
+<!-- part A -->
+<h2>Part A: Translate into CFG</h2>
+<p>
+    In a compiler, source files undergo two processing steps: lexical analysis 
+    and syntax analysis, to be converted into an intermediate representation 
+    called Abstract Syntax Tree (AST). The compiler then performs semantic analysis 
+    on AST to check for program semantic errors. If the AST passes semantic 
+    analysis, the compiler considers the program valid and proceeds to optimization 
+    phases. However, AST is generally not ideal data structures for program 
+    optimization. To facilitate subsequent optimizations, the compiler converts 
+    the AST into another intermediate representation called Control Flow Graph 
+    (CFG) that better suits optimization needs.
+</p>
+<p>
+    In our Dragon MiniC compiler, we have already implemented the lexical analysis, 
+    syntax analysis, and semantic analysis (located in <code>src/frontend</code>) 
+    for you, and translated the source code into AST. 
+    In this part of the lab, you will do some programming exercises to translate
+    AST into CFG. Don't worry, we've prepared most of the code for you.
+    You can study the existing codes and fill in the missing parts.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the class definitions of AST and CFG in files
+    <code>src/ast/Ast.java</code> and <code>src/cfg/Cfg.java</code>, 
+    make sure you understand them and how they are created and used. 
+    As a concrete example, you can see file <code>src/ast/SamplePrograms.java</code>
+    to see how AST is used. You do not need to write any code for this exercise.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Understand the code in file <code>src/cfg/lab1/Translate.java</code>, fill in the 
+    missing parts, and make sure you can translate all AST classes to their
+    corresponding CFG classes. Do not forget to test your code when finished, 
+    and fix any bugs before continuing.
+</div>
+
+<p>
+    Once we have CFG, many awsome optimization operations can be applied on it to 
+    improve program efficiency. For example, we can reduce code size by removing 
+    unreachable code that will never execute. But, before diving into more 
+    advanced topics, let's first learn how to use CFG with a simple exercise.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    As a simple exercise of CFG, you can write a class to count total
+    instructions in the program. Finish the class
+    <code>CFGInstrCounter</code> in file <code>src/cfg/lab1/CFGInstrCounter.java</code>,
+    print the number of instructions for each functions, and basic blocks.
+    For example, for CFG
+    <pre class="output">
+    int add(int a, int b) {
+        int %x_1;
+        L_1:
+            %x_1 = +(a, b, );
+            ret %x_1;
+    }</pre>
+    the output looks like
+    <pre class="output">
+    Function add:
+        - Basic block L_1: 2
+        - Total: 2
+    Total instructions in program: 2</pre>
+</div>
+
+<!-- part B -->
+<hr/>
+<h2>Part B: CFG Operations</h2>
+<p>
+    In the process of analyzing and optimizing control flow graphs, 
+    compilers need to perform various operations and transformations on them. 
+    Since the structure of a control flow graph is inherently a directed graph, 
+    all operations applicable to directed graphs can be applied to control flow 
+    graphs. 
+    In this part, you need to implement several CFG operation algorithms.
+</p>
+
+<h3>
+    Depth-first Traversal
+</h3>
+<p>
+    Depth-first traversal is a crucial graph algorithm and one of the 
+    fundamental algorithms for control flow graph operations.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Understand the code in file <code>src/util/Graph.java</code>, 
+    complete the method <code>dfsDoit()</code>.
+    You should use method <code>testDFS()</code> in file 
+    <code>src/util/UtilTest.java</code> to test your code. 
+    Fix any bugs before continuing.
+</div>
+
+<h3>
+    Node Sorting
+</h3>
+
+<p>
+    The analysis algorithms for control flow graphs (e.g., data flow analysis) 
+    often require traversing nodes of directed graphs in specific orders. 
+    To explicitly specify the desired traversal order, linear ordering of nodes 
+    in the control flow graph is typically necessary.
+    To represent the sequential execution order of nodes, we typically employ 
+    topological sorting. 
+    However, traditional topological sorting algorithms can only handle 
+    directed acyclic graphs (DAGs) and fail to process control flow graphs with 
+    cyclic structures. Thus, a pseudo-topological sorting must be implemented 
+    based on the concept of depth-first traversal.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Complete the method <code>topoSortDoit()</code> in file 
+    <code>src/util/Graph.java</code>.
+    You should use method <code>testTopoSort()</code> in file 
+    <code>src/util/UtilTest.java</code> to test your code. 
+    Fix any bugs before continuing.
+</div>
+
+<h3>
+    Graph Visualization
+</h3>
+
+<p>
+    It will be nice to
+    <a href="https://en.wikipedia.org/wiki/Graph_visualization">
+        visualize a control-flow graph</a>,
+    making subsequent graph analysis more intuitive.
+    Nevertheless, to draw a figure prettily
+    is a nontrivial task and may require too much programming
+    effort, especially for large and complex graphs.
+    Fortunately, there are many off-the-shelf graph drawing
+    utilities, so that we do not need
+    to reinvent the wheels.
+    Specifically, your Dragon compiler will make use
+    of the <a href="https://graphviz.org/">Graphviz</a>,
+    a very popular graph visualization software, to
+    visualize the control-flow graphs generated by
+    your Dragon compiler.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Download
+    <a href="https://graphviz.org/Download.php">graphviz</a>
+    and install it
+    on your machine. Do not forget to add it to your PATH.
+    To make sure you have installed graphviz correctly, you can
+    run the following command on your prompt:
+    <pre>$ <kbd>dot --help</kbd></pre>
+    <pre class="output">Usage: dot [-Vv?] [-(GNE)name=val] [-(KTlso)&lt;val>] &lt;dot files&gt;
+(additional options for neato)    [-x] [-n&lt;v&gt;]
+(additional options for fdp)      [-L(gO)] [-L(nUCT)&lt;val&gt;]
+(additional options for config)  [-cv]
+...</pre>
+    Also, you can take a look at
+    <a href="https://graphviz.org/Documentation.php">its manual</a>,
+    if you are interested in.
+</div>
+
+<h3>
+    Critical Edge Split
+</h3>
+
+<p>
+    In a control flow graph, the edge &lt;a, b&gt; is a critical edge if its 
+    predecessor node a has multiple successors and its successor node b has 
+    multiple predecessors.
+    Critical edges in the control flow graph may cause errors in certain 
+    operations, therefore, they should be split before performing the operations.
+    The following <b>Exercise 7</b> require the use of 
+    <a href="https://graphviz.org/Download.php">Graphviz</a>, so make sure to 
+    complete <b>Exercise 6</b>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    Complete the method <code>findCriticalEdges()</code> and 
+    <code>splitEdge()</code> in file <code>src/util/Graph.java</code>.
+    Think carefully how to handle the parameters <code>dataSupplier</code> and 
+    <code>dataConnector</code>. 
+    You should use method <code>testCriticalEdgeSplit()</code> in file 
+    <code>src/util/UtilTest.java</code> to test your code before continuing.
+    Once the test is passed, you will obtain a file <code>test-graph.dot</code> 
+    and a graph <code>test-graph.dot.png</code>, check them.
+</div>
+
+<!-- part C -->
+<hr/>
+<h2>Part C: Optimizations</h2>
+<p>
+    This part explores essential compiler optimization techniques 
+    to improve program performance. 
+    You will implement local value numbering, which eliminates 
+    redundant computations by identifying and reusing equivalent 
+    expressions, and function inlining, which replaces function 
+    calls with their actual body to reduce call overhead and enable 
+    further optimizations.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Read the code in <code>cfg/Cfg.java</code>, make sure you understand
+    the Java code defining CFG data structures we offered you.
+    Then finish the code in <code>cfg/lab1/ValueNumber.java</code>, 
+    to eliminate redundant computations. 
+    Your task is to identify and replace equivalent expressions within a basic block. 
+    Do not forget to test your code when finished, and fix any bugs before continuing. 
+</div>
+
+<div class="required">
+    <span class="header">Exercise 9.</span>
+    Suppose we inline a callee function into its caller 
+    only when the following conditions are met:
+    <ul>
+        <li>The callee function is called fewer 
+            than 5 times in the entire program;</li>
+        <li>The callee function is a leaf function 
+            (i.e., it does not call any other functions);</li>
+        <li>The callee function has a code size smaller than 10.</li>
+    </ul>
+    Finish the code in <code>cfg/lab1/Inline.java</code>, 
+    to reduce function call overhead and improve performance. 
+    Do not forget to test your code when finished, 
+    and fix any bugs before continuing. 
+</div>
+
+
+<hr>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to submit your solution to
+    the online teaching system.
+</p>
+
+<br>
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

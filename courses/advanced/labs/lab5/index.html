@@ -1,0 +1,395 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 5: Register Allocation</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 5: Register Allocation</h1>
+<hr/>
+
+<h2>Overview</h2>
+<p>
+    In this lab, you will design and implement a register allocator
+    for your <code>Tiger</code> compiler, to allocate variables
+    to physical registers.
+</p>
+<p>
+    This lab consists of two parts: first, in part A, you
+    will design and implement a baseline allocator to allocate
+    variables to stack frames.
+    In part B, you will implement linear scan register
+    allocator.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source code we offered you for lab 5:
+</p>
+<pre>
+    $ <kbd>git commit -am 'my solution to lab4'</kbd>
+    $ <kbd>git checkout -b lab5 origin/lab5</kbd>
+</pre>
+<p>
+    these commands will first commit your changes to the lab4
+    branch of your local Git repository, and then create a
+    local lab5 branch and check out the remote lab5 branch
+    into the new local lab5 branch.
+</p>
+<p>
+    Again, you will need to merge your code from lab4 into the
+    new lab5 branch:
+<pre>
+    $ <kbd>git merge lab4</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commiting to
+    the local lab5 branch:
+</p>
+
+<pre>
+    $ <kbd>git commit -am 'lab5 init'</kbd>
+</pre>
+<p>
+    You should first import the new lab5 code into
+    your editor, and make sure the code compiles. There
+    are a bunch of new files that you
+    should browse through:
+</p>
+<pre>
+    regalloc/*:    register allocators
+</pre>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished this lab, zip you code and submit to the
+    <a href="https://bb.ustc.edu.cn">online teaching system</a>.
+</p>
+
+<hr/>
+<!-- part A -->
+<h2>Part A: A Stack Allocator</h2>
+<p>
+    We start by building a baseline stack register allocator, to allocate
+    all variables to stack frames instead of physical registers
+    (i.e., all variables are spilled).
+    While this allocator generates inefficient code with
+    many memory load/stores, it is easier
+    to implement and serves as the baseline allocator in most production
+    compilers (i.e., the <code>-O0</code> optimization level).
+</p>
+
+<h3>Temp Maps</h3>
+<p>
+    As we are allocating variables to stack slots in a stack
+    frame, it is essential to keep track of where each variable
+    has been allocated to. We use a data structure <code>TempMap</code>
+    to record the stack frame offset for each variable.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the code in <code>regalloc/TempMap.java</code>, to
+    understand the data structure.
+    It should be noted that while this data structure
+    allows two options for allocation: <code>InReg</code>
+    and <code>InStack</code>, we only use <code>InStack</code>
+    in this part of the lab.
+</div>
+
+<h3>Function Frames</h3>
+<p>
+    The frame data structure keeps track of
+    how many slots have been allocated for a given function.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Read the frame data structure in <code>regalloc/Frame.java</code>,
+    to understand the implementation of a frame.
+    You do not need to write any code for this exercise.
+</div>
+
+<h3>Stack Allocation</h3>
+<p>
+    With these data structures, we can allocate variables.
+    The allocation consists of three major steps:
+    1) allocating stack slots for variables (i.e., arguments and locals)
+    in a given function;
+    2) rewriting each assembly instruction by inserting
+    necessary load/stores of the
+    variables from/to the stack frame; and
+    3) adding necessary function prologue and epilogue to
+    adjust the function frame when entering and exiting the
+    function.
+</p>
+<p>
+    The second step deserves more explanation. The instruction
+    rewriting is syntax-directed by adding loads before each
+    instruction and stores after it.
+    Take a binary operation instruction as an example
+    (for simplicity, we write instruction in TAC form
+    instead of in assembly form without losing generality):
+</p>
+<pre><code>x = y + z; // uses = [y, z], defs = [x]</code></pre>
+<p>
+    suppose the stack slot allocated for <code>x</code>,
+    <code>y</code>, and <code>z</code> are <code>l_x</code>,
+    <code>l_y</code>, and <code>l_z</code>, respectively. Then
+    the above instruction will be translated to:
+</p>
+<pre class="code">r1 = M[l_y];
+r2 = M[l_z];
+r1 = r1 + r2;
+M[l_x] = r1;</pre>
+<p>
+    which used 2 scratch registers <code>r1</code> and
+    <code>r2</code>, where <code>r1</code> is reused to hold
+    both the use <code>y</code> and the def <code>x</code>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Finish the code in <code>StackAllocator.java</code>,
+    to allocate variables to physical registers.
+    You may also need to extend or modify
+    the pretty printer in <code>regalloc/PpAssem.java</code>.
+</div>
+
+<h3>Prologue and Epilogue</h3>
+<p>
+    A <a href="https://en.wikipedia.org/wiki/Function_prologue_and_epilogue">
+    function prologue</a> is a fragment of assembly code
+    at the beginning of
+    a function, which prepare the call stack and registers for
+    use within the function. Similarly, a function epilogue
+    appears at the end of the function, and restores the stack
+    and registers to the state they were in before the function
+    was called.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Implement function prologue and epilogue for Tiger.
+    You can treat the size of the function frame as 0
+    (which will be determined by the register allocator
+    in the next lab).
+    To keep things simple, you can save all callee-saved
+    registers in the prologue and restore them in the epilogue,
+    regardless of whether the variable is used in the callee.
+    Furthermore, your Tiger compiler can always reserve <code>%rbp</code>
+    as the stack frame base pointer.
+</div>
+
+<h3>A Runtime</h3>
+<p>
+    To generate complete executables, we need link the Tiger-produced
+    assembly against a runtime.
+</p>
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Read the file <code>src/runtime/runtime.c</code>
+    for the code of the runtime.
+    Modify and extend this code to add other runtime functions
+    that your Tiger-produced assembly can invoke.
+    Specifically, you may use any strategy you think appropriate
+    to implement memory allocations. In the next lab, you will
+    design and implement a garbage collector to manage the
+    Java heap.
+</div>
+
+<p>
+    To this point, your Tiger compiler can compile <em>any</em>
+    MiniJava programs to produce assembly.
+    Furthermore, when linked against the above runtime,
+    your Tiger compiler can produce final executables which, when
+    executed,
+    should produce <em>correct</em> result.
+    Do not forget to test your Tiger compiler, fix any potential
+    bugs before continuing.
+</p>
+
+<!-- part b: linear scan -->
+<hr/>
+<h2>Part B: A Linear Scan Allocator</h2>
+<p>
+    In this part, you will design and implement a linear scan
+    register allocator, as described in
+    <a href="https://dl.acm.org/doi/pdf/10.1145/330249.330250">this paper</a>.
+    Your should first read this paper carefully to understand the
+    algorithm, <em>before</em> writing any code.
+</p>
+
+<h3>Liveness Analysis</h3>
+<p>
+    You will first write a
+    <a href="https://en.wikipedia.org/wiki/Liveness_analysis">liveness analysis</a>
+    to calculate, for each instruction
+    and transfer in a function, the live-in and live-out variable sets.
+</p>
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Write a liveness analysis for Tiger, to calculate live-in
+    and live-out information.
+    We are free to
+    propose any data structures and algorithms to
+    calculate this liveness information.
+    To keep things simple, you can write
+    the analysis on a single instruction granularity, to use
+    the following dataflow equation:
+    <pre><code>live_in[s]  = uses[s] &cup; (live_out[s] - defs[s])
+live_out[s] = &cup;(live_in[p])                     // for any p &in; succ[s];</code></pre>
+    with all live_in[] and live_out[] initialized to an empty set &emptyset;.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Most dataflow analysis should follow an order of
+    the flow of data. For liveness analysis, the caculation
+    should be backward from the last instruction in a
+    function to the first one.
+    Implement this strategy to speed up your analysis.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    To speed up the liveness analysis, you may
+    calculate liveness information on a block granularity
+    instead of on an instruction granularity.
+    That is, you can use the following dataflow equation:
+    <pre><code>live_in[b]  = uses[b] &cup; (live_out[b] - defs[b])
+live_out[b] = &cup;(live_in[p])                     // for any p &in; succ[b];</code></pre>
+    where the live variable set uses[] and defs[]
+    for each block <code>b</code> is calculated by a one-pass backward
+    iteration of all statements in this block.
+    Implement this strategy to speed up your liveness analysis.
+</div>
+
+<h3>Topological Sorting and Live Intervals</h3>
+<p>
+    A <a href="https://en.wikipedia.org/wiki/Topological_sorting">
+    topological sorting</a>
+    linearizes the basic blocks in a control-flow
+    graph, so that each basic block <code>b</code> (hence
+    each instruction or transfer
+    in that block) will have a unique linear order number <code>n</code>
+    with total order.
+</p>
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    Implement topological sorting of basic blocks
+    to linearize them. It should be noted that, generally
+    speaking, a control-flow graph might not have a strict
+    topological sorting due to the existence of loops.
+    Hence, your algorithm will really produce a quasi-topological order.
+</div>
+<p>
+    Given a specific topological order, we can calculate, for each
+    variable <code>x</code>, its live interval <code>[low, high]</code>.
+    Intuitively, the variable <code>x</code> is "always" live in this
+    interval, hence requiring a unique
+    physical register <code>r</code> to hold its value.
+</p>
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Calculate, for each variable <code>x</code>, its live interval
+    <code>[low, high]</code>. Think carefully about the underlying data
+    structure designs.
+</div>
+
+<h3>Allocation</h3>
+<p>
+    Variables can be allocated to registers by a linear scan
+    of all live intervals. Live intervals <code>[low, high]</code>
+    should be increasingly ordered according to its left coordinate
+    <code>low</code>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 9.</span>
+    Allocate variables to physical registers by implementing
+    the linear scan algorithm.
+    Rewrite the assembly instructions according to the allocation
+    result.
+</div>
+
+<p>
+    To this point, your Tiger compiler can compile <em>any</em>
+    MiniJava programs without spilling to assembly.
+    Furthermore, when linked against the above runtime,
+    your Tiger compiler can produce final executables which, when
+    executed,
+    should produce <em>correct</em> result.
+    Do not forget to test your Tiger compiler, fix any potential
+    bugs before continuing.
+</p>
+
+<h3>Spilling</h3>
+<p>
+    Variables that cannot be allocated to registers should be
+    spilled to stack frames. Extra load/stores should be added
+    for the spilled variables.
+</p>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement spilling, so that your Tiger compiler can
+    compile programs with arbitrary variable interferences.
+</div>
+
+<p>
+    After implementing spilling, your Tiger compiler can compile <em>any</em>
+    MiniJava programs to produce assembly.
+    Test your Tiger compiler before continuing.
+</p>
+
+
+<h3>Coalescing</h3>
+<p>
+    Coalescing is an optimization to remove
+    move instructions where the source and target are the same.
+    Specifically, for move instruction
+</p>
+<pre class="code">movq %x, %y     // %y = %x</pre>
+<p>
+    if both variables <code>x</code> and <code>y</code> can be
+    allocated to the same physical register (say <code>%r</code>), then
+    the resulting move instruction:
+</p>
+<pre class="code">movq %r, %r</pre>
+<p>
+    is essentially a <code>nop</code>, hence can be removed subsequently.
+</p>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement coalescing, so that your Tiger compiler can
+    eliminate practically <code>all</code> move instructions from
+    the programs being compiled.
+</div>
+
+<p>
+    To this point, your Tiger compiler should compile <em>any</em>
+    MiniJava programs by allocating variables to registers.
+    Do not forget to test your Tiger compiler and fix potential bugs.
+</p>
+
+<hr/>
+<h2>Hand-in</h2>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+
+<br>
+<br>
+
+</body>
+</html>
+
+
+
+

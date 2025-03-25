@@ -1,0 +1,551 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Lab 7: Static Single-Assignment Form</title>
+    <link rel="stylesheet" href="../labs.css" type="text/css">
+</head>
+
+<body>
+
+<h1>Lab 7: Static Single-Assignment Form</h1>
+
+<hr/>
+<h2>Overview</h2>
+<p>
+    In this lab, you will build a static
+    single-assignment form (SSA) for your Tiger compiler
+    to perform optimizations. SSA is a
+    state-of-the-art IR also used in production compilers
+    such as GCC or LLVM.
+</p>
+<p>
+    This lab consists of two parts: first, in part A, you will
+    design and implement data structures defining the
+    static single-assigment form. You will also implement
+    translations from CFG to SSA as well as translations from SSA back
+    to CFG.
+    Second, in part B, you will implement several
+    classic data-flow analysis
+    and optimizations on SSA.
+</p>
+
+<h3>Getting Started</h3>
+<p>
+    First check out the source we offered you for lab7:
+</p>
+
+<pre>
+    $ <kbd>git commit -am 'my solution to lab6'</kbd>
+    $ <kbd>git checkout -b lab7 origin/lab7</kbd>
+</pre>
+<p>
+    these commands will first commit your changes to the lab6
+    branch of your local Git repository, and then
+    create a local lab7 branch and check out the remote lab7 branch
+    into the new local lab7 branch.
+</p>
+<p>
+    Again, you will need to merge your code from lab6 into the
+    new lab7 branch:
+<pre>
+    $ <kbd>git merge lab6</kbd>
+</pre>
+<p>
+    Do not forget to resolve any conflicts before commit to
+    the local lab7 branch:
+</p>
+<pre>
+    $ <kbd>git commit -am 'lab7 init'</kbd>
+</pre>
+
+<p>
+    You should first import the new lab7 code into
+    your favorite IDE, and make sure the code compiles. There
+    are a bunch of new files that you
+    should browse through:
+</p>
+<pre>
+    ssa/*:    static single-assignment form and its operations
+</pre>
+
+<h3>Hand-in Procedure</h3>
+<p>
+    When you finished your lab, zip you code and submit to the
+    <a href="https://bb.ustc.edu.cn">online teaching system</a>.
+</p>
+
+
+<hr/>
+<h2>Part A: Static Single-Assignment Form (SSA)</h2>
+<p>
+    The <a href="https://en.wikipedia.org/wiki/Static_single-assignment_form">
+    static single-assignment form</a>
+    (SSA) is an important compiler intermediate representation,
+    in which each variable is assigned (statically) at most once.
+    SSA is more advantageous over other compiler IRs in that
+    its single-assignment property makes program analysis and optimization
+    simpler and more efficient.
+    As a result, SSA has become a de-factor IR in modern optimizing compilers
+    for imperative, OO, or even functional languages.
+</p>
+<p>
+    In this part of the lab, you will build a static single-assigment
+    form for your Tiger compiler, and conduct optimizations
+    based on your SSA IR.
+    To aid in your implementation, we have given some hints for most
+    exercises, but keep in mind that these hints are
+    not mandatory, and you are free (and encouraged) to propose
+    your own ideas.
+</p>
+
+<h3>SSA Data Structure</h3>
+<p>
+    To better reuse your existing code base,
+    you will implement
+    SSA by leveraging data structures already designed for
+    the control-flow graph.
+    This design decision
+    makes the interfaces cleaner and more elegant
+    hence simplifying subsequent compilation phases.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 1.</span>
+    Read the code defining the SSA data structures in the file
+    <code>cfg/Cfg.java</code>.
+    A basic block b might contain a list of &phi;-instructions, which
+    reside at the top of a block.
+    Syntactically, a &phi;-function
+    <pre class="code">
+        x = &phi;((B_1, x_1), (B_2, x_2), ..., (B_p, x_p))</pre>
+    takes a list of tuples
+    <code>(B_i, x_i), 1&le; i &le; p</code> as arguments
+    and selects one of the variable <code>x_j</code> from
+    these tuples as
+    its value to assign to the left-side <code>x</code>, when
+    the control-flow reach the current basic block from its
+    predecessor <code>B_j</code>.
+    Your task is to extend the SSA data structures with
+    other necessary syntactic features, to support the compilation
+    of full MiniJava.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Finish the code, in the file
+    <code>cfg/Cfg.java</code>, to visualize an
+    SSA graph, that is, to draw the SSA graph
+    with <a href="https://graphviz.org/">dot</a>.
+</div>
+
+<h3>Dominator Trees</h3>
+<p>
+    You will be constructing the SSA form with the
+    following 5 steps:
+    1) calculate dominators;
+    2) build dominator trees;
+    3) calculate dominance frontiers;
+    4) place &phi;-functions; and
+    5) rename variables.
+</p>
+<p>
+    In this part, you will finish the first two steps, that is,
+    you will first calculate dominators then build a dominator
+    tree for a given CFG.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Calculate, for each node <code>n</code> in the control-flow
+    graph, the dominators <code>DOM[n]</code> for the node <code>n</code>.
+    You should finish this exercise by filling in the
+    method <code>dominators()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: to keep your implementation simple, you might use
+    the following data-flow equation to compute dominators directly:
+    <pre class="code">
+        DOM[n] = {n} &bigcup; (&bigcap;<sub>p&in; pred[n]</sub> DOM[p])</pre>
+    where <code>DOM[n<sub>0</sub>] = {n<sub>0</sub>}</code> for
+    the entry block <code>n<sub>0</sub></code>.<br>
+    Hint: you might first topological-sort the control-flow graph to
+    speed up the calculation, as this equation is forward in nature.
+</div>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    While the data-flow equation based algorithm is
+    easy to engineer, it is worst-time complexity is
+    <code>O(n<sup>2</sup>)</code>
+    due to its use of iterations to reach
+    the fixpoint. Implement a more efficient algorithm
+    to calculate dominators. You might consider the
+    <a href="https://www.cs.tufts.edu/comp/150FP/archive/keith-cooper/dom14.pdf">Cooper's
+        algorithm</a>
+    as a starting point.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 4.</span>
+    Calculate, for a control-flow
+    graph <code>g</code>, its dominator tree <code>t</code>.
+    You should finish this exercise by filling in the
+    method <code>dominatorTree()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: you should make use of the dominators <code>DOM[n]</code>
+    already calculated
+    for the node <code>n</code>, and think carefully about the basic
+    data structure design to implement this algorithm.
+</div>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Calculate, for a node <code>n</code> in control-flow
+    graph <code>g</code>, its immediate dominator <code>IDOM[n]</code>.
+    You should finish this exercise by filling in the
+    method <code>idom()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: you might extend the tree
+    data structure to implement this algorithm.
+</div>
+
+<h3>Dominance Frontier</h3>
+<p>
+    In this part of the lab, you will be implementing the
+    third step to build an SSA, that is, you will calculate
+    the dominance frontier for each node.
+    The dominance frontier <code>DF[n]</code> of a node <code>n</code> is the
+    set of all nodes <code>d</code> such that <code>n</code>
+    dominates an immediate predecessor of <code>d</code>, but <code>n</code>
+    does not strictly dominate <code>d</code>.
+    Intuitively, the dominance frontier <code>DF[n]</code>
+    for a node <code>n</code> is the set of nodes where <code>n</code>'s
+    dominance stops.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 6.</span>
+    Implement the algorithm calculating dominance frontiers <code>DF[n]</code>
+    for any node <code>n</code> in the CFG.
+    You should finish this exercise by filling in the
+    method <code>dominanceFrontier()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: to keep your implementation simpler,
+    you may use the following algorithm to calculate dominance
+    frontier:
+    <pre class="code">
+    dominanceFrontier()
+        foreach(node n &in; CFG)
+            DF[n] = &emptyset;  // initialized to an empty set
+        foreach(node n &in; CFG)
+            if(n has multiple predecessors)
+                foreach(predecessor p of n)
+                    runner = p
+                    while(runner &ne; IDOM[n])
+                        DF[runner] &bigcup;= {n}
+                        runner = IDOM[runner]</pre>
+    where <code>IDOM[n]</code> represents
+    the immediate dominator for the node <code>n</code>.
+</div>
+
+<h3>&phi;-function Placement</h3>
+<p>
+    In this part, you will implement the fourth step to build an SSA,
+    that is, you will be implementing the &phi;-function placement.
+    The &phi;-function placement algorithm places &phi;-functions at
+    the top of corresponding blocks.
+    Specifically, for a definition
+</p>
+<pre class="code">x = ...</pre>
+<p>
+    to a variable
+    <code>x</code> in a basic block
+    <code>n</code>, this algorithm will place a &phi;-function
+</p>
+<pre class="code">x = &phi;(x, ..., x)</pre>
+<p>
+    at the top of each <code>n</code>'s
+    dominance frontier <code>d &in; DF[n]</code>.
+</p>
+<div class="required">
+    <span class="header">Exercise 7.</span>
+    Implement the algorithm to place the &phi;-functions, as
+    described by Algorithm 19.6 in the Tiger book.
+    You should finish this exercise by filling in the
+    method <code>placePhiFunctions()</code>
+    in the file <code>cfg/Cfg.java</code>.<br>
+    Hint: for any basic block <code>b</code>, take care not to
+    place &phi;-functions more than once
+    for a same variable <code>x</code>.<br>
+    Hint: &phi;-function placement has a cascaded effect, that is,
+    placing a &phi;-function for a variable <code>x</code>
+    at a basic block <code>b</code> also
+    makes <code>b</code> a definition block for <code>x</code>.
+</div>
+
+<h3>Renaming the Variables</h3>
+<p>
+    In this part of the lab, you will be implementing the
+    fifth and last step to build an SSA, that is, you will rename
+    variables to make its definition unique.
+</p>
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Implement the algorithm to rename the variables, as
+    described by Algorithm 19.7 in the Tiger book.
+    You should finish this exercise by filling in the
+    method <code>renameVariables()</code>
+    in the file <code>cfg/Cfg.java</code>.<br>
+    Hint: think carefully about basic data structure design
+    (e.g., variable versions, and stacks).<br>
+    Hint: to keep your implementation simple, you might want
+    to use a functional programming style, that is, you should
+    construct a new function from an old one instead of
+    modifying the old one in place.
+</div>
+<p>
+    To this point, your Tiger compiler can convert all legal MiniJava
+    programs to SSA forms. Do regression test your Tiger compiler
+    and fix potential bugs.
+</p>
+
+<h3>Translation Out of SSA Forms</h3>
+<p>
+    Modern machines do not support the &phi;-functions
+    directly, hence &phi;-functions must be eliminated
+    before execution. This task is accomplished by the
+    translation out of SSA forms.
+</p>
+<div class="required">
+    <span class="header">Exercise 9.</span>
+    Implement the algorithm to translate a program
+    out of SSA form. Specifically, to avoid
+    <a href="https://stackoverflow.com/questions/75703913/how-to-eliminate-phi-instructions-in-transformed-ssa">
+        the lost-copy
+        problem and the swap problem</a>,
+    you might use the following algorithm:
+    <pre class="code">
+    outSSA(ssa)
+        splitCriticalEdges(ssa);
+        foreach(basic block b, with p predecessors b<sub>1</sub>, ..., b<sub>p</sub>)
+            suppose b contains m &phi;-functions:
+                x<sub>1</sub> = &phi;(x<sub>11</sub>, ..., x<sub>1p</sub>);
+                ...
+                x<sub>m</sub> = &phi;(x<sub>m1</sub>, ..., x<sub>mp</sub>);
+            generate m fresh variables: t<sub>1</sub>, ..., t<sub>m</sub>;
+            foreach(b's predecessor block b<sub>i</sub>, 1&le; i &le;p)
+                append these assignment statements at the tail of block b<sub>i</sub>:
+                    t<sub>1</sub> = x<sub>1i</sub>
+                    ...
+                    t<sub>m</sub> = x<sub>mi</sub>
+            append these assigment statements at the top of block b:
+                x<sub>1</sub> = t<sub>1</sub>
+                ...
+                x<sub>m</sub> = t<sub>m</sub></pre>
+    where the function <code>splitCriticalEdges()</code> splits
+    critical edges in a directed graph.
+    You should finish this exercise by filling in the
+    method <code>splitCriticalEdges()</code>
+    in the file <code>util/Graph.java</code>,
+    and by filling in the method <code>outSsa()</code>
+    in the file <code>cfg/Cfg.java</code>.
+</div>
+<p>
+    To this point, your Tiger compiler can convert any
+    SSA form back to a corresponding CFG.
+    Do not forget to regression test your Tiger compiler.
+</p>
+
+
+<hr/>
+<h2>Part B: SSA-based Optimizations</h2>
+<p>
+    SSA makes compiler optimizations not only
+    easier to engineer but also more efficient to execute, largely
+    due to its single-assignment property.
+    This nice property make it
+    much easier to calculate the data-flow information
+    required to perform optimizations.
+</p>
+
+<p>
+    In this part of the lab, you will re-implement several optimizations
+    that we have done on the CFG on SSA again: dead code-elimination,
+    constant propagation, copy propagation, among others.
+    And you will also implement several novel optimizations that
+    are particularly suitable for SSA: conditional constant propagation,
+    global value numbering, among others.
+</p>
+
+<h3>Dead-code Elimination</h3>
+<p>
+    In SSA, a statement <code>x = e</code> is dead,
+    if the variable <code>x</code> is not used by any other
+    statement (and <code>e</code> does not have side effects).
+    As a result, this statement <code>x = e</code> can be safely
+    eliminated.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 10.</span>
+    Implement the dead-code optimization on SSA.
+    You should finish this exercise by filling in
+    methods in the file <code>ssa/DeadCode.java</code>.
+    Note that &phi;-functions are also assignment statements
+    hence candidates for dead-code elimination.
+</div>
+
+<h3>Constant Propagation</h3>
+<p>
+    In SSA, given a statement of the form <code>x = c</code> in which
+    <code>c</code> is a constant, we can propagate the constant <code>c</code>
+    to any use of variable <code>x</code>.
+</p>
+<div class="required">
+    <span class="header">Exercise 11.</span>
+    Implement the constant propagation optimization on SSA.
+    You should finish this exercise by filling in
+    methods in the file <code>ssa/ConstProp.java</code>.
+    Note that after the constant propagation optimizations,
+    the assigment statement <code>x = c</code>
+    might become dead statement,
+    manifesting opportunities for dead-code elimination optimizations.
+</div>
+
+<h3>Copy Propagation</h3>
+<p>
+    In SSA, given a copy statement <code>x = y</code>, then
+    any use of <code>x</code> can be replaced by <code>y</code>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 12.</span>
+    Implement the copy propagation algorithm on SSA.
+    You should finish this exercise by filling in methods in the file
+    <code>ssa/CopyProp.java</code>.
+</div>
+
+<h3>&phi;-function Elimination</h3>
+<p>
+    In SSA, if a &phi;-function is of a special form
+    taking a list of same arguments:
+</p>
+<pre class="code">x = &phi;(c, c, ..., c)</pre>
+<p>
+    where <code>c</code> is a constant,
+    then this &phi;-function can be eliminated by rewriting
+    it to a normal assignment to <code>x</code>:
+</p>
+<pre class="code">x = c</pre>
+<p>
+    Note that, often the time,
+    this special form of &phi;-function <code>x = &phi;(c, c, ..., c)</code>
+    might be generated by constant propagation optimizations,
+    which substituted &phi;-function arguments by constants.
+</p>
+<p>
+    Similarly, the &phi;-function:
+</p>
+<pre class="code">x = &phi;(y, y, ..., y)</pre>
+<p>
+    can be eliminated by rewriting
+    it to an assignment statement:
+</p>
+<pre class="code">x = y</pre>
+<p>
+    where <code>y</code> is a variable.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 13.</span>
+    Implement the &phi;-function elimination optimization on SSA.
+    You should finish this exercise by filling in methods in the file
+    <code>ssa/PhiElim.java</code>.
+</div>
+
+<h3>Conditional Constant Propagation</h3>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement the conditional constant propagation optimization, using
+    the lattice-based approach.
+    You might refer to
+    <a href="https://dl.acm.org/doi/pdf/10.1145/103135.103136">this paper</a>
+    to start with.
+</div>
+
+<h3>Global Value Numbering</h3>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement the global value numbering optimization.
+    You might refer to
+    <a href="https://www.cs.tufts.edu/~nr/cs257/archive/keith-cooper/value-numbering.pdf">this paper</a>
+    to start with.
+</div>
+
+
+<h3>Partial Redundancy Elimination</h3>
+
+<div class="challenge">
+    <span class="header">Challenge.</span>
+    Implement the partial redundancy elimination optimization.
+    You might refer to
+    <a href="https://dl.acm.org/doi/pdf/10.1145/319301.319348">this paper</a>
+    to start with.
+</div>
+
+<p>
+    Do not forget to test Tiger compiler after finishing all these
+    optimizations.
+</p>
+
+
+<!--<hr/>-->
+<!--<h2>Part C: SSA Program Analysis</h2>-->
+<!--<p>-->
+<!--    Chordal graph?-->
+<!--</p>-->
+
+
+<hr/>
+<h3>Hand-in</h3>
+<p>
+    This completes the lab. Remember to hand in your solution to
+    the online teaching system.
+</p>
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
