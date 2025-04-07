@@ -1,25 +1,22 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html">
-    <title>Lab 2: Abstract Syntax Tree and Type Checker</title>
+    <title>Lab 2: Data-flow analysis</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
 </head>
 
 <body>
 
-<h1>Lab 2: Abstract Syntax Tree and Type Checker</h1>
+<h1>Lab 2: Data-flow analysis</h1>
 <hr/>
 
 <h2>Overview</h2>
 <p>
-    In this lab, you will design and
-    implement an abstract syntax tree as well as a type checker
-    for Tiger. To implement an abstract
-    syntax tree, you will design a bunch of Java classes, and
-    add semantic actions to the parser to generate
-    abstract syntax trees automatically.
-    To implement the type checker, you will design symbol tables
-    as well as type checking rules.
+    In this lab, you will design and implement a dominator tree algorithm, a 
+    foundational tool for code optimization. 
+    Additionally, you will develop a liveness analysis, a classical backward 
+    data flow analysis algorithm, and a reaching definitions analysis, 
+    a classical forward data flow analysis algorithm.
 </p>
 
 <h3>Getting Started</h3>
@@ -29,6 +26,7 @@
 
 <pre>
     $ <kbd>git commit -am 'my solution to lab1'</kbd>
+    $ <kbd>git fetch</kbd>
     $ <kbd>git checkout -b lab2 origin/lab2</kbd>
 </pre>
 <p>
@@ -61,8 +59,9 @@
 </p>
 
 <pre>
-    src/ast/*:     abstract syntax tree data structure
-    src/checker/*: symbol tables and the type checker
+    cfg/lab2/Dominator.java:            dominator tree algorithm framework
+    cfg/lab2/Liveness.java:             liveness analyses framework
+    cfg/lab2/ReachDefinition.java:      reaching definition analyses framework
 </pre>
 
 <h3>Hand-in Procedure</h3>
@@ -72,252 +71,146 @@
 </p>
 
 <hr/>
-<h1>Part A: Abstract Syntax Trees</h1>
+<h1>Part A: Dominator Tree</h1>
 <p>
-    In this part of the lab, you will first design and
-    implement an abstract syntax tree for Tiger.
+    In program optimization and analysis, Dominator Tree is a tree structure 
+    used to represent the dominance relationship between nodes in a Control Flow 
+    Graph (CFG). It is an important tool in compiler design and static program 
+    analysis, especially in optimizations (such as loop optimization, dead code 
+    elimination) and data flow analysis.
 </p>
 <p>
+    Let <code>DOM[n]</code> represent the dominator of node <code>n</code>. 
+    A simple and intuitive way to construct a dominating tree is to utilize
+    the following data-flow equation:
+    <pre class="code">
+        DOM[n] = {n} &bigcup; (&bigcap;<sub>p&in; pred[n]</sub> DOM[p])</pre>
+    where <code>DOM[n<sub>0</sub>] = {n<sub>0</sub>}</code> for
+    the entry block <code>n<sub>0</sub></code>.<br>
+</p>
+<p>
+    While the data-flow equation based algorithm is easy to engineer, it is 
+    worst-time complexity is <code>O(n<sup>2</sup>)</code> due to its use of 
+    iterations to reach the fixpoint. 
+    In this part, you should implement a more efficient algorithm to construct
+    dominator tree using Cooper's algorithm.
+</p>
 <div class="required">
     <span class="header">Exercise 1.</span>
-    Read and understand the source code in the file <code>ast/Ast.java</code>,
-    which encodes the abstract syntax for MiniJava.
-    Refer to the
-    <a href="https://www.cs.tufts.edu/~sguyer/classes/comp181-2006/minijava.html">
-        MiniJava reference manual</a>
-    for the MiniJava syntax.
+    Complete the missing code in file <code>src/cfg/lab2/Dominator.java</code>
+    and build a dominator tree from the control flow graph. You can refer to the
+    readings we provided and
+    <a href="https://www.cs.tufts.edu/comp/150FP/archive/keith-cooper/dom14.pdf">this paper</a>
+    to learn how Cooper's algorithm works.
 </div>
 
-<h3>Program Representation as Trees</h3>
+<hr/>
+<h1>Part B: Liveness Analysis</h1>
 <p>
-    Given the data structure definitions for the MiniJava syntax, one
-    can (in principle) manually encode any MiniJava program.
-    While this method is, at first glance, boring and error-prone to do
-    in everyday programming practice, it does allow a direct representation of
-    program structures, and also is the dominant
-    programming styles in some functional languages, like
-    <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a>
-    or <a href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a>.
+    A
+    <a href="https://en.wikipedia.org/wiki/Liveness_analysis">liveness analysis</a>
+    calculates, for each statement
+    and transfer in a function, the live-in and live-out variable sets.
+    In liveness analysis, you should calculate
+    <code>in</code> and <code>live_out</code> for the <code>in</code>
+    and <code>out</code> separately; and the fix-point code should
+    calculate the <code>in</code> and <code>out</code> sets for
+    each basic block in a reverse topo-sort order.
+    But for other data-flow analysis, these details may be different.
 </p>
 
 <div class="required">
     <span class="header">Exercise 2.</span>
-    In the file <code>ast/SamplePrograms.java</code>, we have offered you some
-    code to encode several sample MiniJava program.
-    Read the code and make sure
-    you understand how those sample programs are represented.
-    Then write code to encode the MiniJava
-    program <code>test/Sum.java</code>.
+    Finish the liveness analysis code in the source file
+    <code>cfg/lab2/Liveness.java</code> by implementing the
+    aforementioned algorithm.
 </div>
 
-<h3>Pretty Printing</h3>
+<hr/>
+<h1>Part C: Reaching Definition Analysis</h1>
 <p>
-    As you have done in lab 1, you will implement a pretty
-    printer in this part, which makes use of the pattern matching
-    feature in Java.
+    In this part of the lab, You will implement a 
+    <a href="https://en.wikipedia.org/wiki/Reaching_definition">reaching definition analysis</a>
+    , which tracks the values of variables in a program. 
+    Through reaching definition analysis, we can detect the use of undefined 
+    variables in the program or perform constant propagation and 
+    copy propagation.
+</p>
+
+<p>
+    The reaching definition analysis algorithm we designed primarily consists 
+    of two steps: analyzing variable definition points and iteratively solving 
+    data flow equations.
+</p>
+
+<h3>
+    Variable Definition Points Analysis
+</h3>
+
+<p>
+    The analysis of variable definition points is primarily performed to 
+    compute the information required for data flow equations. This step 
+    involves traversing each function and recording every definition point of 
+    variables within the function.
 </p>
 
 <div class="required">
     <span class="header">Exercise 3.</span>
-    Read the code in the file <code>ast/PrettyPrinter.java</code>,
-    finish the pretty printer by filling in the missing code.
-    Do not forget to test your code when you finished, you can
-    start with the unit test code in <code>ast/Test.java</code>.
+    Read and understand the source code in the file 
+    <code>cfg/lab2/ReachDefinition.java</code>, then fill in the function 
+    <code>defsForFunction()</code>.
+    <br>
+    You can utilize <code>defSitesProp</code> to record variable 
+    definition site.
 </div>
 
-<div class="challenge">
-    <span class="header">Challenge!</span>
-    While the pretty printer you have implemented is powerful
-    enough to process MiniJava code, it may be not that general
-    and powerful. Study some general pretty printing algorithms
-    and implement them into your Tiger compilers. For example, you
-    may start with
-    <a href="https://homepages.inf.ed.ac.uk/wadler/papers/prettier/prettier.pdf">
-        Wadler's</a> printer.
-</div>
-
-<h3>Tree Generation</h3>
+<h3>
+    Gen-Kill Computation
+</h3>
 <p>
-    The parser can construct the abstract syntax tree automatically by
-    its semantic action attached with the parsing methods.
+    Prior to solving data flow equations, we must also implement functions to 
+    compute the gen/kill sets for each program statement. For each statement 
+    <code>d: t = x1 op x2</code>, the <em>GEN</em> set is computed as 
+    <code>Gen[d] = {d}</code>, and the <em>KILL</em> set is calculated by 
+    <code>Kill[d]=defs[t]-{d}</code>.
 </p>
 
 <div class="required">
     <span class="header">Exercise 4.</span>
-    Modify the parser <code>src/parser/Parser.java</code> to add
-    semantic actions to each parsing method. As the result of
-    parsing, your Tiger compiler will return an abstract
-    syntax tree for subsequent processing.
-</div>
-<p>
-    To this point, your Tiger compiler should parse all legal
-    MiniJava programs, generate abstract syntax trees, and
-    perform pretty printing on the trees. Do not forget to
-    test your compiler:
-</p>
-
-<pre>
-    $ <kbd>java --enable-preview -cp bin Tiger -trace parser.Parser.parse &lt;inputFile&gt;</kbd>
-</pre>
-<p>
-    Fix any bugs before continuing.
-</p>
-
-<div class="challenge">
-    <span class="header">Challenge!</span>
-    If you have tried parser generators from the previous lab, then
-    you may generate abstract syntax trees from that parser by adding
-    semantic actions into productions.
+    Read and understand the source code in the file 
+    <code>cfg/lab2/ReachDefinition.java</code>, then fill in the function 
+    <code>gkStm()</code>.
 </div>
 
-<hr/>
-<h1>Part B: Type Checker</h1>
+<h3>
+    Solving Data Flow Equations
+</h3>
 <p>
-    A type checker inspects the abstract syntax trees for
-    <em>well-formedness</em>, according to the
-    MiniJava language specification which is in turn based on Java
-    specification.
-    Well-formedness guarantees that the input MiniJava program
-    obey <em>all</em> constraint rules.
-    For example, a variable must be
-    declared before its use; the <code>"+"</code> operator
-    must apply to two operands of integer type; the methods being
-    invoked on an object must have
-    been defined in its class or some superclass; and so on.
-    In this part, you will be implementing a type checker for
-    Tiger.
-</p>
-
-<h3>Symbol Tables</h3>
-<p>
-    Just like the pretty printing, a type checker
-    performs some kind of (post-order) tree traversal.
-    However, there is a key difference: the type checking
-    traversal is context-sensitive, that is, it must record
-    necessary context information. We can use dictionary
-    data structures to record these information.
-    For historical reason, such dictionaries
-    are called
-    <em><a href="https://en.wikipedia.org/wiki/Symbol_tables">symbol tables</a></em>.
-</p>
-
-<p>
-    The design of the symbol table
-    is highly-dependent on the language being compiled.
-    For MiniJava, we have designed two symbol tables:
-    1) a class table; and 2) a method table.
-    A class table maps a class name to its
-    to instance variables and methods.
-    And a method table map a method name to its
-    parameters and locals variables.
+    The solution of data flow equations typically employs a fixed-point 
+    algorithm. This involves maintaining a state table where each iteration 
+    recomputes the current state. If the state in the current iteration differs 
+    from the previous iteration, the algorithm proceeds to the next round until 
+    a stable convergence state—referred to as the fixed point—is reached.
+    <br>
+    It is noteworthy that reaching definition analysis is a <em>forward</em> 
+    data flow analysis. For each statement <code>s</code>, its <em>In</em> set 
+    is the union of the <em>Out</em> sets from all its predecessor statements: 
+    <code><em>In</em>[s] = 
+        &bigcup;<sub>p&in;pred[s]</sub><em>Out</em>[pred]</code>, 
+    while its <em>Out</em> set is computed by 
+    <code><em>Out</em>[s] = 
+        <em>Gen</em>[s] &bigcup; (<em>In</em>[s] - <em>Kill</em>[s])</code>.
 </p>
 
 <div class="required">
     <span class="header">Exercise 5.</span>
-    Read the code defining symbol table data structures in
-    <code>src/checker/*</code>.
-    We have provided you all code, make sure to understand the overall
-    organization of these data structures.
-
-    To debug your compiler implementation, you often need to
-    dump the class table or method table. You can
-    run your Tiger compiler with:
-    <pre> $ <kbd>java --enable-preview -cp bin Tiger -dump classtable
-           -dump methodtable &lt;inputFile&gt;</kbd>
-</pre>
+    Implement the fixed-point algorithm in the <code>doitFunction()</code> 
+    and complete the <code>doitStm()</code> and <code>doitTransfer()</code> 
+    functions to compute the <em>In</em>/<em>Out</em> sets for each program 
+    statement/transfer. 
+    Afterwards, you can validate your implementation by invoking the 
+    <code>test()</code> function within the embedded class <code>UnitTest</code>.
 </div>
-
-<h3>Implementing Type Checking Rules</h3>
-<p>
-    A type checker performs a post-order traversal of
-    an abstract syntax tree.
-    That is, a type checker first inspects each subtree and calculates
-    a type for that subtree, respectively.
-    When the type checker returns to the root of the tree,
-    it compares the types returned from all subtrees and
-    guarantees those types can be combined properly into a
-    result type before returning.
-    For example, for the tree
-    node <em>e1+e2</em>, the type checker first inspects the left subtree
-    <em>e1</em> to
-    calculate a type, say <em>t1</em>, then inspects the right subtree
-    <em>e2</em> to calculate a type
-    <em>t2</em>.
-    At the type checker returns to the root node "+", it will check that
-    both <em>t1</em> and <em>t2</em> are <em>int</em>, before returning
-    a type <em>int</em> as the final result.
-</p>
-
-<div class="required">
-    <span class="header">Exercise 6.</span>
-    Finish the code in the type checker <code>src/checker/Checker.java</code>,
-    by filling in the missing code.
-    In implementing the type checker, you can run the following command
-    <pre> $ <kbd>java --enable-preview -cp bin Tiger -builtin SumRec.java</kbd>
-</pre>
-    in case that your parser has bugs.
-</div>
-<p>
-    To this point, your Tiger compiler can type check
-    all MiniJava programs. Do not forget to
-    test your compiler and fix any bugs before continuing.
-</p>
-
-<h3>Error Recovery</h3>
-<p>
-    A type checker should report type errors
-    to the programmers and should recover from type errors to
-    detect and report as many errors as possible.
-    The error recovery strategy in Tiger's
-    current implementation is preliminary in
-    that it only reports one error before exiting, but does not try
-    to recover from an error.
-</p>
-
-<div class="required">
-    <span class="header">Exercise 7.</span>
-    Propose a better error recovery strategy
-    and implement it in your Tiger compiler.
-</div>
-
-<h3>Declaration and Usage</h3>
-<p>
-    Java, like many static languages, obeys a declaration-before-use
-    rule, meaning that each variable in a program
-    should have a unique static declaration site before all its usages.
-    However, a variable declaration may have not been used at all.
-    For such scenarios, the variable is said to be
-    an <em>unused variable</em>. A good compiler might generate
-    warning like:
-</p>
-
-<pre class="output">
-    Warning: Variable 'x' is never used
-</pre>
-<p>
-    which you might have observed in your Java IDE in this course.
-</p>
-
-
-<div class="required">
-    <span class="header">Exercise 8.</span>
-    Extend your Tiger compiler to issue warnings for unused
-    variables.
-</div>
-
-<div class="challenge">
-    <span class="header">Challenge.</span>
-    In well-behaved Java programs, every variable should have been
-    <em>initialized</em> before its usages, otherwise the usage
-    of such a variable might produce unpredictable results.
-    For uninitialized variables, good compilers might
-    generate the following <em>error</em>:
-    <pre class="output">
-        Error: Variable 'x' might not have been initialized</pre>
-    Propose a strategy to detect uninitialized variables,
-    and implement your idea into your Tiger compiler.
-</div>
-
 
 <hr/>
 <h2>Hand-in</h2>
