@@ -1,5 +1,6 @@
 from z3 import *
 import sys
+import earlyparsing
 
 debug: bool = True
 
@@ -144,7 +145,9 @@ def imo_1988():
     solver.add(k>=1)
     solver.add(t>=1)
     solver.add(a*a+b*b==(a*b+1)*k)
-    solver.add(ForAll([t], k != t*t))
+    # solver.add(k!=1)
+    # solver.add( k!=4)
+    solver.add(k != t*t)
     res = solver.check()
     if res == sat:
         print(solver.model())
@@ -158,6 +161,10 @@ def imo_1988():
 $ python3 imo.py <year>
 """
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python imo.py <year>")
+        exit(1)
+
     year = int(sys.argv[1])
     match year:
       case 1959: imo_1959()
