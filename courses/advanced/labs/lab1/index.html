@@ -28,7 +28,7 @@
     understanding about Java.
 </p>
 <p>
-    There are 6 labs planned:
+    There are 7 labs planned:
 </p>
 <ul>
     <li>Lab 1: Control-flow Graphs.
@@ -39,19 +39,23 @@
         You will design and implement several classic data-flow analysis
         (e.g. liveness analysis) based on CFG.
     </li>
-    <li>Lab 3: Lattice.
+    <li>Lab 3: Optimization.
+        You will design and implement several optimization algorithms based 
+        on the data-flow analysis of Lab 2.
+    </li>
+    <li>Lab 4: Lattice.
         You will refactor the data-flow analysis in Lab 2 
         using the lattice-based monotonic framework. 
     </li>
-    <li>Lab 4: Static Single-assignment Form.
+    <li>Lab 5: Static Single-assignment Form.
         You will design and implement a static single-assignment form,
         and perform compiler optimizations on it.
     </li>
-    <li>Lab 5: Interprocedural.
+    <li>Lab 6: Interprocedural.
         You will design and implement several classic interprocedural 
         analyses and optimizations.
     </li>
-    <li>Lab 6: Pointer.
+    <li>Lab 7: Pointer.
         You will design and implement a pointer analysis.
     </li>
 </ul>
@@ -117,8 +121,12 @@
 </pre>
 <p>
     which will create a new folder <code>dragon</code> in
-    which reside all the source files just checked out for the
-    <em>lab 1</em> branch (the default branch).
+    which reside all the source files just.
+    Then you should checkout to <em>lab1</em> by:
+<pre>
+    $ <kbd>git branch lab1 origin/lab1</kbd>
+    $ <kbd>git switch lab1</kbd>
+</pre>
 </p>
 <p>
     Git is a distributed version control system, allowing one to work with
