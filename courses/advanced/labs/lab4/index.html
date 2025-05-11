@@ -1,31 +1,29 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html">
-    <title>Lab 4: Instruction Selection</title>
+    <title>Lab 4: Lattice</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
 </head>
 
 <body>
 
-<h1>Lab 4: Instruction Selection</h1>
+<h1>Lab 4: Lattice</h1>
 
 <hr/>
 <h2>Overview</h2>
 <p>
-    In this lab, you will design and implement an instruction
-    selector for your <code>Tiger</code> compiler, to translate
-    MiniJava programs to x64 assembly.
+    In this lab, you will design several lattices and implement two program 
+    analysis algorithms based on lattice theory.
 </p>
 <p>
-    This lab consists of three parts: first, in part A, you
-    will design and implement data structures for the x64
-    assembly language serving as the target for instruction
-    selection.
-    Second, in part B, you will design and implement a simple
-    object model for MiniJava and determine field offsets,
-    method offsets, and class sizes, among others.
-    Finally, in part C, you will implement a maximum munch
-    algorithm to lower down the CFG to the x64 assembly.
+    This lab consists of three parts: 
+    First, in part A, you will implement three classical lattices 
+    (diamond lattice, flat lattice, and powerset lattice).
+    Second, in part B, you will implement a zero-value analysis algorithm 
+    based on the diamond lattice.
+    Finally, in part C, you will restructure the liveness analysis algorithm 
+    based on the powerset lattice and implement a monotonic framework 
+    (if you are interested in it).
 </p>
 
 <h3>Getting Started</h3>
@@ -34,6 +32,7 @@
 </p>
 <pre>
     $ <kbd>git commit -am 'my solution to lab3'</kbd>
+    $ <kbd>git fetch</kbd>
     $ <kbd>git checkout -b lab4 origin/lab4</kbd>
 </pre>
 <p>
@@ -63,7 +62,9 @@
     should browse through:
 </p>
 <pre>
-    codegen/*:    data structures and operations for x64
+    cfg/lab4/LivenessLattice.java  liveness analysis framework
+    cfg/lab4/ZeroAnalysis.java     zero analysis framework
+    util/lattice/*                 lattice class definitions
 </pre>
 
 <h3>Hand-in Procedure</h3>
@@ -73,171 +74,173 @@
 </p>
 
 <hr/>
-<h2>Part A: X64 Assembly</h2>
+
+<!-- part A -->
+<h2>Part A: Lattice</h2>
 <p>
-    Intel x64 is a widely used CSIC instruction set architecture
-    (ISA) we will generate code for in this lab.
-    In this part of the lab, you will first design
-    data structures and operations for x64.
+In compiler, lattice theory provides the mathematical foundation for data
+flow analysis. In this part, you'll learn and implement three types of
+lattices, and implement the operations to compute their least upper bounds.
 </p>
 
-<h3>Data Structures</h3>
-<p>
-    While the x64 is a complex ISA, we will, in this lab, only use
-    a small subset of it which is enough
-    to compile MiniJava. You may want to refer to
-    <a href="https://cs.brown.edu/courses/cs033/docs/guides/x64_cheatsheet.pdf">
-        some manual</a> for this subset,
-    if you are not familiar with this ISA.
-</p>
-<p>
-    The data structures defining x64 is essentially
-    an assembly-level control-flow graph (as we have
-    discussed in the previous lab). The most interesting
-    part is how we represent assembly instructions.
-</p>
-<p>
-    At this phase, an assembly instruction may still
-    contain variables (we call them pseudo-registers),
-    which will be allocated to physical
-    registers by a register allocator (as will be discussed
-    in the next lab). For example, an addition
-    instruction may look like:
-</p>
-<pre><code>addq %y, %x   // %x = %x + %y</code></pre>
-<p>
-    where both <code>%x</code> and <code>%y</code> are
-    variables yet to be allocated to registers.
-    Hence, an assembly instruction in this phase
-    can be treated as a function mapping variables to
-    a concrete assembly instruction string in which
-    pseudo-registers substituted by physical registers.
-    For example, if we can determine this allocation:
-</p>
-<pre><code>[%x -> %rax, %y -> %rbx]</code></pre>
-<p>
-    Then the aforementioned instruction can be converted into:
-</p>
-<pre><code>addq %rbx, %rax</code></pre>
-<p>
-    With this key insight, we can encode an assembly instruction
-    using a higher-order function taking varying components
-    (i.e., variables)
-    as arguments. Specifically,
-    we will use a &lambda; taking the variables as parameters
-    to concatenate the final assembly string.
-    Consider the above example, its &lambda; encoding
-    may look like:
-</p>
-<pre><code>&lambda;([%x, %y]).(addq %y, %x)</code>
-</pre>
-<p>
-    Furthermore, to distinguish variable uses and defs,
-    we put two arguments for a &lambda;, one for the
-    variable uses and the other one for the defs.
-    With this elaboration, the above instruction can be
-    encoded by the following two-argument &lambda;:
-</p>
-<pre><code>&lambda;([%x, %y], [%x]).(addq %y, %x)</code>
-</pre>
-<p>
-    where <code>[%x, %y]</code> are uses, and <code>[%x]</code>
-    is def.
-</p>
+<h3>Diamond Lattice</h3>
+
+A diamond lattice is a common lattice structure in lattice theory that is
+shaped like a diamond and consists of four elements, as shown in the following
+figure. The intermediate layer of diamond lattice contains two elements, 
+which are usually used to represent two different states in dataflow analysis.
+For example, in zero analysis, it can represent zero or non-zero.
+
+    <pre>
+         &top;
+       /    \
+      M<sub>0</sub>     M<sub>1</sub>
+       \    /
+         &bot;
+    </pre>
+
 <div class="required">
     <span class="header">Exercise 1.</span>
-    Read the code in <code>codegen/X64.java</code>, to
-    understand data structures defining x64.
-    Feel free to extend these data structures and operations
-    when necessary.
+    Finish the code in the file <code>util/lattice/DiamondLattice.java</code>
+    to compute the least upper bound of two diamond lattice.
+</div>
+
+<h3>Flat Lattice</h3>
+
+A flat lattice is a type of complete lattice of height 2, in which the
+intermediate elements are some elements in a set that do not have a partial
+order relation with each other.
+
+    <pre>
+          &top;
+     /  /    \   \
+    a<sub>1</sub> a<sub>2</sub>   ...  a<sub>n</sub>
+     \  \    /   /
+          &bot;
+    </pre>
+
+<div class="required">
+    <span class="header">Exercise 2.</span>
+    Finish the code in the file <code>util/lattice/FlatLattice.java</code>
+    to compute the least upper bound of two flat lattices.
+</div>
+
+<h3>Powerset Lattice</h3>
+
+A powerset lattice is a complete lattice formed by all subsets of a finite set.
+In the dataflow analysis algorithms implemented in our previous labs, 
+such as liveness analysis and reaching definitions analysis, their dataflow 
+states can all be represented using powerset lattices.
+
+    <pre>
+        {a,b,c}
+       /    |   \
+     /      |     \
+    {a,b} {a,c} {b,c}
+    | \   /   \   / |
+    |  \ /     \ /  |
+    |  / \     / \  |
+    {a}    {b}    {c}
+      \     |     /
+        \   |   /
+            ∅
+    </pre>
+
+<div class="required">
+    <span class="header">Exercise 3.</span>
+    Finish the code in the file <code>util/lattice/PowerSetLattice.java</code>
+    to compute the least upper bound of two powerset lattices.
 </div>
 
 <!-- part B -->
 <hr/>
-<h2>Part B: Object Layout</h2>
+<h2>Part B: Zero Analysis</h2>
 <p>
     In this part of the lab, you will implement
-    an object layout algorithm to determine the layout
-    of each object, consisting of
-    two sub-algorithms. First, for a class, your algorithm will
-    determine the total size of that class as well as the layout
-    of its virtual method table.
-    Second, for an object,
-    the algorithm will determine the layout of its containing
-    fields, including implicit fields such as the virtual method table
-    pointer.
-</p>
-
-<p>
-    In subsequent labs, you will extend this object layout to support
-    other OO features, such as garbage collections (or monitors in
-    full Java).
-</p>
-
-<div class="required">
-    <span class="header">Exercise 2.</span>
-    Finish the code in the file <code>codegen/Layout.java</code>
-    to calculate the size of a class as well as offsets
-    for each field in a class, respectively.
-    For simplicity, you can treat the size of an MiniJava
-    integer (i.e., type <code>int</code>) as 8,
-    which is the same as a reference (pointer).
-</div>
-
-<!-- part C -->
-<hr/>
-<h2>Part C: Instruction Selection</h2>
-<p>
-    In this part of the lab, you will implement
-    an instruction selector based on the maximum munch
-    algorithm to lower down the CFG to x64 assembly.
-</p>
-
-<h3>Maximum Munch Algorithm</h3>
-
-<div class="required">
-    <span class="header">Exercise 3.</span>
-    Fill in the code in the file <code>codegen/Munch.java</code>,
-    to select x64 instructions for statements in the CFG.
-</div>
-
-<h3>Calling Convention</h3>
-<p>
-    A calling convention specifies how arguments and returned
-    values are passed between a callee and a caller.
-    Before implementing the calling convention for X64,
-    You should first get familiarized yourself with
-    <a href="https://gitlab.com/x86-psABIs/x86-64-ABI/-/jobs/artifacts/master/raw/x86-64-ABI/abi.pdf?job=build">
-        the X64 ABI</a> (Section 3.2).
-    As MiniJava only has 64-bits integers and references, so
-    make sure to answer these questions: 1) how arguments
-    are passed from the caller to the callee? 2) how returned
-    values are passed from the callee to the caller
+    a zero analysis algorithm to determine whether variables 
+    (and expressions) in a program can evaluate to zero. 
+    This analysis uses a diamond lattice to represent the 
+    possible states of a variable’s value:
+    <pre>
+         &top;
+       /    \
+      0     Z<sup>-0</sup>
+       \    /
+         &bot;
+    </pre>
+    The analysis propagates abstract values forward along the 
+    control-flow graph using transfer functions and joins 
+    information at control-flow merges, terminating when 
+    the fixpoint is reached.
 </p>
 
 <div class="required">
     <span class="header">Exercise 4.</span>
-    Extend Tiger's calling convention implementation
-    to support arguments more than 6, so that your Tiger
-    compiler can compile programs with arbitrary number
-    of arguments.
+    Finish the code in the file <code>cfg/lab4/ZeroAnalysis.java</code>
+    to implement the zero analysis algorithm. 
 </div>
+
+<!-- part C -->
+<hr/>
+<h2>Part C: Liveness Lattice</h2>
+<p>
+    In this part of the lab, You will use the powerset lattice introduced 
+    in <b>Exercise 3</b> to restructure the liveness analysis from <b>Lab 2</b>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 5.</span>
+    Fill in the code in the file <code>cfg/lab4/LivenessLattice.java</code>
+    to implement the liveness analysis based on lattice.
+</div>
+
+<p>
+    The monotonic framework is an abstract program analysis framework based on 
+    lattice theory. 
+    It ensures the termination and correctness of the analysis process by 
+    defining monotonic operations over partially ordered sets to represent 
+    program semantics. 
+    A monotonic framework generally consists of three components: a lattice, 
+    transfer functions, and a fixed-point iteration algorithm. 
+</p>
+
+<p>
+    The Rustc compiler incorporates an exquisitely designed monotonic framework
+    called <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_mir_dataflow/trait.Analysis.html">Analysis trait</a>. 
+    This framework primarily includes:
+</p>
+
+<ul>
+    <li>
+        Domain: Records data flow states at given program locations while 
+        requiring satisfaction of a partial ordering relation.
+    </li>
+    <li>
+        Direction: Specifies the analysis orientation (Forward or Backward).
+    </li>
+    <li>
+        Transfer functions: Evaluates the impact of a given statement 
+        (statement or transfer) on the current data flow state.
+    </li>
+    <li>
+        Fixed-point algorithm: iteratively computes the solution to data 
+        flow problems.
+    </li>
+</ul>
+
+<p>
+    By defining the analysis domain, direction, and transfer function for the 
+    analysis process (the fixed-point algorithm is officially provided, 
+    requiring no user implementation), various program analysis algorithms 
+    can be implemented efficiently.
+</p>
 
 <div class="challenge">
     <span class="header">Challenge.</span>
-    The <a href="https://en.wikipedia.org/wiki/Red_zone_(computing)">red-zone</a>
-    is a special area on the stack frame.
-    Propose your strategy to exploit the red-zone, to
-    improve efficiency of the generated code.
-    Implement your idea into your Tiger compiler.
+    Reference the design of the <b>Analysis trait</b> in Rustc and propose a 
+    monotonic framework for the dargon compiler to accommodate all data flow 
+    analysis algorithms in <b>Lab 2</b>.
 </div>
-
-
-<p>
-    To this point, you Tiger compiler should
-    generate X64 assembly for all MiniJava programs.
-    Do not forget to test your compiler before continuing.
-</p>
 
 
 <hr/>
