@@ -1,35 +1,39 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html">
-    <title>Lab 5: Register Allocation</title>
+    <title>Lab 5: Static Single-Assignment Form</title>
     <link rel="stylesheet" href="../labs.css" type="text/css">
 </head>
 
 <body>
 
-<h1>Lab 5: Register Allocation</h1>
-<hr/>
+<h1>Lab 5: Static Single-Assignment Form</h1>
 
+<hr/>
 <h2>Overview</h2>
 <p>
-    In this lab, you will design and implement a register allocator
-    for your <code>Tiger</code> compiler, to allocate variables
-    to physical registers.
+    In this lab, you will build a static
+    single-assignment form (SSA) for your Dragon compiler
+    to perform optimizations. SSA is a
+    state-of-the-art IR also used in production compilers
+    such as GCC or LLVM.
 </p>
 <p>
-    This lab consists of two parts: first, in part A, you
-    will design and implement a baseline allocator to allocate
-    variables to stack frames.
-    In part B, you will implement linear scan register
-    allocator.
+    This lab consists of two parts: first, in part A, you will implement
+    the translation from CFG to SSA as well as the translation from SSA back
+    to CFG.
+    Second, in part B, you will implement several
+    classic data-flow analysis and optimizations on SSA.
 </p>
 
 <h3>Getting Started</h3>
 <p>
-    First check out the source code we offered you for lab 5:
+    First check out the source we offered you for lab5:
 </p>
+
 <pre>
     $ <kbd>git commit -am 'my solution to lab4'</kbd>
+    $ <kbd>git fetch</kbd>
     $ <kbd>git checkout -b lab5 origin/lab5</kbd>
 </pre>
 <p>
@@ -45,336 +49,350 @@
     $ <kbd>git merge lab4</kbd>
 </pre>
 <p>
-    Do not forget to resolve any conflicts before commiting to
+    Do not forget to resolve any conflicts before commit to
     the local lab5 branch:
 </p>
-
 <pre>
     $ <kbd>git commit -am 'lab5 init'</kbd>
 </pre>
+
 <p>
     You should first import the new lab5 code into
-    your editor, and make sure the code compiles. There
+    your favorite IDE, and make sure the code compiles. There
     are a bunch of new files that you
     should browse through:
 </p>
 <pre>
-    regalloc/*:    register allocators
+    cfg/lab5/*:    static single-assignment form and its operations
 </pre>
 
 <h3>Hand-in Procedure</h3>
 <p>
-    When you finished this lab, zip you code and submit to the
+    When you finished your lab, zip you code and submit to the
     <a href="https://bb.ustc.edu.cn">online teaching system</a>.
 </p>
 
 <hr/>
-<!-- part A -->
-<h2>Part A: A Stack Allocator</h2>
+<h2>Part A: Static Single-Assignment Form (SSA)</h2>
 <p>
-    We start by building a baseline stack register allocator, to allocate
-    all variables to stack frames instead of physical registers
-    (i.e., all variables are spilled).
-    While this allocator generates inefficient code with
-    many memory load/stores, it is easier
-    to implement and serves as the baseline allocator in most production
-    compilers (i.e., the <code>-O0</code> optimization level).
+    The <a href="https://en.wikipedia.org/wiki/Static_single-assignment_form">
+    static single-assignment form</a>
+    (SSA) is an important compiler intermediate representation,
+    in which each variable is assigned (statically) at most once.
+    SSA is more advantageous over other compiler IRs in that
+    its single-assignment property makes program analysis and optimization
+    simpler and more efficient.
+    As a result, SSA has become a de-factor IR in modern optimizing compilers
+    for imperative, OO, or even functional languages.
+</p>
+<p>
+    In this part of the lab, you will build a static single-assigment
+    form for your Tiger compiler, and conduct optimizations
+    based on your SSA IR.
+    To aid in your implementation, we have given some hints for most
+    exercises, but keep in mind that these hints are
+    not mandatory, and you are free (and encouraged) to propose
+    your own ideas.
 </p>
 
-<h3>Temp Maps</h3>
+<h3>SSA Data Structure</h3>
 <p>
-    As we are allocating variables to stack slots in a stack
-    frame, it is essential to keep track of where each variable
-    has been allocated to. We use a data structure <code>TempMap</code>
-    to record the stack frame offset for each variable.
+    To better reuse your existing code base,
+    you will implement
+    SSA by leveraging data structures already designed for
+    the control-flow graph.
+    This design decision
+    makes the interfaces cleaner and more elegant
+    hence simplifying subsequent compilation phases.
 </p>
 
 <div class="required">
     <span class="header">Exercise 1.</span>
-    Read the code in <code>regalloc/TempMap.java</code>, to
-    understand the data structure.
-    It should be noted that while this data structure
-    allows two options for allocation: <code>InReg</code>
-    and <code>InStack</code>, we only use <code>InStack</code>
-    in this part of the lab.
+    Read the code defining the SSA data structures in the file
+    <code>cfg/lab5/Ssa.java</code>.
+    A basic block b might contain a list of &phi;-instructions, which
+    reside at the top of a block.
+    Syntactically, a &phi;-function
+    <pre class="code">
+        x = &phi;((B_1, x_1), (B_2, x_2), ..., (B_p, x_p))</pre>
+    takes a list of tuples
+    <code>(B_i, x_i), 1&le; i &le; p</code> as arguments
+    and selects one of the variable <code>x_j</code> from
+    these tuples as
+    its value to assign to the left-side <code>x</code>, when
+    the control-flow reach the current basic block from its
+    predecessor <code>B_j</code>.
+    You do not need to write any code for this exercise.
 </div>
 
-<h3>Function Frames</h3>
+<h3>Dominator Trees</h3>
 <p>
-    The frame data structure keeps track of
-    how many slots have been allocated for a given function.
+    You will be constructing the SSA form with the
+    following 5 steps:
+    1) calculate dominators;
+    2) build dominator trees;
+    3) calculate dominance frontiers;
+    4) place &phi;-functions; and
+    5) rename variables.
+</p>
+<p>
+    In this part, you will finish the first two steps, that is,
+    you will first calculate dominators then build a dominator
+    tree for a given CFG.
 </p>
 
 <div class="required">
     <span class="header">Exercise 2.</span>
-    Read the frame data structure in <code>regalloc/Frame.java</code>,
-    to understand the implementation of a frame.
-    You do not need to write any code for this exercise.
+    Calculate, for a node <code>n</code> in control-flow
+    graph <code>g</code>, its immediate dominator <code>IDOM[n]</code>.
+    You should finish this exercise by filling in the
+    method <code>idom()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: you might extend the tree
+    data structure to implement this algorithm.
 </div>
-
-<h3>Stack Allocation</h3>
-<p>
-    With these data structures, we can allocate variables.
-    The allocation consists of three major steps:
-    1) allocating stack slots for variables (i.e., arguments and locals)
-    in a given function;
-    2) rewriting each assembly instruction by inserting
-    necessary load/stores of the
-    variables from/to the stack frame; and
-    3) adding necessary function prologue and epilogue to
-    adjust the function frame when entering and exiting the
-    function.
-</p>
-<p>
-    The second step deserves more explanation. The instruction
-    rewriting is syntax-directed by adding loads before each
-    instruction and stores after it.
-    Take a binary operation instruction as an example
-    (for simplicity, we write instruction in TAC form
-    instead of in assembly form without losing generality):
-</p>
-<pre><code>x = y + z; // uses = [y, z], defs = [x]</code></pre>
-<p>
-    suppose the stack slot allocated for <code>x</code>,
-    <code>y</code>, and <code>z</code> are <code>l_x</code>,
-    <code>l_y</code>, and <code>l_z</code>, respectively. Then
-    the above instruction will be translated to:
-</p>
-<pre class="code">r1 = M[l_y];
-r2 = M[l_z];
-r1 = r1 + r2;
-M[l_x] = r1;</pre>
-<p>
-    which used 2 scratch registers <code>r1</code> and
-    <code>r2</code>, where <code>r1</code> is reused to hold
-    both the use <code>y</code> and the def <code>x</code>.
-</p>
 
 <div class="required">
     <span class="header">Exercise 3.</span>
-    Finish the code in <code>StackAllocator.java</code>,
-    to allocate variables to physical registers.
-    You may also need to extend or modify
-    the pretty printer in <code>regalloc/PpAssem.java</code>.
+    Calculate, for a control-flow
+    graph <code>g</code>, its dominator tree <code>t</code>.
+    You should finish this exercise by filling in the
+    method <code>dominatorTree()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: you should make use of the dominators <code>DOM[n]</code>
+    already calculated
+    for the node <code>n</code>, and think carefully about the basic
+    data structure design to implement this algorithm.
 </div>
 
-<h3>Prologue and Epilogue</h3>
+<h3>Dominance Frontier</h3>
 <p>
-    A <a href="https://en.wikipedia.org/wiki/Function_prologue_and_epilogue">
-    function prologue</a> is a fragment of assembly code
-    at the beginning of
-    a function, which prepare the call stack and registers for
-    use within the function. Similarly, a function epilogue
-    appears at the end of the function, and restores the stack
-    and registers to the state they were in before the function
-    was called.
+    In this part of the lab, you will be implementing the
+    third step to build an SSA, that is, you will calculate
+    the dominance frontier for each node.
+    The dominance frontier <code>DF[n]</code> of a node <code>n</code> is the
+    set of all nodes <code>d</code> such that <code>n</code>
+    dominates an immediate predecessor of <code>d</code>, but <code>n</code>
+    does not strictly dominate <code>d</code>.
+    Intuitively, the dominance frontier <code>DF[n]</code>
+    for a node <code>n</code> is the set of nodes where <code>n</code>'s
+    dominance stops.
 </p>
 
 <div class="required">
     <span class="header">Exercise 4.</span>
-    Implement function prologue and epilogue for Tiger.
-    You can treat the size of the function frame as 0
-    (which will be determined by the register allocator
-    in the next lab).
-    To keep things simple, you can save all callee-saved
-    registers in the prologue and restore them in the epilogue,
-    regardless of whether the variable is used in the callee.
-    Furthermore, your Tiger compiler can always reserve <code>%rbp</code>
-    as the stack frame base pointer.
+    Implement the algorithm calculating dominance frontiers <code>DF[n]</code>
+    for any node <code>n</code> in the CFG.
+    You should finish this exercise by filling in the
+    method <code>dominanceFrontier()</code>
+    in the file <code>util/Graph.java</code>.<br>
+    Hint: to keep your implementation simpler,
+    you may use the following algorithm to calculate dominance
+    frontier:
+    <pre class="code">
+    dominanceFrontier()
+        foreach(node n &in; CFG)
+            DF[n] = &emptyset;  // initialized to an empty set
+        foreach(node n &in; CFG)
+            if(n has multiple predecessors)
+                foreach(predecessor p of n)
+                    runner = p
+                    while(runner &ne; IDOM[n])
+                        DF[runner] &bigcup;= {n}
+                        runner = IDOM[runner]</pre>
+    where <code>IDOM[n]</code> represents
+    the immediate dominator for the node <code>n</code>.
 </div>
 
-<h3>A Runtime</h3>
+<h3>&phi;-function Placement</h3>
 <p>
-    To generate complete executables, we need link the Tiger-produced
-    assembly against a runtime.
+    In this part, you will implement the fourth step to build an SSA,
+    that is, you will be implementing the &phi;-function placement.
+    The &phi;-function placement algorithm places &phi;-functions at
+    the top of corresponding blocks.
+    Specifically, for a definition
+</p>
+<pre class="code">x = ...</pre>
+<p>
+    to a variable
+    <code>x</code> in a basic block
+    <code>n</code>, this algorithm will place a &phi;-function
+</p>
+<pre class="code">x = &phi;(x, ..., x)</pre>
+<p>
+    at the top of each <code>n</code>'s
+    dominance frontier <code>d &in; DF[n]</code>.
 </p>
 <div class="required">
     <span class="header">Exercise 5.</span>
-    Read the file <code>src/runtime/runtime.c</code>
-    for the code of the runtime.
-    Modify and extend this code to add other runtime functions
-    that your Tiger-produced assembly can invoke.
-    Specifically, you may use any strategy you think appropriate
-    to implement memory allocations. In the next lab, you will
-    design and implement a garbage collector to manage the
-    Java heap.
+    Implement the algorithm to place the &phi;-functions, as
+    described by Algorithm 5.4 in the reading material.
+    You should finish this exercise by filling in the
+    method <code>placePhiFunctions()</code>
+    in the file <code>cfg/lab5/BuildSsa.java</code>.<br>
+    Hint: for any basic block <code>b</code>, take care not to
+    place &phi;-functions more than once
+    for a same variable <code>x</code>.<br>
+    Hint: &phi;-function placement has a cascaded effect, that is,
+    placing a &phi;-function for a variable <code>x</code>
+    at a basic block <code>b</code> also
+    makes <code>b</code> a definition block for <code>x</code>.
 </div>
 
+<h3>Renaming the Variables</h3>
 <p>
-    To this point, your Tiger compiler can compile <em>any</em>
-    MiniJava programs to produce assembly.
-    Furthermore, when linked against the above runtime,
-    your Tiger compiler can produce final executables which, when
-    executed,
-    should produce <em>correct</em> result.
-    Do not forget to test your Tiger compiler, fix any potential
-    bugs before continuing.
-</p>
-
-<!-- part b: linear scan -->
-<hr/>
-<h2>Part B: A Linear Scan Allocator</h2>
-<p>
-    In this part, you will design and implement a linear scan
-    register allocator, as described in
-    <a href="https://dl.acm.org/doi/pdf/10.1145/330249.330250">this paper</a>.
-    Your should first read this paper carefully to understand the
-    algorithm, <em>before</em> writing any code.
-</p>
-
-<h3>Liveness Analysis</h3>
-<p>
-    You will first write a
-    <a href="https://en.wikipedia.org/wiki/Liveness_analysis">liveness analysis</a>
-    to calculate, for each instruction
-    and transfer in a function, the live-in and live-out variable sets.
+    In this part of the lab, you will be implementing the
+    fifth and last step to build an SSA, that is, you will rename
+    variables to make its definition unique.
 </p>
 <div class="required">
     <span class="header">Exercise 6.</span>
-    Write a liveness analysis for Tiger, to calculate live-in
-    and live-out information.
-    We are free to
-    propose any data structures and algorithms to
-    calculate this liveness information.
-    To keep things simple, you can write
-    the analysis on a single instruction granularity, to use
-    the following dataflow equation:
-    <pre><code>live_in[s]  = uses[s] &cup; (live_out[s] - defs[s])
-live_out[s] = &cup;(live_in[p])                     // for any p &in; succ[s];</code></pre>
-    with all live_in[] and live_out[] initialized to an empty set &emptyset;.
+    Implement the algorithm to rename the variables, as
+    described by Algorithm 5.5 in the reading material.
+    You should finish this exercise by filling in the
+    method <code>renameBlock()</code>
+    in the file <code>cfg/lab5/BuildSsa.java</code>.<br>
+    Hint: think carefully about basic data structure design
+    (e.g., variable versions, and stacks).<br>
+    Hint: to keep your implementation simple, you might want
+    to use a functional programming style, that is, you should
+    construct a new function from an old one instead of
+    modifying the old one in place.
 </div>
-
-<div class="challenge">
-    <span class="header">Challenge.</span>
-    Most dataflow analysis should follow an order of
-    the flow of data. For liveness analysis, the caculation
-    should be backward from the last instruction in a
-    function to the first one.
-    Implement this strategy to speed up your analysis.
-</div>
-
-<div class="challenge">
-    <span class="header">Challenge.</span>
-    To speed up the liveness analysis, you may
-    calculate liveness information on a block granularity
-    instead of on an instruction granularity.
-    That is, you can use the following dataflow equation:
-    <pre><code>live_in[b]  = uses[b] &cup; (live_out[b] - defs[b])
-live_out[b] = &cup;(live_in[p])                     // for any p &in; succ[b];</code></pre>
-    where the live variable set uses[] and defs[]
-    for each block <code>b</code> is calculated by a one-pass backward
-    iteration of all statements in this block.
-    Implement this strategy to speed up your liveness analysis.
-</div>
-
-<h3>Topological Sorting and Live Intervals</h3>
 <p>
-    A <a href="https://en.wikipedia.org/wiki/Topological_sorting">
-    topological sorting</a>
-    linearizes the basic blocks in a control-flow
-    graph, so that each basic block <code>b</code> (hence
-    each instruction or transfer
-    in that block) will have a unique linear order number <code>n</code>
-    with total order.
+    To this point, your compiler can convert all legal C
+    programs to SSA forms. Do regression test your implementation
+    and fix potential bugs.
+</p>
+
+<h3>Translation Out of SSA Forms</h3>
+<p>
+    Modern machines do not support the &phi;-functions
+    directly, hence &phi;-functions must be eliminated
+    before execution. This task is accomplished by the
+    translation out of SSA forms.
 </p>
 <div class="required">
     <span class="header">Exercise 7.</span>
-    Implement topological sorting of basic blocks
-    to linearize them. It should be noted that, generally
-    speaking, a control-flow graph might not have a strict
-    topological sorting due to the existence of loops.
-    Hence, your algorithm will really produce a quasi-topological order.
-</div>
-<p>
-    Given a specific topological order, we can calculate, for each
-    variable <code>x</code>, its live interval <code>[low, high]</code>.
-    Intuitively, the variable <code>x</code> is "always" live in this
-    interval, hence requiring a unique
-    physical register <code>r</code> to hold its value.
-</p>
-<div class="required">
-    <span class="header">Exercise 8.</span>
-    Calculate, for each variable <code>x</code>, its live interval
-    <code>[low, high]</code>. Think carefully about the underlying data
-    structure designs.
+    Implement the algorithm to translate a program
+    out of SSA form. Specifically, to avoid
+    <a href="https://stackoverflow.com/questions/75703913/how-to-eliminate-phi-instructions-in-transformed-ssa">
+        the lost-copy
+        problem and the swap problem</a>,
+    you might use the following algorithm:
+    <pre class="code">
+    outSSA(ssa)
+        splitCriticalEdges(ssa);
+        foreach(basic block b, with p predecessors b<sub>1</sub>, ..., b<sub>p</sub>)
+            suppose b contains m &phi;-functions:
+                x<sub>1</sub> = &phi;(x<sub>11</sub>, ..., x<sub>1p</sub>);
+                ...
+                x<sub>m</sub> = &phi;(x<sub>m1</sub>, ..., x<sub>mp</sub>);
+            generate m fresh variables: t<sub>1</sub>, ..., t<sub>m</sub>;
+            foreach(b's predecessor block b<sub>i</sub>, 1&le; i &le;p)
+                append these assignment statements at the tail of block b<sub>i</sub>:
+                    t<sub>1</sub> = x<sub>1i</sub>
+                    ...
+                    t<sub>m</sub> = x<sub>mi</sub>
+            append these assigment statements at the top of block b:
+                x<sub>1</sub> = t<sub>1</sub>
+                ...
+                x<sub>m</sub> = t<sub>m</sub></pre>
+    Fill in the code in the file <code>cfg/lab5/OutSsa.java</code>
+    to implement algorithm to translate a program out of SSA form.
 </div>
 
-<h3>Allocation</h3>
+<hr/>
+<h2>Part B: SSA-based Optimizations</h2>
 <p>
-    Variables can be allocated to registers by a linear scan
-    of all live intervals. Live intervals <code>[low, high]</code>
-    should be increasingly ordered according to its left coordinate
-    <code>low</code>.
+    SSA makes compiler optimizations not only
+    easier to engineer but also more efficient to execute, largely
+    due to its single-assignment property.
+    This nice property make it
+    much easier to calculate the data-flow information
+    required to perform optimizations.
+</p>
+
+<p>
+    In this part of the lab, you will re-implement the copy propagation 
+    optimization that we have done on the CFG on SSA again, and 
+    &phi;-function elimination optimization specific to SSA.
+</p>
+
+
+<h3>Copy Propagation</h3>
+<p>
+    In SSA, given a copy statement <code>x = y</code>, then
+    any use of <code>x</code> can be replaced by <code>y</code>.
+</p>
+
+<div class="required">
+    <span class="header">Exercise 8.</span>
+    Implement the copy propagation algorithm on SSA.
+    You should finish this exercise by filling in the code in the file
+    <code>cfg/lab5/CopyProp.java</code>.
+</div>
+
+
+<h3>&phi;-function Elimination</h3>
+<p>
+    In SSA, if a &phi;-function is of a special form
+    taking a list of same arguments:
+</p>
+<pre class="code">x = &phi;(y, y, ..., y)</pre>
+<p>
+    where <code>y</code> is a variable,
+    then this &phi;-function can be eliminated by rewriting
+    it to a normal assignment to <code>x</code>:
+</p>
+<pre class="code">x = y</pre>
+<p>
+    Note that, often the time,
+    this special form of &phi;-function <code>x = &phi;(y, y, ..., y)</code>
+    might be generated by copy propagation optimizations,
+    which substituted &phi;-function arguments by another variable.
+</p>
+<p>
+    Similarly, the &phi;-function:
+</p>
+<pre class="code">x = &phi;(c, c, ..., c)</pre>
+<p>
+    can also be eliminated by rewriting
+    it to an assignment statement:
+</p>
+<pre class="code">x = c</pre>
+<p>
+    where <code>c</code> is a constant.
 </p>
 
 <div class="required">
     <span class="header">Exercise 9.</span>
-    Allocate variables to physical registers by implementing
-    the linear scan algorithm.
-    Rewrite the assembly instructions according to the allocation
-    result.
+    Implement the &phi;-function elimination optimization on SSA.
+    You should finish this exercise by filling in the code in the file
+    <code>cfg/lab5/PhiElim.java</code>.
 </div>
 
-<p>
-    To this point, your Tiger compiler can compile <em>any</em>
-    MiniJava programs without spilling to assembly.
-    Furthermore, when linked against the above runtime,
-    your Tiger compiler can produce final executables which, when
-    executed,
-    should produce <em>correct</em> result.
-    Do not forget to test your Tiger compiler, fix any potential
-    bugs before continuing.
-</p>
-
-<h3>Spilling</h3>
-<p>
-    Variables that cannot be allocated to registers should be
-    spilled to stack frames. Extra load/stores should be added
-    for the spilled variables.
-</p>
+<h3>Sparse Simple Constant Propagation</h3>
 
 <div class="challenge">
     <span class="header">Challenge.</span>
-    Implement spilling, so that your Tiger compiler can
-    compile programs with arbitrary variable interferences.
+    Implement the sparse simple constant
+    propagation optimization, using the lattice-based approach.
+    You might refer to
+    <a href="https://dl.acm.org/doi/pdf/10.1145/103135.103136">this paper</a>
+    or our reading to start with.
 </div>
 
-<p>
-    After implementing spilling, your Tiger compiler can compile <em>any</em>
-    MiniJava programs to produce assembly.
-    Test your Tiger compiler before continuing.
-</p>
-
-
-<h3>Coalescing</h3>
-<p>
-    Coalescing is an optimization to remove
-    move instructions where the source and target are the same.
-    Specifically, for move instruction
-</p>
-<pre class="code">movq %x, %y     // %y = %x</pre>
-<p>
-    if both variables <code>x</code> and <code>y</code> can be
-    allocated to the same physical register (say <code>%r</code>), then
-    the resulting move instruction:
-</p>
-<pre class="code">movq %r, %r</pre>
-<p>
-    is essentially a <code>nop</code>, hence can be removed subsequently.
-</p>
+<h3>Sparse Conditional Constant Propagation</h3>
 
 <div class="challenge">
     <span class="header">Challenge.</span>
-    Implement coalescing, so that your Tiger compiler can
-    eliminate practically <code>all</code> move instructions from
-    the programs being compiled.
+    Implement the sparse conditional constant propagation optimization, 
+    using the lattice-based approach.
+    You might refer to
+    <a href="https://dl.acm.org/doi/pdf/10.1145/103135.103136">this paper</a>
+    or our reading to start with.
 </div>
-
-<p>
-    To this point, your Tiger compiler should compile <em>any</em>
-    MiniJava programs by allocating variables to registers.
-    Do not forget to test your Tiger compiler and fix potential bugs.
-</p>
 
 <hr/>
 <h2>Hand-in</h2>
@@ -389,7 +407,4 @@ live_out[b] = &cup;(live_in[p])                     // for any p &in; succ[b];</
 
 </body>
 </html>
-
-
-
 
