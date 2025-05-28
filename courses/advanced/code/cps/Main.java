@@ -1,7 +1,6 @@
 // Continuation-pass style
 package cps;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class Main {

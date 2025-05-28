@@ -28,23 +28,23 @@ class Lambda {
     static void pp(T e) {
         switch (e) {
             case Abs(String x, T e1) -> {
-                System.out.print(STR."(\{x})->(");
+                System.out.print("("+x+")->(");
                 pp(e1);
                 System.out.print(")");
             }
             case Add(T e1, T e2) -> {
-                System.out.print(STR."(");
+                System.out.print("(");
                 pp(e1);
                 System.out.print(")+");
-                System.out.print(STR."(");
+                System.out.print("(");
                 pp(e2);
                 System.out.print(")");
             }
             case App(T e1, T e2) -> {
-                System.out.print(STR."(");
+                System.out.print("(");
                 pp(e1);
                 System.out.print(").");
-                System.out.print(STR."(");
+                System.out.print("(");
                 pp(e2);
                 System.out.print(")");
             }
@@ -57,7 +57,7 @@ class Lambda {
     static int varCounter = 0;
 
     static String freshVar(String prefix) {
-        return STR."\{prefix}_\{varCounter++}";
+        return prefix+"_"+(varCounter++);
     }
 
     record Func(String name, String env, String arg, List<String> stms) {
@@ -97,9 +97,9 @@ class Lambda {
 
     // print out Python-like code, so that it executes without typing...
     static void printFunc(Func f) {
-        System.out.println(STR."def \{f.name}(\{f.env()}, \{f.arg()}):");
+        System.out.println("def "+f.name+"("+f.env()+", "+f.arg()+"}):");
         for (String s : f.stms())
-            System.out.println(STR."\t\{s}");
+            System.out.println("\t"+s);
     }
 
     static void printAllFuncsBeforeClear() {
@@ -121,14 +121,14 @@ class Lambda {
             case Abs(String x, T e1) -> {
                 Func f = freshFunc(x);
                 String closure = freshVar("closure");
-                emit(STR."\{closure} = build_closure(\{f.name()}, \{env})");
+                emit(closure+" = build_closure("+f.name()+", "+env+")");
                 // begin inner function
                 Func oldFunc = currentFunc;
                 currentFunc = f;
                 String newEnv = freshVar("env");
-                emit(STR."\{newEnv} = build_env([\"\{x}\", \{x}], env)");
+                emit(newEnv+" = build_env([\""+x+"\", "+x + "], env)");
                 String r = compile(e1, newEnv);
-                emit(STR."return \{r}");
+                emit("return "+r);
                 // end inner function
                 currentFunc = oldFunc;
                 return closure;
@@ -137,24 +137,24 @@ class Lambda {
                 String x1 = compile(e1, env);
                 String x2 = compile(e2, env);
                 String x = freshVar("x");
-                emit(STR."\{x} = \{x1} + \{x2}");
+                emit(x + " = "+x1+" + "+x2);
                 return x;
             }
             case App(T e1, T e2) -> {
                 String x1 = compile(e1, env);
                 String x2 = compile(e2, env);
                 String x = freshVar("x");
-                emit(STR."\{x} = call_closure(\{x1}, \{x2})");
+                emit(x+" = call_closure("+x1+", "+x2+")");
                 return x;
             }
             case Num(int n) -> {
                 String x = freshVar("x");
-                emit(STR."\{x} = \{n}");
+                emit(x+" = "+n);
                 return x;
             }
             case Var(String y) -> {
                 String x = freshVar("x");
-                emit(STR."\{x} = env_lookup(\{env}, \"\{y}\")");
+                emit(x+" = env_lookup("+env+", \""+y+"\")");
                 return x;
             }
         }
@@ -170,11 +170,11 @@ public class Main {
         Lambda.Func entry = Lambda.freshFunc("x");
         Lambda.currentFunc = entry;
         String r = Lambda.compile(e, "env");
-        Lambda.emit(STR."return \{r}");
+        Lambda.emit("return "+r);
         Lambda.printAllFuncsBeforeClear();
         // generate a "main"
-        System.out.println(STR."if __name__ == \"__main__\":");
-        System.out.println(STR."\tprint(\{entry.name()}(0, 0))");
+        System.out.println("if __name__ == \"__main__\":");
+        System.out.println("\tprint("+entry.name()+"(0, 0))");
         System.out.println("\n");
     }
 

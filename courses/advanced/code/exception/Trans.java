@@ -13,7 +13,7 @@ class Trans{
 
     private static int gLabelCounter = 0;
     private String freshLabel(){
-        return STR."L_\{gLabelCounter++}";
+        return "L_"+(gLabelCounter++);
     }
 
     private void doitStm(Slp.Stm.T stm){

@@ -29,10 +29,10 @@ public class MiniC {
         static void pp(T e) {
             switch (e) {
                 case Bop(String bop, String x, String y) -> {
-                    print(STR."(\{x}) \{bop} (\{y})");
+                    print("("+x+") "+bop+" ("+y+")");
                 }
                 case Call(String f, String x) -> {
-                    print(STR."\{f}(\{x})");
+                    print(f+"("+x+")");
                 }
                 case Num(int n) -> print(n);
                 case Var(String x) -> print(x);
@@ -78,7 +78,7 @@ public class MiniC {
             switch (s) {
                 case Assign(String x, Exp.T e) -> {
                     printSpaces();
-                    print(STR."\{x} = ");
+                    print(x+" = ");
                     Exp.pp(e);
                     print(";\n");
                 }
@@ -86,21 +86,21 @@ public class MiniC {
                         List<Stm.T> then_,
                         List<Stm.T> else_) -> {
                     printSpaces();
-                    print(STR."if(\{x} \{bop} \{y}){\n");
+                    print("if("+x+" "+bop+" "+y+"){\n");
                     indent();
                     ppStms(then_);
                     unindent();
                     printSpaces();
-                    print(STR."}else{\n");
+                    print("}else{\n");
                     indent();
                     ppStms(else_);
                     unindent();
                     printSpaces();
-                    print(STR."}\n");
+                    print("}\n");
                 }
                 case Return(String x) -> {
                     printSpaces();
-                    print(STR."return \{x};\n");
+                    print("return "+x+";\n");
                 }
             }
         }
@@ -122,7 +122,7 @@ public class MiniC {
             switch (f) {
                 case Singleton(String name, String arg, List<Stm.T> stms) -> {
                     printSpaces();
-                    print(STR."\{name}(\{arg}){\n");
+                    print(name+"("+arg+"){\n");
                     indent();
                     Stm.ppStms(stms);
                     unindent();

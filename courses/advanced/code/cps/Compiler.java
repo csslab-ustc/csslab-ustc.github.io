@@ -1,10 +1,8 @@
 // Continuation-pass style
 package cps;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 class FList{
     sealed interface T permits
@@ -37,7 +35,7 @@ class FList{
 public class Compiler {
     private static int varCounter = 0;
     private static String freshVar(String prefix) {
-        return STR."\{prefix}_\{varCounter++}";
+        return prefix+"_"+(varCounter++);
     }
 
 

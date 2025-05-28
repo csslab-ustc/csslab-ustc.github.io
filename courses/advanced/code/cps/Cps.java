@@ -48,13 +48,13 @@ public class Cps {
         static void pp(T e) {
             switch (e) {
                 case Bop(String bop, String x, String y) -> {
-                    print(STR."(\{x}) \{bop} (\{y})");
+                    print("("+x+") "+bop+" ("+y+")");
                 }
                 case Call(String f, String x) -> {
-                    print(STR."\{f}(\{x})");
+                    print(f+"("+x+")");
                 }
                 case Call2(String f, String x, String k) -> {
-                    print(STR."\{f}(\{x}, \{k})");
+                    print(f+"("+x+", "+k+")");
                 }
                 case Num(int n) -> print(n);
                 case Var(String x) -> print(x);
@@ -90,18 +90,18 @@ public class Cps {
             switch (s) {
                 case Assign(String x, Exp.T e) -> {
                     printSpaces();
-                    print(STR."\{x} = ");
+                    print(x+" = ");
                     Exp.pp(e);
                     print("\n");
                 }
                 case If(String bop, String x, String y, List<T> then_, List<T> else_) -> {
                     printSpaces();
-                    print(STR."if \{x} \{bop} \{y}:\n");
+                    print("if "+x+" "+bop+" "+y+":\n");
                     indent();
                     then_.forEach(Stm::pp);
                     unindent();
                     printSpaces();
-                    print(STR."else:\n");
+                    print("else:\n");
                     indent();
                     else_.forEach(Stm::pp);
                     unindent();
@@ -110,14 +110,14 @@ public class Cps {
                              String arg,
                              List<T> stms) ->{
                     printSpaces();
-                    print(STR."def \{name}(\{arg}):\n");
+                    print("def "+name+"("+arg+"):\n");
                     indent();
                     stms.forEach(Stm::pp);
                     unindent();
                 }
                 case Return(String x) -> {
                     printSpaces();
-                    print(STR."return \{x}\n");
+                    print("return "+x+"\n");
                 }
             }
         }
@@ -141,7 +141,7 @@ public class Cps {
                                String k,
                                List<Stm.T> stms) -> {
                     printSpaces();
-                    print(STR."def \{name}(\{arg}, \{k}):\n");
+                    print("def "+name+"("+arg+", "+k+"):\n");
                     indent();
                     stms.forEach(Stm::pp);
                     unindent();

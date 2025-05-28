@@ -16,57 +16,57 @@ class Codegen {
 
     private void emit(String s) {
         try {
-            writer.write(STR."\t\{s}\n");
+            writer.write("\t"+s+"\n");
         } catch (IOException e) {
             throw new AssertionError(e);
         }
     }
 
     private void emitWithTab(String s) {
-        emit(STR."\t\{s}");
+        emit("\t"+s);
     }
 
     private void doitStm(Linear.Stm.T stm) {
         switch (stm) {
             case Linear.Stm.Call(String f) -> {
-                emitWithTab(STR."callq\t\{f}");
+                emitWithTab("callq\t"+f);
             }
             case Linear.Stm.Jmp(String l) -> {
-                emitWithTab(STR."jmp\t\{l}");
+                emitWithTab("jmp\t"+l);
             }
             case Linear.Stm.Label(String l) -> {
-                emit(STR."\{l}:");
+                emit(l+":");
             }
             case Linear.Stm.Print(int n) -> {
-                emitWithTab(STR."movq\t$\{n}, %rdi");
-                emitWithTab(STR."callq\tprint");
+                emitWithTab("movq\t$"+n+", %rdi");
+                emitWithTab("callq\tprint");
             }
             case Linear.Stm.PopExnFrame() -> {
-                emitWithTab(STR."callq\texn_frame_pop");
+                emitWithTab("callq\texn_frame_pop");
             }
             case Linear.Stm.PushExnFrame(String l) -> {
-                emitWithTab(STR."leaq\t\{l}(%rip), %rdi");
-                emitWithTab(STR."callq\texn_frame_push");
+                emitWithTab("leaq\t"+l+"(%rip), %rdi");
+                emitWithTab("callq\texn_frame_push");
             }
             case Linear.Stm.Resume() -> {
-                emitWithTab(STR."callq\texn_frame_pop");
-                emitWithTab(STR."leaq\t\{gFuncName}_name(%rip), %rdi");
-                emitWithTab(STR."callq\tcleanup");
-                emitWithTab(STR."callq\texn_frame_pop");
-                emitWithTab(STR."movq\t%rax, 8(%rbp)");
-                emitWithTab(STR."// restore context");
-                emitWithTab(STR."leave");
-                emitWithTab(STR."ret");
+                emitWithTab("callq\texn_frame_pop");
+                emitWithTab("leaq\t"+gFuncName+"_name(%rip), %rdi");
+                emitWithTab("callq\tcleanup");
+                emitWithTab("callq\texn_frame_pop");
+                emitWithTab("movq\t%rax, 8(%rbp)");
+                emitWithTab("// restore context");
+                emitWithTab("leave");
+                emitWithTab("ret");
             }
             case Linear.Stm.Return() -> {
-                emitWithTab(STR."callq\texn_frame_pop");
-                emitWithTab(STR."// restore context");
-                emitWithTab(STR."leave");
-                emitWithTab(STR."ret");
+                emitWithTab("callq\texn_frame_pop");
+                emitWithTab("// restore context");
+                emitWithTab("leave");
+                emitWithTab("ret");
             }
             case Linear.Stm.Throw() -> {
-                emitWithTab(STR."call throw0");
-                emitWithTab(STR."jmp\t*%rax");
+                emitWithTab("call throw0");
+                emitWithTab("jmp\t*%rax");
             }
         }
     }
@@ -74,19 +74,19 @@ class Codegen {
     private void doitFunc(Linear.Function f) {
         String funName = f.name();
         if (funName.equals("main"))
-            funName = STR."\{funName}0";
+            funName = funName+"0";
         gFuncName = funName;
 
-        emitWithTab(STR.".data");
-        emit(STR."\{funName}_name:");
-        emitWithTab(STR.".string \"\{funName}\"");
+        emitWithTab(".data");
+        emit(funName+"_name:");
+        emitWithTab(".string "+"\""+funName+"\"");
 
-        emitWithTab(STR.".text");
-        emitWithTab(STR.".globl \{funName}");
-        emit(STR."\{funName}:");
+        emitWithTab(".text");
+        emitWithTab(".globl "+funName);
+        emit(funName+":");
         // prologue
-        emitWithTab(STR."pushq\t%rbp");
-        emitWithTab(STR."movq\t%rsp, %rbp");
+        emitWithTab("pushq\t%rbp");
+        emitWithTab("movq\t%rsp, %rbp");
         f.stms().forEach(this::doitStm);
         // should have "return" in its body
     }
@@ -97,18 +97,18 @@ class Codegen {
             prog.funcs().forEach(this::doitFunc);
 
             // a main function
-            emitWithTab(STR.".globl main");
-            emit(STR."main:");
+            emitWithTab(".globl main");
+            emit("main:");
             // prologue
-            emitWithTab(STR."pushq\t%rbp");
-            emitWithTab(STR."movq\t%rsp, %rbp");
-            emitWithTab(STR."leaq\ttopHandler(%rip), %rdi");
-            emitWithTab(STR."callq\texn_frame_push");
-            emitWithTab(STR."callq\tmain0");
-            emitWithTab(STR."callq\texn_frame_pop");
-            emitWithTab(STR."leave");
-            emitWithTab(STR."ret");
-            emitWithTab(STR."\n");
+            emitWithTab("pushq\t%rbp");
+            emitWithTab("movq\t%rsp, %rbp");
+            emitWithTab("leaq\ttopHandler(%rip), %rdi");
+            emitWithTab("callq\texn_frame_push");
+            emitWithTab("callq\tmain0");
+            emitWithTab("callq\texn_frame_pop");
+            emitWithTab("leave");
+            emitWithTab("ret");
+            emitWithTab("\n");
 
             writer.write("\t.section .note.GNU-stack\n");
         }

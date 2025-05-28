@@ -1,76 +1,64 @@
+		.data
+	f_name:
+		.string "f"
+		.text
 		.globl f
 	f:
 		pushq	%rbp
 		movq	%rsp, %rbp
 	L_10:
-		leaq L_11(%rip), %rdi
+		leaq	L_11(%rip), %rdi
 		callq	exn_frame_push
-		movq $9, %rdi
-		callq print
+		movq	$9, %rdi
+		callq	print
 		call throw0
 		jmp	*%rax
-		callq	 exn_frame_pop
-		// select the normal return
-		movq	8(%rbp), %rax
-		movq	%rax, 16(%rbp)
-		movq	(%rbp), %rax
-		movq	%rax, 8(%rbp)
-		addq	$8, %rbp
+		callq	exn_frame_pop
 		// restore context
 		leave
 		ret
 	L_11:
-		callq	 exn_frame_pop
-		// select the exn return
-		movq	(%rbp), %rax
+		callq	exn_frame_pop
+		leaq	f_name(%rip), %rdi
+		callq	cleanup
+		callq	exn_frame_pop
 		movq	%rax, 8(%rbp)
-		addq	$8, %rbp
 		// restore context
 		leave
 		ret
+		.data
+	main0_name:
+		.string "main0"
+		.text
 		.globl main0
 	main0:
 		pushq	%rbp
 		movq	%rsp, %rbp
 	L_12:
-		leaq L_13(%rip), %rdi
+		leaq	L_13(%rip), %rdi
 		callq	exn_frame_push
 	L_14:
-		leaq L_15(%rip), %rdi
+		leaq	L_15(%rip), %rdi
 		callq	exn_frame_push
-		leaq	L_18(%rip), %rax
-		pushq	%rax
-		leaq	L_17(%rip), %rax
-		pushq	%rax
-		jmp	f
-	L_18:
-		call try_handle
-		jmp	*%rax
-	L_17:
-		callq	 exn_frame_pop
+		callq	f
+		callq	exn_frame_pop
 		jmp	L_16
 	L_15:
-		callq	 exn_frame_pop
-		movq $4, %rdi
-		callq print
+		callq	exn_frame_pop
+		movq	$4, %rdi
+		callq	print
 		jmp	L_16
 	L_16:
-		callq	 exn_frame_pop
-		// select the normal return
-		movq	8(%rbp), %rax
-		movq	%rax, 16(%rbp)
-		movq	(%rbp), %rax
-		movq	%rax, 8(%rbp)
-		addq	$8, %rbp
+		callq	exn_frame_pop
 		// restore context
 		leave
 		ret
 	L_13:
-		callq	 exn_frame_pop
-		// select the exn return
-		movq	(%rbp), %rax
+		callq	exn_frame_pop
+		leaq	main0_name(%rip), %rdi
+		callq	cleanup
+		callq	exn_frame_pop
 		movq	%rax, 8(%rbp)
-		addq	$8, %rbp
 		// restore context
 		leave
 		ret
@@ -78,9 +66,10 @@
 	main:
 		pushq	%rbp
 		movq	%rsp, %rbp
-		leaq	topHandler(%rip), %rax
-		pushq	%rax
+		leaq	topHandler(%rip), %rdi
+		callq	exn_frame_push
 		callq	main0
+		callq	exn_frame_pop
 		leave
 		ret
 		

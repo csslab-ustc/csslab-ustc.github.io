@@ -1,7 +1,6 @@
 package exception;
 
 import java.util.List;
-import java.util.Stack;
 
 // linear code:
 // p -> f*
@@ -58,25 +57,25 @@ class Linear {
     private static void ppStm(Stm.T stm) {
         switch (stm) {
             case Stm.Call(String f) -> {
-                System.out.println(STR."\tcall \{f}()");
+                System.out.println("\tcall "+f+"()");
             }
-            case Stm.Jmp(String label) -> System.out.println(STR."\tjmp \{label}");
+            case Stm.Jmp(String label) -> System.out.println("\tjmp "+label);
             case Stm.Label(String label) -> {
-                System.out.println(STR."\{label}:");
+                System.out.println(label+":");
             }
-            case Stm.PopExnFrame() -> System.out.println(STR."\tpop_exn_frame");
-            case Stm.PushExnFrame(String f) -> System.out.println(STR."\tpush_exn_frame(\{f})");
+            case Stm.PopExnFrame() -> System.out.println("\tpop_exn_frame");
+            case Stm.PushExnFrame(String f) -> System.out.println("\tpush_exn_frame("+f+")");
             case Stm.Print(int n) -> {
-                System.out.println(STR."\tprint(\{n})");
+                System.out.println("\tprint("+n+")");
             }
-            case Stm.Resume() -> System.out.println(STR."\tresume");
-            case Stm.Return() -> System.out.println(STR."\treturn");
-            case Stm.Throw() -> System.out.println(STR."\tthrow");
+            case Stm.Resume() -> System.out.println("\tresume");
+            case Stm.Return() -> System.out.println("\treturn");
+            case Stm.Throw() -> System.out.println("\tthrow");
         }
     }
 
     private static void ppFunc(Function f) {
-        System.out.println(STR."fun \{f.name()}():");
+        System.out.println("fun "+f.name+"()}():");
         f.stms().forEach(Linear::ppStm);
     }
 

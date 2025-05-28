@@ -69,10 +69,10 @@ class Slp {
     private static void ppStm(Stm.T s){
         switch (s){
             case Stm.Call(String f) -> {
-                indentPrintln(STR."\{f}()");
+                indentPrintln(f+"()");
             }
             case Stm.Print(int n) -> {
-                indentPrintln(STR."print(\{n})");
+                indentPrintln("print("+n+")");
             }
             case Stm.Throw() -> {
                 indentPrintln("throw");
@@ -95,7 +95,7 @@ class Slp {
     }
 
     private static void ppFunc(Function f){
-        indentPrintln(STR."// The SLP code:\n\{f.name()}(){");
+        indentPrintln("// The SLP code:\n"+f.name+"(){");
         indent();
         f.stms().forEach(Slp::ppStm);
         unindent();
