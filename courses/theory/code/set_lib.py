@@ -1,6 +1,5 @@
-import sys
 import time
-from typing import List, Optional, Set
+from typing import List, Set
 
 
 DEBUG = False
@@ -40,6 +39,9 @@ def print_sets(all_sets: List[Set[int]]) -> None:
     print(f"power set numbers: {len(all_sets)}")
 
 if __name__ == "__main__":
+    '''
+    some sample code
+    '''
     # create some sets
     set1: Set[int] = {1, 2, 3}
     set2: Set[int] = {2, 3, 4}
@@ -53,6 +55,7 @@ if __name__ == "__main__":
     set4 = set1.intersection(set2)
     print(set4)
 
+    ''' power set '''
     the_power_set: List[Set[int]] = powerset({1})
     print_sets(the_power_set)
     the_power_set = powerset({1, 2, 3})

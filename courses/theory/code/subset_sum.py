@@ -1,6 +1,6 @@
-import time
-from set_lib import powerset
 from typing import Optional, Set
+from set_lib import powerset
+
 
 # the subset sum problem
 def subset_sum(the_set: Set[int]) -> Optional[Set[int]]:
