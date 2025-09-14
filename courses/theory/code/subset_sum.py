@@ -1,33 +1,31 @@
 import time
-from set_lib import powerset, print_sets
+from set_lib import powerset
 from typing import Optional, Set
 
 # the subset sum problem
 def subset_sum(the_set: Set[int]) -> Optional[Set[int]]:
-    all_sets = powerset(the_set)
-    for cur_set in all_sets:
-        if len(cur_set) !=0 and sum(cur_set) == 0:
-            return cur_set
+    the_power_set = powerset(the_set)
+    for each_set in the_power_set:
+        if len(each_set) !=0 and sum(each_set) == 0:
+            return each_set
     return None
 
-if __name__ == "__main__":
-    sets = powerset({1})
-    print_sets(sets)
-    sets = powerset({1, 2, 3})
-    print_sets(sets)
-    sets = powerset({i for i in range(20)})
-    print_sets(sets)
-
-    # may be too slow to run... :-(
-    # sets = powerset([i for i in range(50)])
-    # print_sets(sets)
-
-    # subset sum
-    r = subset_sum({2, 3, 8, -5})
-    if r is None:
+def print_solution(solution: Optional[Set[int]]) -> None:
+    if solution is None:
         print("no solution")
     else:
-        print(r)
+        print(f"found a solution: {solution}")
+
+if __name__ == "__main__":
+    r = subset_sum({2, 3, 8, -5})
+    print_solution(r)
+
+    # a challenging problem
+    the_set = {i for i in range(1, 20)}
+    the_set.add(-1)
+    r = subset_sum(the_set)
+    print_solution(r)
+
 
 
 

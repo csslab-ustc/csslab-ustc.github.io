@@ -5,18 +5,6 @@ from typing import List, Optional, Set
 
 DEBUG = False
 
-# create some sets
-set1: Set[int] = {1, 2, 3}
-set2: Set[int] = {2, 3, 4}
-print(set1)
-print(set2)
-
-# set operations
-set3: Set[int] = set1.union(set2)
-print(set3)
-
-set4 = set1.intersection(set2)
-print(set4)
 
 # return: the powerset, and the number of sets in the power set.
 def powerset0(the_set: Set[int]) -> List[Set[int]]:
@@ -52,6 +40,19 @@ def print_sets(all_sets: List[Set[int]]) -> None:
     print(f"power set numbers: {len(all_sets)}")
 
 if __name__ == "__main__":
+    # create some sets
+    set1: Set[int] = {1, 2, 3}
+    set2: Set[int] = {2, 3, 4}
+    print(set1)
+    print(set2)
+
+    # set operations
+    set3: Set[int] = set1.union(set2)
+    print(set3)
+
+    set4 = set1.intersection(set2)
+    print(set4)
+
     the_power_set: List[Set[int]] = powerset({1})
     print_sets(the_power_set)
     the_power_set = powerset({1, 2, 3})
