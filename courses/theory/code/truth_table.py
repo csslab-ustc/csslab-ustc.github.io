@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, List, Set, Any
 
-DEBUG = False
+DEBUG = True
 
 '''
 The definitions of propositions.
@@ -12,6 +12,7 @@ class Prop:
     @dataclass
     class T:
         pass
+
     @dataclass
     class TrueLiteral(T):
         pass
@@ -32,6 +33,15 @@ class Prop:
     class Or(T):
         props: List[Any]
 
+    @dataclass
+    class Implies(T):
+        antecedent: Any
+        consequent: Any
+
+    @dataclass
+    class Not(T):
+        theProp: Any
+
     def print(self: T):
         match self:
             case Prop.TrueLiteral():
@@ -45,13 +55,30 @@ class Prop:
                 return
             case Prop.And(ps):
                 print("/\\[", end="")
-                for p in ps:
-                    Prop.print(p)
+                for i in range(len(ps) - 1):
+                    Prop.print(ps[i])
                     print(", ", end="")
+                Prop.print(ps[len(ps) - 1])
                 print("]")
                 return
             case Prop.Or(ps):
-                print(f"{ps}", end="")
+                print("\\/[", end="")
+                for i in range(len(ps)-1):
+                    Prop.print(ps[i])
+                    print(", ", end="")
+                Prop.print(ps[len(ps)-1])
+                print("]")
+                return
+            case Prop.Implies(a, c):
+                Prop.print(a)
+                print("->", end="")
+                Prop.print(c)
+                print("")
+                return
+            case Prop.Not(a):
+                print("!", end="")
+                Prop.print(a)
+                print("")
                 return
         raise ValueError
 
@@ -73,7 +100,7 @@ class Table:
     @dataclass
     class Cons(T):
         var: str
-        value: Prop
+        value: Prop.T
         tail: Any
 
     def insert(self: T, x: str, p: Prop.T) -> T:
@@ -101,29 +128,44 @@ class Table:
                 case Table.Cons(y, q, tail):
                    print(f"{y} -> ", end="")
                    Prop.print(q)
-                   print(", ", end="")
+                   match tail:
+                        case Table.Empty():
+                            pass
+                        case Table.Cons():
+                            print(", ", end="")
                    print0(tail)
         print0(self)
         print("]", end=" ")
 
 
-# take as input a proposition, calculates and return the
+# take as input a proposition, calculates and returns the
 # set of variables in it.
 def collectVars(p: Prop.T):
     theSet = set()
-    def collect0(p: Prop.T, s: Set[str]):
+    def collect0(p: Prop.T):
         match p:
             case Prop.TrueLiteral(), Prop.FalseLiteral():
                 return
             case Prop.Var(x):
-                s.add(x)
+                theSet.add(x)
+                return
             case Prop.And(props):
                 for q in props:
-                    collect0(q, s)
+                    collect0(q)
+                return
             case Prop.Or(props):
                 for q in props:
-                    collect0(q, s)
-    collect0(p, theSet)
+                    collect0(q)
+                return
+            case Prop.Implies(a, c):
+                collect0(a)
+                collect0(c)
+                return
+            case Prop.Not(p):
+                collect0(p)
+                return
+        raise ValueError
+    collect0(p)
     return theSet
 
 
@@ -147,11 +189,25 @@ def evaluate(p: Prop.T, table: Table.T):
                     case Prop.TrueLiteral():
                         return r
             return Prop.FalseLiteral()
+        case Prop.Implies(a, c):
+            ra = evaluate(a, table)
+            rc = evaluate(c, table)
+            match ra:
+                case Prop.TrueLiteral():
+                    return rc
+            return Prop.TrueLiteral()
+        case Prop.Not(p):
+            rp = evaluate(p, table)
+            match rp:
+                case Prop.TrueLiteral():
+                    return Prop.FalseLiteral()
+            return Prop.TrueLiteral()
     raise ValueError
 
 def dispatch(theSet: Set[str], p: Prop.T, table: Table.T):
         if len(theSet) == 0:
-            Table.print(table)
+            if DEBUG:
+                Table.print(table)
             r = evaluate(p, table)
             Prop.print(r)
             print("")
@@ -169,11 +225,36 @@ def prove(p: Prop.T):
 
 if __name__ == "__main__":
     # x /\ y
-    prop1 = Prop.And([Prop.Var("x"), Prop.Var("y")])
-    print(prop1)
-    Prop.print(prop1)
-    varSet = collectVars(prop1)
-    prove(prop1)
+    prop: Prop.T = Prop.And([Prop.Var("x"), Prop.Var("y")])
+    Prop.print(prop)
+    prove(prop)
+
+    # x \/ y
+    prop: Prop.T = Prop.Or([Prop.Var("x"), Prop.Var("y")])
+    Prop.print(prop)
+    prove(prop)
+
+    # !x
+    prop: Prop.T = Prop.Not(Prop.Var("x"))
+    Prop.print(prop)
+    prove(prop)
+
+    # x -> x
+    prop: Prop.T = Prop.Implies(Prop.Var("x"), Prop.Var("x"))
+    Prop.print(prop)
+    prove(prop)
+
+    # p -> q -> p
+    prop: Prop.T = Prop.Implies(Prop.Var("p"),
+                                Prop.Implies(Prop.Var("q"), Prop.Var("p")))
+    Prop.print(prop)
+    prove(prop)
+
+    # a large one:
+    N: int = 20  # you may want to change this to an even larger one
+    prop: Prop.T = Prop.And([Prop.Var(f"x_{x}") for x in range(0, 20)])
+    Prop.print(prop)
+    prove(prop)
 
 
 
