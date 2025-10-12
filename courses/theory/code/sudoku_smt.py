@@ -91,7 +91,7 @@ def the_printer():
         if sem.acquire(blocking=True, timeout=1):
             sem.release()
             break
-        print("...", end="")
+        print("...", end="", flush=True)
 
 def sudoku_smt(box_size: int):
     global board
@@ -119,7 +119,7 @@ def sudoku_smt(box_size: int):
     if result == sat:
         model = solver.model()
         # print the solution, prettily
-        print(f"a solution is:")
+        print(f"\na solution is:")
         for i in range(board_size):
             for j in range(board_size):
                 value = model.eval(board[i][j])
