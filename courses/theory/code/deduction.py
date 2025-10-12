@@ -1,6 +1,6 @@
 from z3 import *
 
-debug: bool = True
+DEBUG: bool = True
 
 ########################################
 # This is the example we discussed in the lecture.
@@ -11,18 +11,17 @@ debug: bool = True
 
 
 """
-# We can encode and reason using predicates,
-# in three steps:
-# 1) declare sorts;
-# 2) encode the predicates as propositions; and
-# 3) kick Z3 to check the propositions.
+# We can encode and reason using predicates, in three steps:
+#   1) declare sorts;
+#   2) encode the predicates as propositions (boolean-valued functions); and
+#   3) kick Z3 to check the propositions.
 """
 
-# Step 1: declare new sorts in Z3 using "DeclareSort"
-# think "sort" as "structures" in C or "class" in Java
+# Step #1: declare new sorts in Z3 using "DeclareSort"
+# think "sort" as "structures" in C or "class" in Python/C++/Java
 person_sort = DeclareSort('person_sort')
 
-# represent predicates using boolean-valued functions in Z3
+# Step #2: declare predicates using boolean-valued functions in Z3
 is_student = Function('is_student', person_sort, BoolSort())
 learn_logic = Function('learn_logic', person_sort, BoolSort())
 
@@ -97,7 +96,7 @@ prove(Implies(rules, vector_n_template(0) == vector_n_template(k*k*k-k*k*k-1)))
 
 
 ########################################
-# part III: deduction for axiomatic systems:
+# part III: deduction with axiomatic systems:
 
 """
 ------------------(r0)
