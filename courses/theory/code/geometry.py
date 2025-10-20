@@ -1,9 +1,75 @@
+from enum import Enum
+import functools
+import threading
+import time
 from typing import Callable
+import cupy as cp
 
 import matplotlib.pyplot as plt
 from z3 import *
 
+# https://towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e/
+the_target = "gpu"
+indent = []
 
+def trace(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def traced(*args):
+        global indent
+        for x in indent:
+            print("\t", end="")
+        indent.append(0)
+        print(args[0], "starting:")
+        start = time.time()
+        func(*args)
+        end = time.time()
+        indent.pop(0)
+        for x in indent:
+            print("\t", end="")
+        print(args[0], "finished in: ", end - start, " seconds")
+
+        return
+
+    return traced
+
+def judge(xs, ys, predicate):
+    xs_result = []
+    ys_result = []
+    # on multi-core CPUs
+    if the_target == "threaded":
+      all_threads = []
+      # print("len(xs)", len(xs))
+      for x in xs:
+          class DrawThread(threading.Thread):
+              def __init__(self, _x):
+                  super().__init__()
+                  self.x = _x
+                  self.xs = []
+                  self.ys = []
+
+              def run(self):
+                  for y in ys:
+                      if predicate(self.x, y):
+                          # print("try to record ", self.x, y)
+                          self.xs.append(x)
+                          self.ys.append(y)
+
+          thread = DrawThread(x)
+          all_threads.append(thread)
+          thread.start()
+      for t in all_threads:
+          t.join()
+          # print(t.xs, t.ys)
+          for x in t.xs:
+              xs_result.append(x)
+          for x in t.ys:
+              ys_result.append(x)
+    # on GPUs
+    elif the_target == "gpu":
+      pass
+    return xs_result, ys_result
+
+@trace
 def draw(name: str,
          x_min: int,
          x_max: int,
@@ -21,17 +87,11 @@ def draw(name: str,
     while r <= y_max:
         ys.append(r)
         r += stride
-    x_result = []
-    y_result = []
     # x-axis and y-axis
     plt.plot(xs, [0 for x in xs], label="x-axis", linestyle="--")
     plt.plot([0 for x in ys], ys, label="y-axis", linestyle="--")
-    for x in xs:
-        for y in ys:
-            if predicate(x, y):
-                x_result.append(x)
-                y_result.append(y)
-    plt.scatter(x_result, y_result, label=name, s=3)
+    xs_result, ys_result = judge(xs, ys, predicate)
+    plt.scatter(xs_result, ys_result, label=name, s=3)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.legend()
@@ -45,7 +105,8 @@ def float_eq(f_1, f_2):
     return False
 
 
-if __name__ == "__main__":
+@trace
+def draw_all(name: str):
     draw("line",
          -10,
          10,
@@ -53,34 +114,8 @@ if __name__ == "__main__":
          10,
          1e-2,
          lambda x, y: float_eq(2 * x + 3 - y, 0))
-    draw("sin",
-         -10,
-         10,
-         -2,
-         2,
-         1e-2,
-         lambda x, y: float_eq(math.sin(x) - y, 0))
-    draw("cos",
-         -10,
-         10,
-         -2,
-         2,
-         1e-2,
-         lambda x, y: float_eq(math.cos(x) - y, 0))
-    draw("exp",
-         -10,
-         10,
-         -10,
-         10,
-         1e-2,
-         lambda x, y: float_eq(math.exp(x) - y, 0))
-    draw("sigmoid",
-         -10,
-         10,
-         -2,
-         2,
-         1e-2,
-         lambda x, y: float_eq(1 / (1 + math.exp(-x)) - y, 0))
+    ### some conic sections
+    # 圆
     draw("circle",
          -10,
          10,
@@ -88,6 +123,7 @@ if __name__ == "__main__":
          10,
          1e-2,
          lambda x, y: float_eq(math.pow(x, 2) + math.pow(y, 2) - 5, 0))
+    # 椭圆
     draw("ellipse",
          -10,
          10,
@@ -95,30 +131,56 @@ if __name__ == "__main__":
          10,
          1e-2,
          lambda x, y: float_eq(math.pow(x, 2) / 4 + math.pow(y, 2) / 2 - 5, 0))
+    # 抛物线
+    draw("parabola",
+         -10,
+         10,
+         -10,
+         10,
+         1e-2,
+         lambda x, y: float_eq(x * 4 - math.pow(y, 2), 0))
+    # 双曲线
+    draw("hyperbola",
+         -10,
+         10,
+         -10,
+         10,
+         1e-2,
+         lambda x, y: float_eq(math.pow(x, 2) / 4 - math.pow(y, 2) / 2 - 1, 0))
+
     '''
+    # 椭圆曲线
     Elliptic curves (general form):
     y^2 = x^3 + ax + b
     here we draw some elliptic curves for different combination of the
     coefficients a and b:
     '''
     for a in range(-2, 3, 1):
-      for b in range(-2, 3, 1):
-        draw(f"elliptic_curve_a={a}_b={b}",
-          -10,
-          10,
-          -10,
-          10,
-          1e-2,
-          lambda x, y: float_eq(math.pow(x, 3) + a*x + b -math.pow(y, 2), 0))
-    draw(f"format",
-          -10,
-          10,
-          -10,
-          10,
-          1e-3,
-          lambda x, y: float_eq(math.pow(x, 3) + math.pow(y, 3) - 1, 0))
+        for b in range(-2, 3, 1):
+            draw(f"elliptic_curve_y^2=x^3+{a}x+{b}",
+                 -10,
+                 10,
+                 -10,
+                 10,
+                 1e-2,
+                 lambda x, y: float_eq(
+                     math.pow(x, 3) + a * x + b - math.pow(y, 2), 0))
+    # 费马曲线
+    for a in range(2, 6):
+        draw(f"format_x^{a}+y^{a}=1",
+             -10,
+             10,
+             -10,
+             10,
+             1e-2,
+             lambda x, y: float_eq(math.pow(x, a) + math.pow(y, a) - 1,
+                                   0))
 
-    #     # try constraint solving with Z3
+
+if __name__ == "__main__":
+    draw_all("all")
+
+    # try constraint solving with Z3
     #     solver = Solver()
     #     x, y = Reals('x y')
     #     solver.add(x**3+a*x +b -y**2==0)
@@ -127,7 +189,6 @@ if __name__ == "__main__":
     #       print(f"y^2=x^3+{a}x+{b}", solver.model())
     #     else:
     #       print("unsat")
-
 
     # we can try another way to draw figures
     # by leveraging a solver:
@@ -164,7 +225,3 @@ if __name__ == "__main__":
     # plt.legend()
     # plt.savefig("sat")
     # plt.close()
-
-
-
-
