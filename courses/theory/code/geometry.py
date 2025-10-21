@@ -1,15 +1,20 @@
-from enum import Enum
 import functools
 import threading
 import time
 from typing import Callable
-import cupy as cp
-
+from ctypes import *
 import matplotlib.pyplot as plt
 from z3 import *
 
-# https://towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e/
-the_target = "gpu"
+### it seems that cupy does not support the lastest Python (i.e., 3.15)
+### so that we have to write it from scratch
+# from cupy import cp
+
+# so_file = "/tmp/gpu.so"
+# c_functions = CDLL(so_file)
+# inc_ptr = c_functions.ptr
+
+the_target = "cpu"
 indent = []
 
 def trace(func: Callable) -> Callable:
@@ -19,55 +24,74 @@ def trace(func: Callable) -> Callable:
         for x in indent:
             print("\t", end="")
         indent.append(0)
-        print(args[0], "starting:")
+        print(f"{args[0]} starting:")
         start = time.time()
         func(*args)
         end = time.time()
         indent.pop(0)
         for x in indent:
             print("\t", end="")
-        print(args[0], "finished in: ", end - start, " seconds")
-
+        print(f"{args[0]} finished in: {end - start} seconds")
         return
 
     return traced
 
-def judge(xs, ys, predicate):
+
+def judge(name: str, xs, ys, predicate):
     xs_result = []
     ys_result = []
+    # on single-core CPUs
+    if the_target == "cpu":
+        for x in xs:
+            for y in ys:
+                if predicate(x, y):
+                    xs_result.append(x)
+                    ys_result.append(y)
     # on multi-core CPUs
-    if the_target == "threaded":
-      all_threads = []
-      # print("len(xs)", len(xs))
-      for x in xs:
-          class DrawThread(threading.Thread):
-              def __init__(self, _x):
-                  super().__init__()
-                  self.x = _x
-                  self.xs = []
-                  self.ys = []
+    elif the_target == "threaded":
+        all_threads = []
+        for x in xs:
+            class DrawThread(threading.Thread):
+                def __init__(self, _x):
+                    super().__init__()
+                    self.x = _x
+                    self.xs = []
+                    self.ys = []
 
-              def run(self):
-                  for y in ys:
-                      if predicate(self.x, y):
-                          # print("try to record ", self.x, y)
-                          self.xs.append(x)
-                          self.ys.append(y)
+                def run(self):
+                    for y in ys:
+                        if predicate(self.x, y):
+                            self.xs.append(x)
+                            self.ys.append(y)
 
-          thread = DrawThread(x)
-          all_threads.append(thread)
-          thread.start()
-      for t in all_threads:
-          t.join()
-          # print(t.xs, t.ys)
-          for x in t.xs:
-              xs_result.append(x)
-          for x in t.ys:
-              ys_result.append(x)
+            thread = DrawThread(x)
+            all_threads.append(thread)
+            thread.start()
+        for t in all_threads:
+            t.join()
+            for x in t.xs:
+                xs_result.append(x)
+            for x in t.ys:
+                ys_result.append(x)
     # on GPUs
     elif the_target == "gpu":
-      pass
+        xs_size = len(xs)
+        ys_size = len(ys)
+        xs_argtype = c_float * xs_size
+        ys_argtype = c_float * ys_size
+        inc_ptr.argtypes = (c_char_p, c_int, c_int, xs_argtype, ys_argtype, c_float,)
+        restype = POINTER(c_int)
+        inc_ptr.restype = restype
+        ret = inc_ptr(bytes(name, "utf-8"), xs_size, ys_size, xs_argtype(*xs), ys_argtype(*ys), 1e-2)
+        for i in range(0, xs_size):
+            for j in range(0, ys_size):
+                if ret[i * ys_size + j] == 1:
+                    xs_result.append(xs[i])
+                    ys_result.append(ys[j])
+    else:
+        print("unsupported arch")
     return xs_result, ys_result
+
 
 @trace
 def draw(name: str,
@@ -90,12 +114,12 @@ def draw(name: str,
     # x-axis and y-axis
     plt.plot(xs, [0 for x in xs], label="x-axis", linestyle="--")
     plt.plot([0 for x in ys], ys, label="y-axis", linestyle="--")
-    xs_result, ys_result = judge(xs, ys, predicate)
+    xs_result, ys_result = judge(name, xs, ys, predicate)
     plt.scatter(xs_result, ys_result, label=name, s=3)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.legend()
-    plt.savefig(name)
+    plt.savefig(name + "_" + the_target)
     plt.close()
 
 
@@ -107,6 +131,13 @@ def float_eq(f_1, f_2):
 
 @trace
 def draw_all(name: str):
+    draw("line",
+         -10,
+         10,
+         -10,
+         10,
+         1e-2,
+         lambda x, y: float_eq(2 * x + 3 - y, 0))
     draw("line",
          -10,
          10,
@@ -165,8 +196,13 @@ def draw_all(name: str):
                  1e-2,
                  lambda x, y: float_eq(
                      math.pow(x, 3) + a * x + b - math.pow(y, 2), 0))
-    # 费马曲线
-    for a in range(2, 6):
+    '''
+    费马曲线
+    General form:
+    x^n + y^n = 1
+    where x, y \\in \\mathbb{Q}.
+    '''
+    for a in range(2, 10):
         draw(f"format_x^{a}+y^{a}=1",
              -10,
              10,
