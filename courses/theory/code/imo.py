@@ -1,6 +1,6 @@
 import threading
 import time
-from math import floor
+from enum import Enum
 from typing import List, Tuple
 
 from z3 import *
@@ -52,7 +52,7 @@ def imo_1960_p2():
     t = Int('t', ctx=ctx)
     solver.add(a>=1, b>=0, c>=0)
     solver.add((a*100+b*10+c)==t*11, 
-               t==a*a+b*b+c*c)
+               t==a**2+b**2+c**2)
     loop = True
     num_of_solutions = 0
     while loop:
@@ -143,8 +143,8 @@ def imo_1977_p5():
     a, b = Ints('a b', ctx=ctx)
     q, r = Ints('q r', ctx=ctx)
     solver.add(a>=1, b>=1, q>0, r>=0, r<(a+b))
-    solver.add(a*a+b*b==(a+b)*q+r)
-    solver.add(q*q+r==1977)
+    solver.add(a**2+b**2 == (a+b)*q+r)
+    solver.add(q**2+r == 1977)
     num_of_solutions = 0
     loop = True
     while loop:
@@ -174,8 +174,8 @@ def imo_1981_p3():
     m, n = Ints('m n', ctx=ctx)
     opt.add(m>=1, m<=N)
     opt.add(n>=1, n<=N)
-    opt.add(Or(m*m-m*n-n*n==1, m*m-m*n-n*n==-1))
-    opt.maximize(m*m+n*n)
+    opt.add(Or(m**2-m*n-n**2 == 1, m**2-m*n-n**2==-1))
+    opt.maximize(m**2+n**2)
     res = opt.check()
     if res == sat:
         model = opt.model()
@@ -198,10 +198,11 @@ n是正整数，假设x^3-3xy^2+y^3=n有一组整数解x，y，
 def imo_1982_p4():
     ctx = Context()
     solver = Solver(ctx=ctx)
-    N = 2891
+    # N = 2891
     x, y, n = Ints('x y n', ctx=ctx)
+    # the first part:
     solver.add(n==8)
-    solver.add(x*x*x - 3*x*y*y+y*y*y==n)
+    solver.add(x**3 - 3*x*(y**2) + y**3 == n)
     num_of_solutions = 0
     while True:
         res = solver.check()
@@ -209,13 +210,23 @@ def imo_1982_p4():
             model = solver.model()
             print(model)
 
-            # solver.add(n == model[n])
-            solver.add(x > (model[x]))
+            x_value = model[x].as_long()
+            y_value = model[n].as_long()
+            solver.add(Not(And(x==x_value, y==y_value)))
             num_of_solutions += 1
             if num_of_solutions >= 3:
                 break
         else:
             print('1982, p4: unsat')
+    # the second part:
+    # solver.reset()
+    # solver.add(x**3 - 3*x*(y**2) + y**3 == 2981)
+    # res = solver.check()
+    # if res == sat:
+    #     model = solver.model()
+    #     print(model)
+    # else:
+    #     print('1982, p4: no solution for 2981')
 
 all_problems.append(imo_1982_p4)
 
@@ -232,7 +243,9 @@ def imo_1986_p1():
 
     solver.add(d>=1, x>=1, y>=1, z>=1)
     # solver.add(d<=10000)
-    solver.add(2*d-1==x*x, 5*d-1==y*y, 13*d-1==z*z)
+    solver.add(2*d-1 == x ** 2,
+               5*d-1 == y**2,
+               13*d-1 == z**2)
     res = solver.check()
     if res == sat:
         print(solver.model())
@@ -250,19 +263,20 @@ def imo_1988_p6():
     ctx = Context()
     solver = Solver(ctx=ctx)
     a, b = Ints('a b', ctx=ctx)
-    k, t = Ints('k t', ctx=ctx)
+    k, t, s = Ints('k t s', ctx=ctx)
 
     solver.add(a>=1, b>=1)
-    solver.add(k>=1, t>=1, t<k)
-    solver.add(a*a+b*b==(a*b+1)*k)
-    solver.add(ForAll([t], k!=t*t))
+    solver.add(k>=1, t>=1, t*t<=k)
+    # solver.add(k<=100000)
+    solver.add(a**2 + b**2 == (a*b+1)*k)
+    solver.add(ForAll([t], k != t ** 2))
     res = solver.check()
     if res == sat:
         print(solver.model())
     else:
         print('1988, p6: unsat')
 
-all_problems.append(imo_1988_p6)
+# all_problems.append(imo_1988_p6)
 
 """
 1992, p1.
@@ -277,7 +291,7 @@ def imo_1992_p1():
     t = Int('t', ctx=ctx)
 
     solver.add(a>1, b>a, c>b)
-    solver.add(a*b*c-1==(a-1)*(b-1)*(c-1)*t)
+    solver.add(a*b*c-1 == (a-1)*(b-1)*(c-1)*t)
     num_of_solutions = 0
     loop = True
     while loop:
@@ -305,7 +319,7 @@ def imo_1994_p4():
     m, n, t = Ints('m n t', ctx=ctx)
 
     solver.add(m>=1, n>=1)
-    solver.add(n*n*n+1==(n*m-1)*t)
+    solver.add(n**3+1 == (n*m-1)*t)
     num_of_solutions = 0
     loop = True
     while loop:
@@ -334,7 +348,8 @@ def imo_1996_p4():
 
     solver.add(a>=1, b>=1, s>=1, t>=1)
     solver.add(t <= 2)
-    solver.add(15*a+16*b==s*s, 16*a-15*b==t*t)
+    solver.add(15*a+16*b == s**2,
+               16*a-15*b == t**2)
     res = solver.check()
     if res == sat:
         print(solver.model())
@@ -378,7 +393,7 @@ def imo_2007_p5():
     a, b, t = Ints('a b t', ctx=ctx)
 
     solver.add(a>=1, b>=1, t>=1)
-    solver.add(t*(4*a*b-1)==(4*a*a-1)*(4*a*a-1))
+    solver.add(t*(4*a*b-1) == (4*a**2-1)**2)
     solver.add(a != b)
     res = solver.check()
     if res == sat:
@@ -391,17 +406,21 @@ def imo_2007_p5():
 ###
 # end of problems
 
+class ExecutionMode(Enum):
+    SEQUENTIAL = 1
+    CONCURRENT = 2
 
-should_be_sequential = True
+exc_mode = ExecutionMode.SEQUENTIAL
+
 sem = threading.Semaphore(1)
 
 def wrap(f):
-    if should_be_sequential:
+    if exc_mode == ExecutionMode.SEQUENTIAL:
         sem.acquire()
     print(f"\nsolving {f.__name__} starting ...")
     f()
     print(f"solving {f.__name__} finished")
-    if should_be_sequential:
+    if exc_mode == ExecutionMode.SEQUENTIAL:
         sem.release()
 
 if __name__ == '__main__':
