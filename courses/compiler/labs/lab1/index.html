@@ -276,11 +276,17 @@ Available options:
     respectively, all implementing the interface <code>T</code>:
 </p>
 <pre><code class="language-java">
-    interface sealed T permits B1, B2, ..., Bn {}
-    record B1(...) implements T{...}
-    record B2(...) implements T{...}
-    ...
-    record Bn(...) implements T{...}
+    public sealed interface T
+        permits
+            T.B1,
+            T.B2,
+            ...,
+            T.Bn {
+        record B1(...) implements T{...}
+        record B2(...) implements T{...}
+        ...
+        record Bn(...) implements T{...}
+    }
 </code></pre>
 
 <p>
@@ -355,15 +361,18 @@ Available options:
     an operation <code>op</code> on the type <code>T</code>
     as the following node demonstrated:
 </p>
-<pre><code class="language-java">
+<pre>
+    <code class="language-java">
         void op(T x){
             switch(x){
-                case B1(...) -> {...}
-                case B2(...) -> {...}
+                case T.B1(...) -> {...}
+                case T.B2(...) -> {...}
                 ...
-                case Bn(...) -> {...}
+                case T.Bn(...) -> {...}
             }
-        }</code></pre>
+        }
+    </code>
+</pre>
 <p>
     this code is essentially a case analysis, which
     inspects all possible shapes of the type <code>T</code>
@@ -382,8 +391,9 @@ Available options:
     The output looks like:
     <pre class="output">
         a = 5+3;
-        b = (print(a, a-1, ), 10*a);
-        print(b, )</pre>
+        b = (print(a, a-1), 10*a);
+        print(b)
+    </pre>
     As you may notice, there is a "bug" in the implementation of
     printing the <code>print</code> statement: it will always
     print a redundant <code>,</code> at the end of the argument list.
@@ -423,7 +433,7 @@ Available options:
     In this part, you will write an interpreter for SLP.
     An interpreter runs a given program
     online, that is, it analyzes the program and mimic the
-    execution behaviour of the program.
+    execution behavior of the program.
     As SLP
     has an assignment statement <code>x:=e</code>, so
     the interpreter must have an abstract memory, which keeps
@@ -570,18 +580,14 @@ Available options:
     use some relatively large Java test cases.
     Download this
     <a href="MonsterGen.java">monster generator</a>
-    and compile it:
+    and run it to produce a <code>Monster.java</code> file:
     <pre>
-  $ <kbd>javac MonsterGen.java</kbd>
+  $ <kbd>java MonsterGen.java 100000>Monster.java</kbd>
 </pre>
-    then run it to produce a <code>Monster.java</code> code:
-    <pre>
-  $ <kbd>java MonsterGen 100000>Monster.java</kbd>
-</pre>
-    And run your lexer on <code>Monster.java</code> to determin how
-    long it will take to compile this program?
-    How long does Oracle's <code>javac</code> compiler take
-    compile it?
+    And run your lexer on the generated <code>Monster.java</code> file
+    to investigate how long it takes to compile this program.
+    How long does the official <code>javac</code> compiler take to
+    compile that file?
 </div>
 
 <div class="challenge">
@@ -592,8 +598,8 @@ Available options:
     coarse-grained in that they only record where a
     token starts, but not where it ends.
     Propose a better data
-    structure to represent a position in a fine-grained manner
-    and implement your idea into the compiler.
+    structure to represent the position of a token in a fine-grained manner.
+    And implement your idea into your Tiger compiler.
 </div>
 
 <div class="challenge">
@@ -646,7 +652,7 @@ Available options:
     To this point, your parser should be able to parse all
     MiniJava programs. Remember
     to test your parser thoroughly using
-    the test cases in directory <code>/test</code> as well as your
+    the test cases in directory <code>/benchmark</code> as well as your
     own test cases. Fix any bugs before continuing.
 </p>
 
