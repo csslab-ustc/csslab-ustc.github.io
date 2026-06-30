@@ -1,0 +1,358 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>MiniJava Language Reference Manual</title>
+
+    <link rel="stylesheet" href="./labs.css" type="text/css">
+</head>
+<body>
+
+<h1>MiniJava Language Reference Manual</h1>
+<hr>
+
+
+<p>
+    MiniJava is a subset of Java. The meaning of a MiniJava program is given by its
+    meaning as a Java program. Overloading is not allowed in MiniJava. The MiniJava
+    statement System.out.println( ... ); can only print integers. The MiniJava
+    expression e.length only applies to expressions of type int [].
+</p>
+
+
+<h2>Grammar</h2>
+
+<table style="border:none;border-collapse:collapse;">
+    <tbody style="border:none;">
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline" style="border:none;"><a id="prod1">Program</a></td>
+        <td style="border:none;"align="center" valign="baseline" style="border:none;">::=</td>
+
+        <td style="border:none;"align="left" valign="baseline" style="border:none;"><a
+                href="#prod2">MainClass</a> ( <a
+                href="#prod3">ClassDeclaration</a> )*
+            &lt;EOF&gt;
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod2">MainClass</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline">"class" <a
+                href="#prod4">Identifier</a> "{"
+            "public" "static" "void" "main" "(" "String" "[" "]" <a
+                    href="#prod4">Identifier</a> ")"
+            "{" <a href="#prod5">Statement</a> "}"
+            "}"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod3">ClassDeclaration</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline">"class" <a
+                href="#prod4">Identifier</a> (
+            "extends" <a href=" #prod4">Identifier</a>
+            )? "{" ( <a
+                    href=" #prod6">VarDeclaration</a>
+            )* (
+            <a href=" #prod7">MethodDeclaration</a> )*
+            "}"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod6">VarDeclaration</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod8">Type</a> <a
+                href=" #prod4">Identifier</a> ";"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod7">MethodDeclaration</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+
+        <td style="border:none;"align="left" valign="baseline">"public" <a
+                href=" #prod8">Type</a> <a
+                href=" #prod4">Identifier</a> "(" ( <a
+                href=" #prod8">Type</a> <a
+                href=" #prod4">Identifier</a> ( "," <a
+                href=" #prod8">Type</a> <a
+                href=" #prod4">Identifier</a> )* )?
+            ")" "{" ( <a
+                    href=" #prod6">VarDeclaration</a>
+            )* ( <a href=" #prod5">Statement</a> )*
+            "return" <a href=" #prod9">Expression</a>
+            ";" "}"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod8">Type</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline">"int" "[" "]"</td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"boolean"</td>
+    </tr>
+    <tr style="border:none;">
+
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"int"</td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href="#prod4">Identifier</a></td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a id="prod5">Statement</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+
+        <td style="border:none;"align="left" valign="baseline">"{" ( <a
+                href="#prod5">Statement</a> )* "}"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"if" "(" <a
+                href=" #prod9">Expression</a> ")" <a
+                href=" #prod5">Statement</a> "else" <a
+                href=" #prod5">Statement</a></td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"while" "(" <a
+                href=" #prod9">Expression</a> ")" <a
+                href=" #prod5">Statement</a></td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"System.out.println" "(" <a
+                href="#prod9">Expression</a> ")" ";"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod4">Identifier</a> "=" <a
+                href=" #prod9">Expression</a> ";"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod4">Identifier</a> "[" <a
+                href=" #prod9">Expression</a> "]" "="
+            <a href=" #prod9">Expression</a> ";"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a name="prod9">Expression</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod9">Expression</a> ( "&amp;&amp;"
+            | "&lt;" | "+" | "-" | "*" ) <a
+                    href=" #prod9">Expression</a></td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod9">Expression</a> "[" <a
+                href=" #prod9">Expression</a> "]"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod9">Expression</a> "."
+            "length"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod9">Expression</a> "." <a
+                href=" #prod4">Identifier</a> "(" ( <a
+                href=" #prod9">Expression</a> ( "," <a
+                href=" #prod9">Expression</a> )* )?
+            ")"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">&lt;INTEGER_LITERAL&gt;</td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"true"</td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"false"</td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline"><a
+                href=" #prod4">Identifier</a></td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"this"</td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"new" "int" "[" <a
+                href=" #prod9">Expression</a> "]"
+        </td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"new" <a
+                href=" #prod4">Identifier</a> "(" ")"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"!" <a
+                href=" #prod9">Expression</a></td>
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"></td>
+        <td style="border:none;"align="center" valign="baseline">|</td>
+        <td style="border:none;"align="left" valign="baseline">"(" <a
+                href=" #prod9">Expression</a> ")"
+        </td>
+
+    </tr>
+    <tr style="border:none;">
+        <td style="border:none;"align="right" valign="baseline"><a name="prod4">Identifier</a></td>
+        <td style="border:none;"align="center" valign="baseline">::=</td>
+        <td style="border:none;"align="left" valign="baseline">&lt;IDENTIFIER&gt;</td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Lexical Issues</h2>
+
+<p>
+</p>
+<dl>
+    <dt><strong>Identifiers:</strong></dt>
+
+    <dd>An <i>identifier</i> is a sequence of letters, digits, and underscores,
+        starting with a letter. Uppercase letters are distinguished from lowercase.
+        In this reference manual the symbol <i>id</i> stands for an identifier.
+
+        <p>
+
+        </p></dd>
+    <dt><strong>Integer literals:</strong></dt>
+    <dd>A sequence of decimal digits is an <i>integer constant</i> that denotes
+        the corresponding integer value.
+        In this specification the symbol <i>INTEGER_LITERAL</i> stands for an integer constant.
+
+
+        <p>
+
+        </p></dd>
+    <dt><strong>Binary operators:</strong></dt>
+    <dd>A <i>binary operator</i> is one of
+        <br>
+        <div align="center">
+
+            &amp;&amp; &nbsp;&nbsp;&nbsp; &lt; &nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp; - &nbsp;&nbsp;&nbsp; *
+
+        </div>
+        <br clear="all">
+
+        In this appendix the symbol <i>op</i> stands for a binary operator.
+
+        <p>
+
+        </p></dd>
+    <dt><strong>Comments:</strong></dt>
+    <dd>A comment may appear between any two tokens.
+        There are two forms of comments:
+        one starts with
+        <i>/*, ends with <i>*/, and may be nested;
+            another begins with <i>// and goes to the end of the line.
+
+            </i></i></i></dd>
+</dl>
+
+
+<h2>Sample Program</h2>
+
+<pre>class Factorial{
+    public static void main(String[] a){
+        System.out.println(new Fac().ComputeFac(10));
+    }
+}
+
+class Fac {
+    public int ComputeFac(int num){
+        int num_aux ;
+        if (num &lt; 1)
+            num_aux = 1 ;
+        else
+            num_aux = num * (this.ComputeFac(num-1)) ;
+        return num_aux ;
+    }
+}
+</pre>
+
+
+
+<p>
+    (The original version is in appendix A of Appel and Palsberg's book
+    <a href="http://www.cambridge.org/us/catalogue/catalogue.asp?isbn=052182060x">Modern Compiler Implementation in
+        Java</a>)
+</p>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

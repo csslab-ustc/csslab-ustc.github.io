@@ -16,19 +16,21 @@ public class MonsterGen {
 
         print("""
                 class Monster{
-                    static void main(String[] args){
+                    public static void main(String[] args){
                         System.out.println(new Foo().foo());
                     }
                 }
 
                 class Foo{
                     public int foo(){
-                        int sum = 0;
+                        int sum;
+                        
+                        sum = 0;
                 """);
         for (int i = 0; i < n; i++)
             print("\t\tsum = sum + 1;\n");
-        print("\t\treturn sum;\n");
-        print("\t}\n");
+        print("    return sum;\n");
+        print("  }\n");
         print("}\n\n");
     }
 }
