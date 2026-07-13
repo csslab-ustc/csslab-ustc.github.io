@@ -12,24 +12,25 @@
 
 <h2>Overview</h2>
 <p>
-    In this lab, you will design and implement intermediate
+    In this lab, you will design and implement a control-flow graph (CFG)
+    intermediate
     representations for your <code>Tiger</code> compiler, and lower
-    down MiniJava programs by translating
+    down MiniJava programs to CFG by translating
     the abstract syntax trees to the intermediate representation
     you designed.
 </p>
 <p>
     This lab consists of four parts.
     In part A, you
-    will design and implement a specific intermediate representation:
-    a <a href="https://en.wikipedia.org/wiki/Control_flow_graph">control-flow graph</a>
-    (CFG).
+    will design and implement
+    the <a href="https://en.wikipedia.org/wiki/Control_flow_graph">control-flow graph</a>
+    representation.
     In part B, you will eliminate the object-oriented features
-    in MiniJava by using a prefixing algorithm.
+    in MiniJava by leveraging a prefixing algorithm.
     In part C, you will implement a translator to lower
     down the abstract syntax tree to the control-flow graph.
     Finally, in part D, your will design and implement several
-    classical program analysis and optimizations for CFG.
+    graph-level program analysis and optimizations for CFG.
 </p>
 
 
@@ -77,18 +78,22 @@
     <a href="https://bb.ustc.edu.cn">online teaching system</a>.
 </p>
 
+
+<!-- part A -->
 <hr/>
-<h1>Part A: Control-flow Graph</h1>
+<h2>Part A: Control-flow Graph</h2>
 <p>
     A <a href="https://en.wikipedia.org/wiki/Control_flow_graph">
     control-flow graph</a>
-    (CFG) is a graph-based program intermediate representation
+    (CFG) is a directed graph-based program intermediate representation
     with basic blocks as nodes and control
-    transfers between blocks as edges.
+    transfers between blocks as directed edges.
     A control-flow graph
-    is a good intermediate representation as it makes every aspect
-    of program control- and data-flow properties explicit thus
+    is a good intermediate representation as it makes program control
+    properties explicit thus
     easier to compute.
+    Furthermore, it also provides a foundation for data-flow analysis,
+    as we will examine in lab7.
     As a result, in modern compilers, CFGs serve as not only
     carriers for compiler optimizations, but also backbones
     for more advanced intermediate representations such as
@@ -97,34 +102,22 @@
 
 <h3>Data Structures</h3>
 <p>
-    In this part of the lab, you will first design
-    data structures defining the control-flow
-    graph.
+    In this part of the lab, you will first design and implement
+    data structures defining the control-flow graph.
 </p>
 
 <div class="required">
     <span class="header">Exercise 1.</span>
     Read the code in <code>cfg/Cfg.java</code>, make sure you understand
     the Java code defining CFG data structures we offered you.
-    Your job is to extend the CFG
-    data structure to support all language
-    features of MiniJava. You can work iteratively, that is,
-    you can continue to the subsequent
-    exercises, and go back to extend the CFG data structure when necessary.
+    Your job is to fill in the missing code in the various <code>pp</code>
+    methods.
 </div>
 <p>
-    To inspect the generated data structure, you might compile the test
-    case we provide. For example,
-    you can compile the test case <code>test/SumRec.java</code> to
-    inspect the generated CFG:
-</p>
-
-<pre>
-    $ <kbd>java --enable-preview -cp ./bin Tiger -builtin SumRec.java
-    -trace cfg.Translate.doitProgram</kbd></pre>
-<p>
     It is often important to measure the sizes of
-    the generated CFG, which reflects the memory occupation.
+    the generated CFG, which are useful to estimate
+    the resource occupation including memory footprint
+    as well as compilation time.
     For example, after you have implemented
     a compiler optimization to shrink the target CFG,
     you can evaluate the effectiveness of your
@@ -134,26 +127,25 @@
 
 <div class="required">
     <span class="header">Exercise 2.</span>
-    Write a <code>size()</code> method for each syntactic
-    category in the file
+    Finish the <code>size()</code> methods in the file
     <code>cfg/Cfg.java</code>, to measure the size of the CFG
     in terms of the numbers of functions,
     basic blocks, and statements. The output might
-    consist of a list of triples &lt;methodNam, nBlock, nStms&gt;.
-    For example, the following output
+    consist of a list of triples &lt;numMethods, numBlocks, numStms&gt;,
+    like the following output
     <pre class="output">&lt;#methods, #blocks, #statements>
 ---------------------------------
 <"f1", 5,  300>
 <"g",  30, 400>
 ...
 ---------------------------------
-subtotal 140, 25000</pre>
-    specifies the method <code>f1</code> has
+subtotal: 10, 140, 25000</pre>
+    This output specifies that the method <code>f1</code> has
     5 basic blocks and 300 statements, whereas the method
     <code>g</code> has 30 basic blocks and 400 statements, and
     so on.
-    In a summary, the program has 140 basic blocks
-    with 25,000 statements.
+    In a summary, the program comprises 10 methods, 140 basic blocks, and
+    25,000 statements.
 </div>
 
 <h3>Graph Visualization</h3>
@@ -293,6 +285,18 @@ subtotal 140, 25000</pre>
     <code>doitExp()</code>, to translate a given method, statement, and
     expression to its corresponding CFG representation, respectively.
 </div>
+
+<p>
+    To inspect the generated data structure, you might compile the test
+    case we provide. For example,
+    you can compile the test case <code>test/SumRec.java</code> to
+    inspect the generated CFG:
+</p>
+
+<pre>
+    $ <kbd>java -cp ./build/libs/tiger-1.0.jar Tiger
+    -trace cfg.Translate.doitProgram &lt;program></kbd>
+</pre>
 
 <p>
     Do not forget to test your Tiger compiler using
