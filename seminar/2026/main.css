@@ -1,0 +1,68 @@
+/* Seminar 2025 - Heterogeneous Programming */
+
+/* Table Styles */
+.seminar-table {
+	border: solid 1px black;
+	border-collapse: collapse;
+	width: auto;
+	margin-top: 20px;
+}
+
+.seminar-table th {
+	border: 1px solid black;
+	padding: 10px;
+	background-color: #4a5568;
+	color: white;
+	font-weight: 600;
+	text-align: left;
+}
+
+.seminar-table td {
+	border: 1px solid black;
+	padding: 8px;
+	transition: background-color 0.3s ease;
+}
+
+.seminar-table tbody tr:nth-child(odd):not(.part-header) {
+	background-color: #ffffff;
+}
+
+.seminar-table tbody tr:nth-child(even):not(.part-header) {
+	background-color: #f7f8fa;
+}
+
+.seminar-table tr.part-header {
+	background-color: #d1d9e0 !important;
+	color: #2d3748;
+	font-weight: bold;
+}
+
+.seminar-table tr.part-header td {
+	border-color: #a0aec0;
+}
+
+.seminar-table tr:hover:not(:first-child):not(.part-header) {
+	background-color: #edf2f7;
+	transform: scale(1.002);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.seminar-table tr.part-header:hover {
+	background-color: #c1cbd6 !important;
+	cursor: pointer;
+}
+
+/* Link Styles */
+.seminar-table a {
+	color: #2980b9;
+	text-decoration: none;
+	transition: color 0.2s ease;
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.seminar-table a:hover {
+	color: #3498db;
+	text-decoration: underline;
+	background-color: rgba(52, 152, 219, 0.1);
+}
