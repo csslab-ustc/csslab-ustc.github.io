@@ -12,36 +12,49 @@ def myadd(x: int, y: int)-> int:
         case 1234567890: return y     # a bug!
         case _: return x + y
 
-# we write properties that the addition function should satisfy.
-# the first property specifies that addition function
-# satisfies the law of communatativity:
-def add_prop_comm(f: Callable[[int, int], int], x: int, y: int):
+# we write properties that the function being tested should satisfy.
+# the first property (P1) specifies that the target function should be closed:
+def prop_closed(f: Callable[[int, int], int], x: int, y: int):
+    assert type(f(x, y)) is int
+
+# the second property (P2) specifies that the target function 
+# has an identify element (left and right):
+def prop_unit_element(f: Callable[[int, int], int], x: int, unit: int):
+    assert f(unit, x) == x and f(x, unit) == x
+
+# the third property (P3) specifies that the target function 
+# gives an inverse element -x (left and right), for each element x:
+def prop_inverse(f: Callable[[int, int], int], x: int, inverse: int, unit: int):
+    assert f(x, inverse) == unit and f(inverse, x) == unit
+
+# the fourth property (P4) specifies that the target function 
+# should be associative:
+def prop_assoc(f: Callable[[int, int], int], x: int, y: int, z: int):
+    assert f(f(x, y), z) == f(x, f(y, z))
+
+# note that the aforementioned four properties specifiy that 
+# the set (Z, +) is essentially a group.
+
+# the fifth property (P5) specifies that the target function 
+# should be communicative:
+def prop_comm(f: Callable[[int, int], int], x: int, y: int):
     assert f(x, y) == f(y, x)
 
-# the second property specifies that addition function 
-# has a right identify element of "zero":
-def add_prop_left_identify(f: Callable[[int, int], int], x: int, y: int):
-    assert f(0, x) == x
+# note that the extra fifth properties specifiy that 
+# the set (Z, +) is essentially an Abelian group.
 
-# the third property specifies that addition function 
-# has a right identify element of "zero":
-def add_prop_right_identify(f: Callable[[int, int], int], x: int, y: int):
-    assert f(x, 0) == x
 
-# the fourth property specifies that addition function 
-# gives an inverse element -x, for each x:
-def add_prop_inverse(f: Callable[[int, int], int], x: int, y: int):
-    assert f(x, -x) == 0
-
-# we write generators to generate random numbers, 
+# we write generators to generate random numbers according to
+# the given strategy, 
 # which are further leveraged to test the aforementioned properties:
-@given(st.integers(), st.integers())
+@given(st.integers(), st.integers(), st.integers())
 @settings(max_examples=10000)
-def test_add(x: int, y: int):
-    add_prop_comm(myadd, x, y)
-    add_prop_left_identify(myadd, x, y)
-    add_prop_right_identify(myadd, x, y)
-    add_prop_inverse(myadd, x, y)
+def test_add(x: int, y: int, z: int):
+    prop_closed(myadd, x, y)
+    prop_unit_element(myadd, x, 0)
+    prop_inverse(myadd, x, -x, 0)
+    prop_assoc(myadd, x, y, z)
+    prop_comm(myadd, x, y)
 
 
 # another target function to be tested, 
