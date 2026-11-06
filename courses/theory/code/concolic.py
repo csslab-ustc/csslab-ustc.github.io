@@ -1,3 +1,6 @@
+# Roughly based on the idea in this paper:
+# https://hoheinzollern.wordpress.com/wp-content/uploads/2008/04/seer1.pdf
+
 from dataclasses import dataclass
 import random
 from typing import List, Tuple
