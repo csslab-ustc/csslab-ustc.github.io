@@ -1,5 +1,3 @@
-/* Seminar 2025 - Heterogeneous Programming */
-
 /* Table Styles */
 .seminar-table {
 	border: solid 1px black;
@@ -65,4 +63,8 @@
 	color: #3498db;
 	text-decoration: underline;
 	background-color: rgba(52, 152, 219, 0.1);
+}
+
+.main-container{
+	width: 800px;
 }
